@@ -1,0 +1,114 @@
+//#Mixins
+
+//#Media Queries
+  $breakpoints: (
+    'tiny':     ( max-width:  320px ),
+    'small':    ( min-width:  360px ),
+    'medium':   ( min-width:  480px ),
+    'xmedium':  ( min-width:  720px ),
+    'large':    ( min-width:  960px ),
+    'xlarge':   ( min-width: 1200px ),
+    'xxlarge':  ( min-width: 1400px ),
+    'xxxlarge': ( min-width: 1900px )
+  );
+
+  @mixin bp($name) {
+    @if map-has-key($breakpoints, $name) {
+      @media #{inspect(map-get($breakpoints, $name))} {
+        @content;
+      }
+    }
+    @else {
+      @warn "Couldn't find a breakpoint named `#{$name}`.";
+    }
+  }
+
+//#Transitions
+  @mixin transition-delay($time){
+    -webkit-transition-delay: $time;
+    -moz-transition-delay: $time;
+    -ms-transition-delay: $time;
+    -o-transition-delay: $time;
+    transition-delay: $time;
+  }
+
+  @mixin transition($property, $time) {
+    -webkit-transition: $property $time cubic-bezier(.4,0,1,1);
+    -moz-transition: $property $time cubic-bezier(.4,0,1,1);
+    -o-transition: $property $time cubic-bezier(.4,0,1,1);
+    transition: $property $time cubic-bezier(.4,0,1,1);
+  }
+
+  @mixin transitionEaseOut($property, $time) {
+    -webkit-transition: $property $time cubic-bezier(0.19, 1, 0.22, 1);
+    -moz-transition: $property $time cubic-bezier(0.19, 1, 0.22, 1);
+    -o-transition: $property $time cubic-bezier(0.19, 1, 0.22, 1);
+    transition: $property $time cubic-bezier(0.19, 1, 0.22, 1);
+  }
+
+//#BEMy
+  @mixin element($name) {
+    @at-root #{&}__#{$name} {
+      @content;
+    }
+  }
+
+  @mixin modifier($name) {
+    @at-root #{&}--#{$name} {
+      @content;
+    }
+  }
+
+//@import url('https://fonts.googleapis.com/css?family=Playfair+Display|Raleway');
+
+$color-white:         #fff;
+$color-black:         #444;
+$color-primary:       #444;
+$color-secondary:     #ED2224;
+
+$border:              1px solid rgba(0,0,0,0.2);
+$border-transparent:  1px solid transparent;
+$border-red:          1px solid #ED2224;
+$border-white:        1px solid #fff;
+$border-black:        1px solid #000;
+
+$font-primary:        Helvetica, Arial, sans-serif;
+
+html, body {
+  width: 100%;
+  font-display: optional;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0 auto;
+  background: #333;
+  color: #fff;
+  font-size: 14px;
+  margin: 0 auto;
+  font-family: $font-primary;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6{
+  line-height: 1.25;
+  font-weight: 100;
+}
+
+h1 { font-size: 36px; }
+h2 { font-size: 24px; }
+h3 { font-size: 22px; }
+h4 { font-size: 18px; }
+h5 { font-size: 16px; }
+h6 { font-size: 14px; }
+
+@include bp(xlarge){
+  h1 { font-size: 48px; }
+  h2 { font-size: 36px; }
+  h3 { font-size: 24px; }
+}
