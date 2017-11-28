@@ -27,14 +27,17 @@ const StyledLabel = styled.h3`
   letter-spacing: 2px;
   font-weight: 400;
 `;
+const StyledPlaylistActions = styled.div``
 const StyledButton = styled.a`
   opacity: .6;
   cursor: pointer;
   transition: all .3s ease;
+  margin-left: 20px;
   &:hover{
     opacity: 1;
   }
 `;
+
 
 const Playlist = (props) => {
 
@@ -44,26 +47,43 @@ const Playlist = (props) => {
   
   const videoItems = props.playlistVideos.map((video) => { 
     
-    const currentVideoNumber = props.playlistVideos.indexOf(video);
+    const currentVideoNumber = props.playlistVideos.indexOf(video);    
+    
 
-    console.log(`playlist length ${props.playlistVideos.length}`);
-
-    console.log(`Current video number: ${currentVideoNumber}`);
-
+    //Set Next Video in the list.
     const nextVideoNumber = currentVideoNumber !== props.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
-
+    
     const nextVideo = props.playlistVideos[nextVideoNumber];
+    const nextVideoId = typeof nextVideo.id !== 'undefined' ? nextVideo.id.videoId : nextVideo.videoID;
+    const nextVideoTitle = typeof nextVideo.snippet !== 'undefined' ? nextVideo.snippet.title : nextVideo.videoTitle;
+    const nextVideoChannel = typeof video.snippet !== 'undefined' ? nextVideo.snippet.channelTitle : nextVideo.videoChannel;
 
-    console.log(`Next video number: ${nextVideoNumber}`);
+    video.nextVideo = nextVideo;
+    video.nextVideoId = nextVideoId;
+    video.nextVideoTitle = nextVideoTitle;
+    video.nextVideoChannel = nextVideoChannel;
+
+    //Set Previous Video in the list.
+    const previousVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : props.playlistVideos.length - 1;
+    
+    const previousVideo = props.playlistVideos[previousVideoNumber];
+    const previousVideoId = typeof previousVideo.id !== 'undefined' ? previousVideo.id.videoId : previousVideo.videoID;
+    const previousVideoTitle = typeof previousVideo.snippet !== 'undefined' ? previousVideo.snippet.title : previousVideo.videoTitle;
+    const previousVideoChannel = typeof video.snippet !== 'undefined' ? previousVideo.snippet.channelTitle : previousVideo.videoChannel;
+
+    video.previousVideo = previousVideo;
+    video.previousVideoId = previousVideoId;
+    video.previousVideoTitle = previousVideoTitle;
+    video.previousVideoChannel = previousVideoChannel;
 
     return (
       <VideoItem
+        currentVideoId = {props.videoId}
         inSearchResults={true}
         key={video.videoEtag}
         video={video}
-        nextVideo={nextVideo}
-        videoTitle={video.videoTitle}
         videoEtag={video.videoEtag}
+        videoTitle={video.videoTitle}
         videoId={video.videoID}
         videoChannel={video.videoChannel}
         item={props.selectedPlaylist}
@@ -85,7 +105,10 @@ const Playlist = (props) => {
           <h1>{props.selectedPlaylist.playlistName}</h1>
           <StyledLabel>{batchSize} Videos in this playlist</StyledLabel>
         </StyledPlaylistInfo>
-        <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
+        <StyledPlaylistActions>
+          <StyledButton onClick={() => props.toggleEditPlaylistPopup()}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
+          <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
+        </StyledPlaylistActions>
       </StyledHeader>
       {videoItems}
     </VideoListContainer>

@@ -40,6 +40,11 @@ const StyledAditionalOptions = styled.div`
 const StyledButton = styled.a`
   cursor: pointer;
   padding: 0 10px;
+  opacity: 0.6;
+  transition: all .3s ease;
+  &:hover{
+    opacity: 1;
+  }
 `
 const VideoTitle = styled.p`
   display: block;
@@ -54,7 +59,7 @@ const Label = styled.span`
   margin-right: 20px;
 `;
 
-const PlayerControls = ({togglePlay, playerIsPlaying, videoTitle, videoChannel}) => {
+const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsPlaying, videoTitle, videoChannel, nextVideoId, previousVideoId}) => {
 
   let button = null;
 
@@ -75,19 +80,19 @@ const PlayerControls = ({togglePlay, playerIsPlaying, videoTitle, videoChannel})
         }
       </StyledSongInfo>
       <StyledPlayerControls>
-        <StyledButton>
+        <StyledButton onClick={() => previousVideoId !== null && playPreviousVideo()}>
           <MaterialIcon icon="skip_previous" color='#fff' />
         </StyledButton>
-        <StyledButton onClick={() => togglePlay()}>
+        <StyledButton onClick={() => videoTitle !== null && togglePlay()}>
           {button}
         </StyledButton>
-        <StyledButton>
+        <StyledButton onClick={() => nextVideoId !== null && playNextVideo()}>
           <MaterialIcon icon="skip_next" color='#fff' />
         </StyledButton>
       </StyledPlayerControls>
       <StyledAditionalOptions>
-        <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton>
-        <StyledButton><MaterialIcon icon="add" color='#fff' /></StyledButton>
+        {/* <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton>
+        <StyledButton><MaterialIcon icon="add" color='#fff' /></StyledButton> */}
       </StyledAditionalOptions>
     </StyledPlayerContainer>
   );

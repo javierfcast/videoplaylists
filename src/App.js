@@ -13,6 +13,7 @@ import Sidenav from './components/sidenav';
 import PlayerControls from './components/player_controls';
 //import Modal from './components/modal';
 import VideoPlayer from './components/video_player';
+import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
 import Playlist from './components/playlist';
 
@@ -27,6 +28,8 @@ const StyledContainer = styled.div`
   background: linear-gradient(45deg, rgba(175,1,198,0.65) 0%,rgba(68,70,181,0.73) 52%,rgba(74,0,114,0.8) 100%);
   transition: all, .5s ease;
   transition-delay: .5s;
+  height: 100vh;
+  overflow: hidden;
   ${props => props.playerIsOpen && `
     opacity: 0;
   `}
@@ -49,6 +52,7 @@ const StyledMain = styled.div`
   left: 240px;
   position: relative;
   height: calc(100vh - 60px);
+  overflow: auto;
 `;
 
 const StyledListsContainer = styled.div`
@@ -69,17 +73,31 @@ class App extends Component {
       //Player States
       playerIsOpen: false,
       playerIsPlaying: false,
-      video: null,
       player: null,
-      nextVideo: null,
+      //Previous Video States
       previousVideo: null,
+      previousVideoId: null,
+      previousVideoTitle: null,
+      previousVideoChannel: null,
+      //current Video States
+      video: null,
+      videoEtag: null,
+      videoId: null,
+      videoTitle:  null,
+      videoChannel: null,
+      //nextVideo States
+      nextVideo: null,
+      nextVideoId: null,
+      nextVideoTitle: null,
+      nextVideoChannel: null,
+      //Edit Playlist Popup
+      editPlaylistPopupIsOpen: false,
+      addingNewPlaylist: false,
+      playlistName: '',
+      playlistSlug: '',
       //Playlist Popup States
       playlistPopupIsOpen: false,
       videoToBeAdded: null,
-      videoTitle:  null,
-      videoEtag: null,
-      videoId: null,
-      videoChannel: null,
       //Playlist States
       selectedPlaylist: null,
       playlistVideos: [],
@@ -95,17 +113,19 @@ class App extends Component {
       this.setState({ user })
       if (this.state.user){
 
-        const docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
-        const playlistQuery = docRef.where('playlistName', '>=', '');
-  
-        playlistQuery.onSnapshot(querySnapshot => {
+        //Load Playlists
+        let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
+
+        docRef = docRef.orderBy("timestamp", "desc");
+
+        docRef.onSnapshot(querySnapshot => {
           const myPlaylists = [];
           querySnapshot.forEach(function (doc) {
             myPlaylists.push(doc.data());
           });
           this.setState({ myPlaylists })
         });
-      }
+      };
     });
   };
 
@@ -121,11 +141,19 @@ class App extends Component {
     this.setState({ player }) 
   };
 
-  componentWillUpdate(){
+  componentDidUpdate(prevProps, prevState){
+    // if (!this.state.videoId) {
+    //   return null;
+    // }
 
-  };
+    if(this.state.videoId !== prevState.videoId){
+      this.state.player.loadVideoById(this.state.videoId);
+    }
 
-  componentDidUpdate(){
+    if (document.getElementById("input-playlist-popup") !== null) {
+      document.getElementById("input-playlist-popup").focus();
+    }
+
   };
 
   onVideoSearch = (searchTerm) => {
@@ -177,65 +205,114 @@ class App extends Component {
   onPlaylistSelect = (item) => {
     console.log(`Selected: ${item.playlistName}`);
     //const docRef = firebase.firestore().doc(`users/${this.state.user.uid}/playlists/${item.playlistSlugName}/videos`);
-    const docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists').doc(item.playlistSlugName).collection('videos');
-    const playlistQuery = docRef.where('videoID', '>=', '');
+    let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists').doc(item.playlistSlugName).collection('videos');
+    docRef = docRef.orderBy("timestamp");
 
-    playlistQuery.onSnapshot(querySnapshot => {
+    docRef.onSnapshot(querySnapshot => {
       const playlistVideos = [];
       querySnapshot.forEach(function (doc) {
         playlistVideos.push(doc.data());
       });
-      this.setState({ 
+      this.setState({
         playlistVideos: playlistVideos,
         selectedPlaylist: item,
-      })
+        playlistName: item.playlistName,
+        playlistSlug: item.playlistSlugName
+      });
     });
+    
+    // const playlistQuery = docRef.where('videoID', '>=', '');
+    // playlistQuery.onSnapshot(querySnapshot => {
+    //   const playlistVideos = [];
+    //   querySnapshot.forEach(function (doc) {
+    //     playlistVideos.push(doc.data());
+    //   });
+    //   this.setState({ 
+    //     playlistVideos: playlistVideos,
+    //     selectedPlaylist: item,
+    //   })
+    // });
+
   };
 
-  toggleModal = () => {
-    this.setState({
-      modalIsOpen: !this.state.modalIsOpen
-    });
-  };
-
-  togglePlayer = (video, nextVideo) => {
+  togglePlayer = (video) => {
 
     // const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
-    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
-
-    const nextVideoId = typeof nextVideo.id !== 'undefined' ? nextVideo.id.videoId : nextVideo.videoID;
-    const nextVideoTitle = typeof nextVideo.snippet !== 'undefined' ? nextVideo.snippet.title : nextVideo.videoTitle;
+    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;    
 
     this.setState({
       playerIsOpen: true,
+      playerIsPlaying: true,
       video,
+      videoId,
       videoTitle,
       videoChannel,
-      playerIsPlaying: true,
-    })
+    });
+
+    console.log(`[togglePlayer] Currently Playing: ${videoTitle}`);
 
     const player = this.state.player;
 
-    player.loadVideoById(videoId).then(function () {
-      console.log(`${videoId} loaded.`);
-    });
-    
-    player.playVideo().then(function () {
-      console.log(`Starting to play ${videoTitle}.`);
-    });
+    if (typeof video.nextVideo !== 'undefined') {
+      const nextVideo = video.nextVideo;
+      const nextVideoId = video.nextVideoId;
+      const nextVideoTitle = video.nextVideoTitle;
+      const nextVideoChannel = video.nextVideoChannel;
 
-    player.on('stateChange', (event) => {
-      if (event.data === 0) {
-        player.loadVideoById(nextVideoId).then(function () {
-          console.log(`${nextVideoId} loaded.`);
-        });
-        player.playVideo().then(function () {
-          console.log(`Starting to play ${nextVideoTitle}.`);
-        });
-      }
-    });
+      const previousVideo = video.previousVideo;
+      const previousVideoId = video.previousVideoId;
+      const previousVideoTitle = video.previousVideoTitle;
+      const previousVideoChannel = video.previousVideoChannel;
+
+      this.setState({
+        nextVideo,
+        nextVideoId,
+        nextVideoTitle,
+        nextVideoChannel,
+        previousVideo,
+        previousVideoId,
+        previousVideoTitle,
+        previousVideoChannel,
+      })
+
+      console.log(`[togglePlayer] Coming Up Next: ${nextVideoTitle}`);
+
+      player.on('stateChange', (event) => {
+
+        if (event.data === 0) {
+
+          this.setState({
+            video: this.state.nextVideo,
+            videoId: this.state.nextVideoId,
+            videoTitle: this.state.nextVideoTitle,
+            videoChannel: this.state.nextVideoChannel,
+          })
+
+          this.setState(prevState => ({
+            nextVideo: prevState.video.nextVideo,
+            nextVideoId: prevState.video.nextVideoId,
+            nextVideoTitle: prevState.video.nextVideoTitle,
+            nextVideoChannel: prevState.video.nextVideoChannel,
+          }));
+
+          console.log(`[Event Listener] Currently Playing: ${this.state.videoTitle}`)
+          console.log(`[Event Listener] Comming Up Next: ${this.state.nextVideoTitle}`)
+
+        };
+
+      });
+
+    } else {
+      player.on('stateChange', (event) => {
+        if (event.data === 0) {
+          this.setState({
+            playerIsPlaying: !this.state.playerIsPlaying
+          })
+        };
+      });
+    }
     
   };
 
@@ -249,19 +326,90 @@ class App extends Component {
       playerIsPlaying: !this.state.playerIsPlaying
     })
   };
+
+  playNextVideo = () => {
+
+    this.setState(prevState => ({
+      previousVideo: this.state.Video,
+      previousVideoId: this.state.VideoId,
+      previousVideoTitle: this.state.VideoTitle,
+      previousVideoChannel: this.state.VideoChannel,
+      nextVideo: this.state.nextVideo,
+      nextVideoId: this.state.nextVideoId,
+      nextVideoTitle: this.state.nextVideoTitle,
+      nextVideoChannel: this.state.nextVideoChannel,
+    }));
+
+    this.setState(prevState => ({
+      video: prevState.video.nextVideo,
+      videoId: prevState.video.nextVideoId,
+      videoTitle: prevState.video.nextVideoTitle,
+      videoChannel: prevState.video.nextVideoChannel,
+    }));
+
+    console.log(`[Play Next] Currently Playing: ${this.state.videoTitle}`)
+    console.log(`[Play Next] Comming Up Next: ${this.state.nextVideoTitle}`)
+
+  };
+
+  playPreviousVideo = () => {
+    this.setState({
+      previousVideo: this.state.previousVideo,
+      previousVideoId: this.state.previousVideoId,
+      previousVideoTitle: this.state.previousVideoTitle,
+      previousVideoChannel: this.state.previousVideoChannel,
+      nextVideo: this.state.Video,
+      nextVideoId: this.state.VideoId,
+      nextVideoTitle: this.state.VideoTitle,
+      nextVideoChannel: this.state.VideoChannel,
+    })
+
+    this.setState(prevState => ({
+      video: prevState.video.previousVideo,
+      videoId: prevState.video.previousVideoId,
+      videoTitle: prevState.video.previousVideoTitle,
+      videoChannel: prevState.video.previousVideoChannel,
+    }));
+
+    console.log(`[Play Previous] Currently Playing: ${this.state.videoTitle}`)
+    console.log(`[Play Previous] Comming Up Next: ${this.state.nextVideoTitle}`)
+
+  };
   
-  togglePlaylistPopup = (videoToBeAdded, videoTitle, videoEtag, videoId, videoChannel) => {
+  toggleEditPlaylistPopup = (adding) => {
+    if (adding === true) {
+      this.setState({
+        addingNewPlaylist: true,
+        playlistName: '',
+        playlistSlug: '',
+        editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+      });
+    } else {
+      this.setState({
+        addingNewPlaylist: false,
+        editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+      });
+    };
+  };
+
+  togglePlaylistPopup = (videoToBeAdded) => {
     this.setState({
       playlistPopupIsOpen: !this.state.playlistPopupIsOpen
     });
-    this.setState({ videoToBeAdded, videoTitle, videoEtag, videoId, videoChannel })
+    this.setState({ videoToBeAdded })
   };
 
-  onAddToPlaylist = (video, videoTitle, videoEtag, videoId, videoChannel, item) => {
+  onAddToPlaylist = (video, item) => {
     console.log(item.playlistSlugName);
+    const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+    const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
+    const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
+    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;    
+
     const user = this.state.user;
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistSlugName}/videos/${videoId}`);
     docRef.set({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       videoEtag: videoEtag,
       videoID: videoId,
       videoTitle: videoTitle,
@@ -363,6 +511,47 @@ class App extends Component {
 
   };
 
+  slugify = (text) => {
+    return text.toString().toLowerCase()
+      // eslint-disable-next-line 
+      .replace(/\s+/g, '-')           // Replace spaces with -
+      // eslint-disable-next-line 
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+      // eslint-disable-next-line 
+      .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+      .replace(/^-+/, '')             // Trim - from start of text
+      .replace(/-+$/, '');            // Trim - from end of text
+  }
+
+  onEditPlaylistInputChange = (event) => {
+    this.setState({
+      playlistName: event.target.value,
+      playlistSlug: this.slugify(event.target.value)
+    });
+  }
+
+  onAddPlaylist = (event) => {
+    const user = this.state.user;
+    console.log(`User id: ${user.uid}`);
+    console.log(`Previous playlist name: `)
+    console.log(`Previous playlist slug: `)
+    console.log(`playlist name: ${this.state.playlistName}`);
+    console.log(`playlist slug: ${this.state.playlistSlug}`);
+    // const docRef = firestore.collection('users').doc(user.uid).collection('playlists');
+    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${this.state.playlistSlug}`);
+    docRef.set({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      playlistName: this.state.playlistName,
+      playlistSlugName: this.state.playlistSlug
+    }).then(function () {
+      console.log('Playlist saved!');
+    }).catch(function (error) {
+      console.log('Got an error:', error);
+    })
+    this.toggleEditPlaylistPopup();
+    event.preventDefault();
+  }
+
   render() {
 
     const onVideoSearch = _.debounce((searchTerm) => { this.onVideoSearch(searchTerm) }, 300);
@@ -377,6 +566,7 @@ class App extends Component {
               user={this.state.user}
               myPlaylists={this.state.myPlaylists}
               onPlaylistSelect={this.onPlaylistSelect}
+              toggleEditPlaylistPopup={this.toggleEditPlaylistPopup}
             />
           </StyledAside>
           <StyledMain>
@@ -384,24 +574,31 @@ class App extends Component {
             <StyledListsContainer>
               <SearchResults
                 searchResults = {this.state.searchResults} 
+                videoId={this.state.videoId}
                 togglePlayer = {this.togglePlayer}
                 togglePlaylistPopup = {this.togglePlaylistPopup}
               />
               <Playlist 
                 selectedPlaylist={this.state.selectedPlaylist}
                 playlistVideos={this.state.playlistVideos}
+                videoId={this.state.videoId}
                 togglePlayer={this.togglePlayer}
                 togglePlaylistPopup={this.togglePlaylistPopup}
+                toggleEditPlaylistPopup={this.toggleEditPlaylistPopup}
                 onRemoveFromPlaylist={this.onRemoveFromPlaylist}
                 onDeletePlaylist={this.onDeletePlaylist}
               />
             </StyledListsContainer>
           </StyledMain>
           <PlayerControls
+            playPreviousVideo={this.playPreviousVideo}
             togglePlay={this.togglePlay}
+            playNextVideo={this.playNextVideo}
             playerIsPlaying={this.state.playerIsPlaying}
             videoTitle={this.state.videoTitle}
             videoChannel={this.state.videoChannel}
+            nextVideoId={this.state.nextVideoId}
+            previousVideoId={this.state.previousVideoId}
           />
         </StyledContainer>
         <AddToPlaylistPopup 
@@ -414,6 +611,18 @@ class App extends Component {
           onAddToPlaylist={this.onAddToPlaylist}
           onClose={this.togglePlaylistPopup}
           myPlaylists={this.state.myPlaylists}
+        />
+        <EditPlaylistPopup
+          user={this.state.user}
+          open={this.state.editPlaylistPopupIsOpen}
+          onClose={this.toggleEditPlaylistPopup}
+          slugify={this.slugify}
+          onEditPlaylistInputChange={this.onEditPlaylistInputChange}
+          onAddPlaylist={this.onAddPlaylist}
+          playlistName={this.state.playlistName}
+          playlistSlug={this.state.playlistSlug}
+          selectedPlaylist={this.state.selectedPlaylist}
+          addingNewPlaylist={this.state.addingNewPlaylist}
         />
         <VideoPlayer
           video={this.state.video}

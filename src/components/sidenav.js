@@ -1,7 +1,6 @@
-import React, { Component } from 'react';
-import firebase from 'firebase';
-import '@firebase/firestore';
+import React from 'react';
 import styled from 'styled-components';
+import MaterialIcon from 'material-icons-react';
 
 const Aside = styled.div`
   color: #fff;
@@ -24,70 +23,69 @@ const StyledUserName = styled.h4`
   font-weight: 100;
   margin-bottom: 20px;
 `;
+const StyledLanding = styled.div`
+  padding: 40px 20px;
+`;
+const StyledLandingHeading = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 80px;
+`;
+const StyledLandingLogo = styled.div`
+  margin-right: 10px;
+`;
+const StyledLandingTitle = styled.h1`
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: 2px;
+`;
+const StyledLandingDescription = styled.h3`
+  margin-bottom: 80px;
+`;
+const StyledLogin = styled.a`
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: block;
+  padding: 10px 20px;
+  margin-top: 80px;
+  display: block;
+  transition: all .3s ease;
+  &:hover{
+    border: 1px solid rgba(255,255,255,1);
+  }
+`;
 const StyledLogout = styled.a`
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
+  cursor: pointer;
 `;
 const StyledPlaylistContainer = styled.div`
   padding: 20px;
-`;
-const StyledPlaylistForm = styled.form`
-  margin-bottom: 40px;
 `;
 const StyledPlaylistLink = styled.a`
   padding: 10px 0;
   display: block;
   cursor: pointer;
 `;
-const StyledInput = styled.input`
-  border: none;
-  border-bottom: 1px solid rgba(255,255,255,.1);
-  padding: 10px 0;
+const StyledButton = styled.a`
+  height: 40px;
   width: 100%;
-  font-size: 14px;
-  color: #fff;
-  background: none;
+  display: flex;
+  margin-bottom: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.1);
   transition: all .3s ease;
-  &::-webkit-input-placeholder{
-    color: rgba(255,255,255,.6);
-  }
-  &::-moz-placeholder { 
-    color: rgba(255,255,255,.6);
-  }
-  &:-ms-input-placeholder {
-    color: rgba(255,255,255,.6);
-  }
-  &:-moz-placeholder {
-    color: rgba(255,255,255,.6);
-  }
-  &:focus{
-    outline: none;
-    border-bottom: 1px solid rgba(255,255,255,1);
-  }
-`;
-const StyledInputSubmit = styled.input`
-  position: relative;
-  display: block;
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 24px;
-  font-weight: 700;
-  float: right;
-  margin-top: -36px;
   cursor: pointer;
-  z-index: 10;
-  border: 1px solid transparent;
-  transition: all .3s ease;
-  height: 30px;
-  width: 40px;
-  line-height: 1;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
   &:hover{
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  &:focus{
-    outline: none;
     border: 1px solid rgba(255,255,255,1);
   }
 `;
@@ -99,111 +97,53 @@ const StyledTitleLabel = styled.h3`
   margin-bottom: 10px;
 `;
 
-//const Sidenav = ({toggleModal, onLogin, onLogout, onAddPlaylist, user}) => {
-class Sidenav extends Component {
+const Sidenav = ({ toggleEditPlaylistPopup, onPlaylistSelect, myPlaylists, onLogin, onLogout, user}) => {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      playlistName: '',
-      playlistSlug: '',
-      myPlaylists: []
-    };
-
-    this.onInputChange = this.onInputChange.bind(this);
-    this.onAddPlaylist = this.onAddPlaylist.bind(this);
-    this.slugify = this.slugify.bind(this);
-  }
-
-  slugify(text) {
-    return text.toString().toLowerCase()
-    // eslint-disable-next-line 
-    .replace(/\s+/g, '-')           // Replace spaces with -
-    // eslint-disable-next-line 
-    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-    // eslint-disable-next-line 
-    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-    .replace(/^-+/, '')             // Trim - from start of text
-    .replace(/-+$/, '');            // Trim - from end of text
-  }
-
-  onInputChange(event) {
-    this.setState({
-      playlistName: event.target.value,
-      playlistSlug: this.slugify(event.target.value)
-    });
-  }
-
-  onAddPlaylist(event) {
-    const user = this.props.user;
-    console.log(`User id: ${user.uid}`);
-    console.log(`playlist name: ${this.state.playlistName}`);
-    console.log(`playlist slug: ${this.state.playlistSlug}`);
-    // const docRef = firestore.collection('users').doc(user.uid).collection('playlists');
-    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${this.state.playlistSlug}`);
-    docRef.set({
-      playlistName: this.state.playlistName,
-      playlistSlugName: this.state.playlistSlug
-    }).then(function(){
-      console.log('Playlist saved!');
-    }).catch(function(error){
-      console.log('Got an error:', error);
-    })
-    event.preventDefault();
-  }
-
-  render() {
-
-    const PlaylistItem = this.props.myPlaylists.map((item) => {
-      return (
-        <li key = {item.playlistSlugName}>
-          <StyledPlaylistLink onClick={() => this.props.onPlaylistSelect(item)}>{item.playlistName}</StyledPlaylistLink>
-        </li>
-      )
-    });
-
+  const PlaylistItem = myPlaylists.map((item) => {
     return (
-      <Aside>
-        {(this.props.user) ? (
-          <div>
-            <StyledUserInfo>
-              <StyledUserImg width="100" src={this.props.user.photoURL} alt={this.props.user.displayName} />
-              <p>Hola</p>
-              <StyledUserName>{this.props.user.displayName || this.props.user.email}!</StyledUserName>
-              <StyledLogout onClick={this.props.onLogout}>Logout</StyledLogout>
-            </StyledUserInfo>
-            <StyledPlaylistContainer>
-              <StyledPlaylistForm onSubmit={this.onAddPlaylist}>
-                <StyledInput 
-                  placeholder="Add new playlist"
-                  type="text"
-                  value={this.state.playlistName}
-                  onChange={this.onInputChange}
-                  min="1"
-                  required
-                />
-                <StyledInputSubmit
-                  type="submit"
-                  value="+"
-                />
-              </StyledPlaylistForm>
-              <StyledTitleLabel>My Playlists - {this.props.myPlaylists.length}</StyledTitleLabel>
-              <ul>
-                {PlaylistItem}
-              </ul>
-            </StyledPlaylistContainer>
-          </div>
-          ) : (
-          <div>
-            <button onClick={this.props.onLogin}>Log In</button>
-          </div>
-          )
-        }
-
-      </Aside>
+      <li key = {item.playlistSlugName}>
+        <StyledPlaylistLink onClick={() => onPlaylistSelect(item)}>{item.playlistName}</StyledPlaylistLink>
+      </li>
     )
-  }
+  });
 
+  return (
+    <Aside>
+      {(user) ? (
+        <div>
+          <StyledUserInfo>
+            <StyledUserImg width="100" src={user.photoURL} alt={user.displayName} />
+            <p>Hola</p>
+            <StyledUserName>{user.displayName || user.email}!</StyledUserName>
+            <StyledLogout onClick={onLogout}>Logout</StyledLogout>
+          </StyledUserInfo>
+          <StyledPlaylistContainer>
+            <StyledButton onClick={() => toggleEditPlaylistPopup(true)}>
+              <MaterialIcon icon="add" color='#fff' />
+              Add new Playlist
+            </StyledButton>
+            <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
+            <ul>
+              {PlaylistItem}
+            </ul>
+          </StyledPlaylistContainer>
+        </div>
+        ) : (
+        <StyledLanding>
+          <StyledLandingHeading>
+            <StyledLandingLogo>
+              <MaterialIcon icon="playlist_play" color='#fff' size='medium'/>
+            </StyledLandingLogo>
+            <StyledLandingTitle>Video Playlists</StyledLandingTitle>
+          </StyledLandingHeading>
+          <StyledLandingDescription>Create, share and discover great video playlists.</StyledLandingDescription>
+          <StyledLogin onClick={onLogin}>Log In with Google</StyledLogin>
+        </StyledLanding>
+        )
+      }
+
+    </Aside>
+  )
 }
 
 export default Sidenav;

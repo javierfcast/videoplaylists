@@ -13,6 +13,9 @@ const StyledVideoItem = styled.li`
   &:hover{
     background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
   }
+  &.active{
+    background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
+  }
 `;
 const StyledVideoInfo = styled.a`
   cursor: pointer;
@@ -45,24 +48,27 @@ const StyledActionButton = styled.a`
   ${StyledVideoItem}:hover & {
     opacity: 1;
   }
+  ${StyledVideoItem}.active & {
+    opacity: 1;
+  }
 `;
 
 
 
-const VideoItem = ({ video, videoTitle, videoEtag, videoId, videoChannel, nextVideo, item, togglePlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults}) => {
+const VideoItem = ({ video, videoTitle, videoEtag, videoId, videoChannel, item, togglePlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
   
   //If i used (props) i would have to define this variables:
   //const video = props.video;
   //const onVideoPlay = props.onVideoPlay
 
   return(
-    <StyledVideoItem>
-      <StyledVideoInfo onClick={() => togglePlayer(video, nextVideo)}>
+    <StyledVideoItem className={currentVideoId === videoId && 'active'}>
+      <StyledVideoInfo onClick={() => togglePlayer(video)}>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoChannel>{videoChannel}</VideoChannel>
       </StyledVideoInfo>
       <StyledActions>
-        <StyledActionButton onClick={() => togglePlaylistPopup(video, videoTitle, videoEtag, videoId, videoChannel)}>
+        <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
           <MaterialIcon icon="add" color='#fff'/>
         </StyledActionButton>
         {inSearchResults === true &&

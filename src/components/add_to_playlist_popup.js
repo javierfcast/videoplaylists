@@ -71,7 +71,7 @@ const AddToPlaylistPopup = ({video, videoTitle, videoEtag, videoId, videoChannel
   const PlaylistItem = myPlaylists.map((item) => {
     return (
       <li key={item.playlistSlugName}>
-        <StyledLink onClick={() => onAddToPlaylist(video, videoTitle, videoEtag, videoId, videoChannel, item)}>{item.playlistName}</StyledLink>
+        <StyledLink onClick={() => onAddToPlaylist(video, item)}>{item.playlistName}</StyledLink>
       </li>
     )
   });

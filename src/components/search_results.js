@@ -37,6 +37,7 @@ const SearchResults = (props) => {
   const videoItems = props.searchResults.map((video) => {
     return (
       <VideoItem 
+        currentVideoId={props.videoId}
         inSearchResults = {null}
         key = {video.etag} 
         video = {video}
@@ -53,7 +54,7 @@ const SearchResults = (props) => {
 
   return(
     <VideoListContainer>
-      <h1>Search Results:</h1>
+      <h1>Search Results</h1>
       {videoItems}
     </VideoListContainer>
   );
