@@ -97,7 +97,7 @@ const StyledTitleLabel = styled.h3`
   margin-bottom: 10px;
 `;
 
-const Sidenav = ({ toggleEditPlaylistPopup, onPlaylistSelect, myPlaylists, onLogin, onLogout, user}) => {
+const Sidenav = ({ toggleAddPlaylistPopup, onPlaylistSelect, myPlaylists, onLogin, onLogout, user}) => {
 
   const PlaylistItem = myPlaylists.map((item) => {
     return (
@@ -118,7 +118,7 @@ const Sidenav = ({ toggleEditPlaylistPopup, onPlaylistSelect, myPlaylists, onLog
             <StyledLogout onClick={onLogout}>Logout</StyledLogout>
           </StyledUserInfo>
           <StyledPlaylistContainer>
-            <StyledButton onClick={() => toggleEditPlaylistPopup(true)}>
+            <StyledButton onClick={toggleAddPlaylistPopup}>
               <MaterialIcon icon="add" color='#fff' />
               Add new Playlist
             </StyledButton>

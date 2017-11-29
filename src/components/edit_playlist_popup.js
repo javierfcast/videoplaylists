@@ -20,7 +20,6 @@ const StyledTitle = styled.h2`
   margin-bottom: 40px;
   font-size: 18px;
 `;
-const StyledPlaylistForm = styled.form``;
 const StyledInput = styled.input`
   border: none;
   border-bottom: 1px solid rgba(255,255,255,.1);
@@ -68,7 +67,7 @@ const StyledButton = styled.a`
     border: 1px solid rgba(255,255,255,1);
   }
 `;
-const StyledInputSubmit = styled.input`
+const StyledButtonSubmit = styled.a`
   margin-left: 10px;
   margin-top: 40px;
   height: 40px;
@@ -122,7 +121,7 @@ const StyledInputSubmit = styled.input`
   //   this.slugify = this.slugify.bind(this);
 // }
 
-const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onAddPlaylist, playlistName, playlistSlug, selectedPlaylist, addingNewPlaylist}) => {
+const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onAddPlaylist, onEditPlaylist, playlistName, playlistSlug, selectedPlaylist, addingNewPlaylist}) => {
 
   if (!open) {
     return null;
@@ -132,10 +131,10 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
   let callToAction = null;
   if(addingNewPlaylist === true){
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>
-    callToAction = <StyledInputSubmit type="submit" value="Create" />
+    callToAction = <StyledButtonSubmit onClick={onAddPlaylist}>Create</StyledButtonSubmit>
   } else {
     modalTitle = <StyledTitle>Edit playlist</StyledTitle>
-    callToAction = <StyledInputSubmit type="submit" value="Update" />
+    callToAction = <StyledButtonSubmit onClick={onEditPlaylist}>Update</StyledButtonSubmit>
   }
 
     // console.log(this.props.user);
@@ -145,23 +144,21 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
     <StyledPopup>
       <StyledContent>
         {modalTitle}
-        <StyledPlaylistForm onSubmit={onAddPlaylist}>
-          <StyledInput
-            id="input-playlist-popup"
-            placeholder="Playlist Name"
-            type="text"
-            value={playlistName}
-            onChange={onEditPlaylistInputChange}
-            min="1"
-            required
-          />
-          <StyledActions>
-            <StyledButton onClick={onClose}>
-              Cancel
-            </StyledButton>
-            {callToAction}
-          </StyledActions>
-        </StyledPlaylistForm>  
+        <StyledInput
+          id="input-playlist-popup"
+          placeholder="Playlist Name"
+          type="text"
+          value={playlistName}
+          onChange={onEditPlaylistInputChange}
+          min="1"
+          required
+        />
+        <StyledActions>
+          <StyledButton onClick={onClose}>
+            Cancel
+          </StyledButton>
+          {callToAction}
+        </StyledActions>
       </StyledContent>
     </StyledPopup>
   );

@@ -93,6 +93,9 @@ class App extends Component {
       //Edit Playlist Popup
       editPlaylistPopupIsOpen: false,
       addingNewPlaylist: false,
+      previousPlaylistName: '',
+      previousPlaylistSlug: '',
+      playlistId: '',
       playlistName: '',
       playlistSlug: '',
       //Playlist Popup States
@@ -100,6 +103,7 @@ class App extends Component {
       videoToBeAdded: null,
       //Playlist States
       selectedPlaylist: null,
+      currentPlaylistName: null,
       playlistVideos: [],
     }
 
@@ -116,7 +120,7 @@ class App extends Component {
         //Load Playlists
         let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
 
-        docRef = docRef.orderBy("timestamp", "desc");
+        docRef = docRef.orderBy("createdOn", "desc");
 
         docRef.onSnapshot(querySnapshot => {
           const myPlaylists = [];
@@ -205,7 +209,7 @@ class App extends Component {
   onPlaylistSelect = (item) => {
     console.log(`Selected: ${item.playlistName}`);
     //const docRef = firebase.firestore().doc(`users/${this.state.user.uid}/playlists/${item.playlistSlugName}/videos`);
-    let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists').doc(item.playlistSlugName).collection('videos');
+    let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists').doc(item.playlistId).collection('videos');
     docRef = docRef.orderBy("timestamp");
 
     docRef.onSnapshot(querySnapshot => {
@@ -216,6 +220,8 @@ class App extends Component {
       this.setState({
         playlistVideos: playlistVideos,
         selectedPlaylist: item,
+        currentPlaylistName: item.playlistName,
+        playlistId: item.playlistId,
         playlistName: item.playlistName,
         playlistSlug: item.playlistSlugName
       });
@@ -376,20 +382,10 @@ class App extends Component {
 
   };
   
-  toggleEditPlaylistPopup = (adding) => {
-    if (adding === true) {
-      this.setState({
-        addingNewPlaylist: true,
-        playlistName: '',
-        playlistSlug: '',
-        editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
-      });
-    } else {
-      this.setState({
-        addingNewPlaylist: false,
-        editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
-      });
-    };
+  toggleClosePlaylistPopup = () => {
+    this.setState({
+      editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+    });
   };
 
   togglePlaylistPopup = (videoToBeAdded) => {
@@ -401,19 +397,20 @@ class App extends Component {
 
   onAddToPlaylist = (video, item) => {
     console.log(item.playlistSlugName);
+    console.log(item);
     const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;    
 
     const user = this.state.user;
-    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistSlugName}/videos/${videoId}`);
+    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
     docRef.set({
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       videoEtag: videoEtag,
       videoID: videoId,
       videoTitle: videoTitle,
-      videoChannel: videoChannel
+      videoChannel: videoChannel,
     }, {
       merge: true
     }).then(function () {
@@ -431,7 +428,7 @@ class App extends Component {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
 
     const user = this.state.user;
-    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistSlugName}/videos/${videoId}`);
+    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
     
     docRef.delete().then(function () {
       console.log("Document successfully deleted!");
@@ -440,17 +437,102 @@ class App extends Component {
     });
   };
 
+  slugify = (text) => {
+    return text.toString().toLowerCase()
+      // eslint-disable-next-line 
+      .replace(/\s+/g, '-')           // Replace spaces with -
+      // eslint-disable-next-line 
+      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+      // eslint-disable-next-line 
+      .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+      .replace(/^-+/, '')             // Trim - from start of text
+      .replace(/-+$/, '');            // Trim - from end of text
+  }
+
+  onEditPlaylistInputChange = (event) => {
+    this.setState({
+      playlistName: event.target.value,
+      playlistSlug: this.slugify(event.target.value)
+    });
+  }
+
+  toggleAddPlaylistPopup = () => {
+    this.setState({
+      addingNewPlaylist: true,
+      previousPlaylistName: '',
+      previousPlaylistSlug: '',
+      playlistName: '',
+      playlistSlug: '',
+      editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+    });
+  };
+
+  onAddPlaylist = () => {
+    const user = this.state.user;
+    console.log(`User id: ${user.uid}`);
+    console.log(`playlist name: ${this.state.playlistName}`);
+    console.log(`playlist slug: ${this.state.playlistSlug}`);
+    const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
+    // const docRef = firebase.firestore().doc(`users/${user.uid}/playlists`);
+    docRef.add({
+      createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+      playlistName: this.state.playlistName,
+      playlistSlugName: this.state.playlistSlug,
+    }).then(function (docRef) {
+      console.log(`Playlist saved with Id: ${docRef.id}`);
+      docRef.update({
+        playlistId: docRef.id
+      })
+    }).catch(function (error) {
+      console.log('Got an error:', error);
+    })
+    this.toggleClosePlaylistPopup();
+  }
+
+  toggleEditPlaylistPopup = (editing) => {
+    this.setState({
+      previousPlaylistName: editing.playlistName,
+      previousPlaylistSlug: editing.playlistSlugName,
+      playlistId: editing.playlistId,
+      addingNewPlaylist: false,
+      editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+    });
+  };
+
+  onEditPlaylist = () => {
+    const user = this.state.user;
+    console.log(`User id: ${user.uid}`);
+    console.log(`Previous playlist name: ${this.state.previousPlaylistName}`)
+    console.log(`Previous playlist slug: ${this.state.previousPlaylistSlug}`)
+    console.log(`playlist name: ${this.state.playlistName}`);
+    console.log(`playlist slug: ${this.state.playlistSlug}`);
+    // const docRef = firestore.collection('users').doc(user.uid).collection('playlists');
+    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${this.state.playlistId}`);
+    docRef.update({
+      playlistName: this.state.playlistName,
+      playlistSlugName: this.state.playlistSlug
+    }).then(() => {
+      this.setState({
+        currentPlaylistName: this.state.playlistName
+      })
+      console.log('Playlist updated!');
+    }).catch(function (error) {
+      console.log('Got an error:', error);
+    })
+    this.toggleClosePlaylistPopup();
+  }
+
   onDeletePlaylist = (item, batchSize) => {
     const user = this.state.user;
     const db = firebase.firestore();
-    const docRef = db.doc(`users/${user.uid}/playlists/${item.playlistSlugName}`);
-    const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(item.playlistSlugName).collection('videos');
-    
+    const docRef = db.doc(`users/${user.uid}/playlists/${item.playlistId}`);
+    const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
+
     console.log(batchSize);
     console.log(this.state.selectedPlaylist);
 
     if (batchSize !== 0) {
-      
+
       const query = collectionRef.orderBy('__name__').limit(batchSize);
 
       return new Promise((resolve, reject) => {
@@ -476,13 +558,13 @@ class App extends Component {
           if (snapshot.size === 0) {
             return 0;
           }
-  
+
           // Delete documents in a batch
           var batch = db.batch();
           snapshot.docs.forEach(function (doc) {
             batch.delete(doc.ref);
           });
-  
+
           return batch.commit().then(function () {
             return snapshot.size;
           });
@@ -491,7 +573,7 @@ class App extends Component {
             resolve();
             return;
           }
-  
+
           // Recurse on the next process tick, to avoid
           // exploding the stack.
           process.nextTick(function () {
@@ -511,47 +593,6 @@ class App extends Component {
 
   };
 
-  slugify = (text) => {
-    return text.toString().toLowerCase()
-      // eslint-disable-next-line 
-      .replace(/\s+/g, '-')           // Replace spaces with -
-      // eslint-disable-next-line 
-      .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-      // eslint-disable-next-line 
-      .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-      .replace(/^-+/, '')             // Trim - from start of text
-      .replace(/-+$/, '');            // Trim - from end of text
-  }
-
-  onEditPlaylistInputChange = (event) => {
-    this.setState({
-      playlistName: event.target.value,
-      playlistSlug: this.slugify(event.target.value)
-    });
-  }
-
-  onAddPlaylist = (event) => {
-    const user = this.state.user;
-    console.log(`User id: ${user.uid}`);
-    console.log(`Previous playlist name: `)
-    console.log(`Previous playlist slug: `)
-    console.log(`playlist name: ${this.state.playlistName}`);
-    console.log(`playlist slug: ${this.state.playlistSlug}`);
-    // const docRef = firestore.collection('users').doc(user.uid).collection('playlists');
-    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${this.state.playlistSlug}`);
-    docRef.set({
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      playlistName: this.state.playlistName,
-      playlistSlugName: this.state.playlistSlug
-    }).then(function () {
-      console.log('Playlist saved!');
-    }).catch(function (error) {
-      console.log('Got an error:', error);
-    })
-    this.toggleEditPlaylistPopup();
-    event.preventDefault();
-  }
-
   render() {
 
     const onVideoSearch = _.debounce((searchTerm) => { this.onVideoSearch(searchTerm) }, 300);
@@ -566,7 +607,7 @@ class App extends Component {
               user={this.state.user}
               myPlaylists={this.state.myPlaylists}
               onPlaylistSelect={this.onPlaylistSelect}
-              toggleEditPlaylistPopup={this.toggleEditPlaylistPopup}
+              toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
             />
           </StyledAside>
           <StyledMain>
@@ -580,6 +621,8 @@ class App extends Component {
               />
               <Playlist 
                 selectedPlaylist={this.state.selectedPlaylist}
+                currentPlaylistName={this.state.currentPlaylistName}
+                playlistName={this.state.playlistName}
                 playlistVideos={this.state.playlistVideos}
                 videoId={this.state.videoId}
                 togglePlayer={this.togglePlayer}
@@ -619,6 +662,7 @@ class App extends Component {
           slugify={this.slugify}
           onEditPlaylistInputChange={this.onEditPlaylistInputChange}
           onAddPlaylist={this.onAddPlaylist}
+          onEditPlaylist={this.onEditPlaylist}
           playlistName={this.state.playlistName}
           playlistSlug={this.state.playlistSlug}
           selectedPlaylist={this.state.selectedPlaylist}

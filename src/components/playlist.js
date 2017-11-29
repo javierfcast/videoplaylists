@@ -102,11 +102,11 @@ const Playlist = (props) => {
     <VideoListContainer>
       <StyledHeader>
         <StyledPlaylistInfo>
-          <h1>{props.selectedPlaylist.playlistName}</h1>
+          <h1>{props.currentPlaylistName}</h1>
           <StyledLabel>{batchSize} Videos in this playlist</StyledLabel>
         </StyledPlaylistInfo>
         <StyledPlaylistActions>
-          <StyledButton onClick={() => props.toggleEditPlaylistPopup()}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
+          <StyledButton onClick={() => props.toggleEditPlaylistPopup(item)}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
           <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
         </StyledPlaylistActions>
       </StyledHeader>
