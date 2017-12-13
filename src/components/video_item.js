@@ -56,7 +56,7 @@ const StyledActionButton = styled.a`
 
 
 
-const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, item, togglePlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
+const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, item, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
   
   //If i used (props) i would have to define this variables:
   //const video = props.video;
@@ -65,6 +65,24 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
   const AuthorId = typeof item !== 'undefined' ? item.AuthorId : null;
 
   let deleteButton = null;
+
+  let videoTrigger = null;
+
+  if (inSearchResults === true) {
+    videoTrigger = 
+      <StyledVideoInfo onClick={() => toggleSearchPlayer(video)}>
+        <VideoMeta>{videoChannel}</VideoMeta>
+        <VideoItemTitle>{videoTitle}</VideoItemTitle>
+        <VideoMeta>Published: {datePublished}</VideoMeta>
+      </StyledVideoInfo>
+  } else {
+    videoTrigger = 
+      <StyledVideoInfo onClick={() => togglePlayer(video)}>
+        <VideoMeta>{videoChannel}</VideoMeta>
+        <VideoItemTitle>{videoTitle}</VideoItemTitle>
+        <VideoMeta>Published: {datePublished}</VideoMeta>
+      </StyledVideoInfo>
+  }
 
   if (inSearchResults === true || user.uid !== AuthorId) {
     deleteButton = null
@@ -76,11 +94,7 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
 
   return(
     <StyledVideoItem className={currentVideoId === videoId && 'active'}>
-      <StyledVideoInfo onClick={() => togglePlayer(video)}>
-        <VideoMeta>{videoChannel}</VideoMeta>
-        <VideoItemTitle>{videoTitle}</VideoItemTitle>
-        <VideoMeta>Published: {datePublished}</VideoMeta>
-      </StyledVideoInfo>
+      {videoTrigger}
       <StyledActions>
         <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
           <MaterialIcon icon="add" color='#fff'/>

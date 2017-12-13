@@ -86,14 +86,36 @@ const Label = styled.span`
   margin-right: 20px;
 `;
 
-const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsPlaying, video, videoTitle, videoChannel, nextVideoId, previousVideoId}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, video, videoTitle, videoChannel}) => {
 
   let button = null;
+  let previousButton = null;
+  let nextButton = null;
 
   if (playerIsPlaying === true) {
     button = <MaterialIcon icon="pause" color='#fff' />;
   } else {
     button = <MaterialIcon icon="play_arrow" color='#fff' />;
+  }
+
+  if (playingFromSearch === true) {
+    previousButton = 
+      <StyledButton onClick={() => playPreviousSearchVideo(video)}>
+        <MaterialIcon icon="skip_previous" color='#fff' />
+      </StyledButton>
+    nextButton =
+      <StyledButton onClick={() => playNextSearchVideo(video)}>
+        <MaterialIcon icon="skip_next" color='#fff' />
+      </StyledButton>
+  } else {
+    previousButton =
+      <StyledButton onClick={() => playPreviousVideo(video)}>
+        <MaterialIcon icon="skip_previous" color='#fff' />
+      </StyledButton>
+    nextButton =
+      <StyledButton onClick={() => playNextVideo(video)}>
+        <MaterialIcon icon="skip_next" color='#fff' />
+      </StyledButton>
   }
 
   return(
@@ -107,15 +129,11 @@ const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsP
         }
       </StyledSongInfo>
       <StyledPlayerControls>
-        <StyledButton onClick={() => playPreviousVideo(video)}>
-          <MaterialIcon icon="skip_previous" color='#fff' />
-        </StyledButton>
+        {previousButton}
         <StyledButton onClick={() => videoTitle !== null && togglePlay()}>
           {button}
         </StyledButton>
-        <StyledButton onClick={() => playNextVideo(video)}>
-          <MaterialIcon icon="skip_next" color='#fff' />
-        </StyledButton>
+        {nextButton}
       </StyledPlayerControls>
       <StyledAditionalOptions>
         {/* <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton>

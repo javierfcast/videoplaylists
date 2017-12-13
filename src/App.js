@@ -113,6 +113,7 @@ class App extends Component {
       //Player States
       playerIsOpen: false,
       playerIsPlaying: false,
+      playingFromSearch: false,
       player: null,
       //current Video States
       video: null,
@@ -405,9 +406,9 @@ class App extends Component {
   togglePlayer = (video) => {
 
     //Play Selected Video from the playlist
-    const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
-    const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
-    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+    const videoId = video.videoID;
+    const videoTitle = video.videoTitle;
+    const videoChannel = video.videoChannel;
 
     //Set the current video being played.
     let currentVideoNumber = this.state.playlistVideos.indexOf(video);
@@ -416,6 +417,7 @@ class App extends Component {
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
+      playingFromSearch: false,
       video,
       videoId,
       videoTitle,
@@ -427,12 +429,6 @@ class App extends Component {
     if ('looping' === 'looping') {
     
       player.on('stateChange', (event) => {
-
-        // let nextVideoNumber = currentVideoNumber !== playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
-        // let previousVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : playlistVideos.length - 1;
-      
-        // console.log(nextVideoTitle);
-
         
         if (event.data === 0) {
 
@@ -463,6 +459,62 @@ class App extends Component {
     }
     
   };
+
+  toggleSearchPlayer = (video) => {
+    console.log('playing search results');
+    //Play Selected Video from the playlist
+    const videoId = video.id.videoId;
+    const videoTitle = video.snippet.title;
+    const videoChannel = video.snippet.channelTitle;
+
+    //Set the current video being played.
+    let currentVideoNumber = this.state.searchResults.indexOf(video);
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+
+    this.setState({
+      playerIsOpen: true,
+      playerIsPlaying: true,
+      playingFromSearch: true,
+      video,
+      videoId,
+      videoTitle,
+      videoChannel,
+    });
+
+    const player = this.state.player;
+
+    if ('looping' === 'looping') {
+
+      player.on('stateChange', (event) => {
+
+        if (event.data === 0) {
+
+          currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
+
+          console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+
+          let nextVideo = this.state.searchResults[currentVideoNumber];
+
+          this.setState({
+            video: nextVideo,
+            videoId: nextVideo.id.videoId,
+            videoTitle: nextVideo.snippet.title,
+            videoChannel: nextVideo.snippet.channelTitle,
+          })
+
+        };
+
+      });
+    } else {
+      player.on('stateChange', (event) => {
+        if (event.data === 0) {
+          this.setState({
+            playerIsPlaying: !this.state.playerIsPlaying
+          })
+        };
+      });
+    }
+  }
 
   togglePlay = () => {
     if (this.state.playerIsPlaying === true)  {
@@ -530,6 +582,44 @@ class App extends Component {
       videoId: previousVideo.videoID,
       videoTitle: previousVideo.videoTitle,
       videoChannel: previousVideo.videoChannel,
+    })
+
+  };
+
+  playNextSearchVideo = (video) => {
+
+    let currentVideoNumber = this.state.searchResults.indexOf(video);
+
+    currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
+
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+
+    let nextVideo = this.state.searchResults[currentVideoNumber];
+
+    this.setState({
+      video: nextVideo,
+      videoId: nextVideo.id.videoId,
+      videoTitle: nextVideo.snippet.title,
+      videoChannel: nextVideo.snippet.channelTitle,
+    })
+
+  };
+
+  playPreviousSearchVideo = (video) => {
+
+    let currentVideoNumber = this.state.searchResults.indexOf(video);
+
+    currentVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : this.state.searchResults.length - 1;
+
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+
+    let previousVideo = this.state.searchResults[currentVideoNumber];
+
+    this.setState({
+      video: previousVideo,
+      videoId: previousVideo.id.videoId,
+      videoTitle: previousVideo.snippet.title,
+      videoChannel: previousVideo.snippet.channelTitle,
     })
 
   };
@@ -841,6 +931,7 @@ class App extends Component {
                   searchResults = {this.state.searchResults} 
                   videoId={this.state.videoId}
                   togglePlayer = {this.togglePlayer}
+                  toggleSearchPlayer = {this.toggleSearchPlayer}
                   togglePlaylistPopup = {this.togglePlaylistPopup}
                 />
                 <Browse
@@ -871,14 +962,15 @@ class App extends Component {
           </StyledMain>
           <PlayerControls
             playPreviousVideo={this.playPreviousVideo}
+            playPreviousSearchVideo={this.playPreviousSearchVideo}
             togglePlay={this.togglePlay}
             playNextVideo={this.playNextVideo}
+            playNextSearchVideo={this.playNextSearchVideo}
             playerIsPlaying={this.state.playerIsPlaying}
+            playingFromSearch={this.state.playingFromSearch}
             video={this.state.video}
             videoTitle={this.state.videoTitle}
             videoChannel={this.state.videoChannel}
-            nextVideoId={this.state.nextVideoId}
-            previousVideoId={this.state.previousVideoId}
           />
         </StyledContainer>
         <AddToPlaylistPopup 

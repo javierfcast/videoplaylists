@@ -48,6 +48,7 @@ const SearchResults = (props) => {
         videoChannel={video.snippet.channelTitle}
         datePublished={year + '-' + month + '-' + dt}
         togglePlayer = {props.togglePlayer}
+        toggleSearchPlayer={props.toggleSearchPlayer}
         togglePlaylistPopup = {props.togglePlaylistPopup}
         onAddToPlaylist={props.onAddToPlaylist}
       />
