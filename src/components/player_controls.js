@@ -86,7 +86,7 @@ const Label = styled.span`
   margin-right: 20px;
 `;
 
-const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsPlaying, videoTitle, videoChannel, nextVideoId, previousVideoId}) => {
+const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsPlaying, video, videoTitle, videoChannel, nextVideoId, previousVideoId}) => {
 
   let button = null;
 
@@ -107,13 +107,13 @@ const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsP
         }
       </StyledSongInfo>
       <StyledPlayerControls>
-        <StyledButton onClick={() => previousVideoId !== null && playPreviousVideo()}>
+        <StyledButton onClick={() => playPreviousVideo(video)}>
           <MaterialIcon icon="skip_previous" color='#fff' />
         </StyledButton>
         <StyledButton onClick={() => videoTitle !== null && togglePlay()}>
           {button}
         </StyledButton>
-        <StyledButton onClick={() => nextVideoId !== null && playNextVideo()}>
+        <StyledButton onClick={() => playNextVideo(video)}>
           <MaterialIcon icon="skip_next" color='#fff' />
         </StyledButton>
       </StyledPlayerControls>

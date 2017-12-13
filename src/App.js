@@ -114,22 +114,12 @@ class App extends Component {
       playerIsOpen: false,
       playerIsPlaying: false,
       player: null,
-      //Previous Video States
-      previousVideo: null,
-      previousVideoId: null,
-      previousVideoTitle: null,
-      previousVideoChannel: null,
       //current Video States
       video: null,
       videoEtag: null,
       videoId: null,
       videoTitle:  null,
       videoChannel: null,
-      //nextVideo States
-      nextVideo: null,
-      nextVideoId: null,
-      nextVideoTitle: null,
-      nextVideoChannel: null,
       //Edit Playlist Popup
       editPlaylistPopupIsOpen: false,
       addingNewPlaylist: false,
@@ -471,65 +461,6 @@ class App extends Component {
         };
       });
     }
-
-    // if (typeof video.nextVideo !== 'undefined') {
-    //   const nextVideo = video.nextVideo;
-    //   const nextVideoId = video.nextVideoId;
-    //   const nextVideoTitle = video.nextVideoTitle;
-    //   const nextVideoChannel = video.nextVideoChannel;
-
-    //   const previousVideo = video.previousVideo;
-    //   const previousVideoId = video.previousVideoId;
-    //   const previousVideoTitle = video.previousVideoTitle;
-    //   const previousVideoChannel = video.previousVideoChannel;
-
-    //   this.setState({
-    //     nextVideo,
-    //     nextVideoId,
-    //     nextVideoTitle,
-    //     nextVideoChannel,
-    //     previousVideo,
-    //     previousVideoId,
-    //     previousVideoTitle,
-    //     previousVideoChannel,
-    //   })
-
-    //   console.log(`[togglePlayer] Coming Up Next: ${nextVideoTitle}`);
-
-    //   player.on('stateChange', (event) => {
-
-    //     if (event.data === 0) {
-
-    //       this.setState({
-    //         video: this.state.nextVideo,
-    //         videoId: this.state.nextVideoId,
-    //         videoTitle: this.state.nextVideoTitle,
-    //         videoChannel: this.state.nextVideoChannel,
-    //       })
-
-    //       this.setState(prevState => ({
-    //         nextVideo: prevState.video.nextVideo,
-    //         nextVideoId: prevState.video.nextVideoId,
-    //         nextVideoTitle: prevState.video.nextVideoTitle,
-    //         nextVideoChannel: prevState.video.nextVideoChannel,
-    //       }));
-
-    //       console.log(`[Event Listener] Currently Playing: ${this.state.videoTitle}`)
-    //       console.log(`[Event Listener] Comming Up Next: ${this.state.nextVideoTitle}`)
-
-    //     };
-
-    //   });
-
-    // } else {
-    //   player.on('stateChange', (event) => {
-    //     if (event.data === 0) {
-    //       this.setState({
-    //         playerIsPlaying: !this.state.playerIsPlaying
-    //       })
-    //     };
-    //   });
-    // }
     
   };
 
@@ -544,7 +475,7 @@ class App extends Component {
     })
   };
 
-  playNextVideo = () => {
+  playNextVideo = (video) => {
 
     let currentVideoNumber = this.state.playlistVideos.indexOf(video);
 
@@ -584,27 +515,22 @@ class App extends Component {
 
   };
 
-  playPreviousVideo = () => {
+  playPreviousVideo = (video) => {
+
+    let currentVideoNumber = this.state.playlistVideos.indexOf(video);
+
+    currentVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : this.state.playlistVideos.length - 1;
+
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
+
+    let previousVideo = this.state.playlistVideos[currentVideoNumber];
+
     this.setState({
-      previousVideo: this.state.previousVideo,
-      previousVideoId: this.state.previousVideoId,
-      previousVideoTitle: this.state.previousVideoTitle,
-      previousVideoChannel: this.state.previousVideoChannel,
-      nextVideo: this.state.Video,
-      nextVideoId: this.state.VideoId,
-      nextVideoTitle: this.state.VideoTitle,
-      nextVideoChannel: this.state.VideoChannel,
+      video: previousVideo,
+      videoId: previousVideo.videoID,
+      videoTitle: previousVideo.videoTitle,
+      videoChannel: previousVideo.videoChannel,
     })
-
-    this.setState(prevState => ({
-      video: prevState.video.previousVideo,
-      videoId: prevState.video.previousVideoId,
-      videoTitle: prevState.video.previousVideoTitle,
-      videoChannel: prevState.video.previousVideoChannel,
-    }));
-
-    console.log(`[Play Previous] Currently Playing: ${this.state.videoTitle}`)
-    console.log(`[Play Previous] Comming Up Next: ${this.state.nextVideoTitle}`)
 
   };
   
@@ -948,6 +874,7 @@ class App extends Component {
             togglePlay={this.togglePlay}
             playNextVideo={this.playNextVideo}
             playerIsPlaying={this.state.playerIsPlaying}
+            video={this.state.video}
             videoTitle={this.state.videoTitle}
             videoChannel={this.state.videoChannel}
             nextVideoId={this.state.nextVideoId}
