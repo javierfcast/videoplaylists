@@ -23,9 +23,10 @@ const StyledVideoInfo = styled.a`
 const VideoItemTitle = styled.span`
   display: block;
   width: 100%;
+  margin-top: 10px;
   margin-bottom: 10px;
 `;
-const VideoChannel = styled.span`
+const VideoMeta = styled.span`
   display: inline-block;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -55,27 +56,36 @@ const StyledActionButton = styled.a`
 
 
 
-const VideoItem = ({ video, videoTitle, videoEtag, videoId, videoChannel, item, togglePlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
+const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, item, togglePlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
   
   //If i used (props) i would have to define this variables:
   //const video = props.video;
   //const onVideoPlay = props.onVideoPlay
+  
+  const AuthorId = typeof item !== 'undefined' ? item.AuthorId : null;
+
+  let deleteButton = null;
+
+  if (inSearchResults === true || user.uid !== AuthorId) {
+    deleteButton = null
+  } else {
+    deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, item)}>
+      <MaterialIcon icon="delete_forever" color='#fff' />
+    </StyledActionButton>
+  }
 
   return(
     <StyledVideoItem className={currentVideoId === videoId && 'active'}>
       <StyledVideoInfo onClick={() => togglePlayer(video)}>
+        <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
-        <VideoChannel>{videoChannel}</VideoChannel>
+        <VideoMeta>Published: {datePublished}</VideoMeta>
       </StyledVideoInfo>
       <StyledActions>
         <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
           <MaterialIcon icon="add" color='#fff'/>
         </StyledActionButton>
-        {inSearchResults === true &&
-          <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, item)}>
-            <MaterialIcon icon="delete_forever"  color='#fff'/>
-          </StyledActionButton>
-        }
+        {deleteButton}
       </StyledActions>
     </StyledVideoItem>
   );

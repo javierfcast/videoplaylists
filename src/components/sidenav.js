@@ -64,8 +64,18 @@ const StyledLogout = styled.a`
   text-transform: uppercase;
   cursor: pointer;
 `;
+const StyledNavList = styled.ul`
+  margin-bottom: 30px;
+`;
+const StyledNavItem = styled.li`
+  padding: 10px 0;
+  cursor: pointer;
+`;
 const StyledPlaylistContainer = styled.div`
   padding: 20px;
+`;
+const StyledList = styled.ul`
+  margin-bottom: 30px;
 `;
 const StyledPlaylistLink = styled.a`
   padding: 10px 0;
@@ -97,11 +107,19 @@ const StyledTitleLabel = styled.h3`
   margin-bottom: 10px;
 `;
 
-const Sidenav = ({ toggleAddPlaylistPopup, onPlaylistSelect, myPlaylists, onLogin, onLogout, user}) => {
+const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
 
   const PlaylistItem = myPlaylists.map((item) => {
     return (
       <li key = {item.playlistSlugName}>
+        <StyledPlaylistLink onClick={() => onPlaylistSelect(item)}>{item.playlistName}</StyledPlaylistLink>
+      </li>
+    )
+  });
+
+  const FollowingItem = followingPlaylists.map((item) => {
+    return (
+      <li key={item.playlistId}>
         <StyledPlaylistLink onClick={() => onPlaylistSelect(item)}>{item.playlistName}</StyledPlaylistLink>
       </li>
     )
@@ -118,14 +136,22 @@ const Sidenav = ({ toggleAddPlaylistPopup, onPlaylistSelect, myPlaylists, onLogi
             <StyledLogout onClick={onLogout}>Logout</StyledLogout>
           </StyledUserInfo>
           <StyledPlaylistContainer>
+            <StyledNavList>
+              <StyledNavItem onClick={onBrowse}>Browse</StyledNavItem>
+              {/* <StyledNavItem>My Library</StyledNavItem> */}
+            </StyledNavList>
             <StyledButton onClick={toggleAddPlaylistPopup}>
               <MaterialIcon icon="add" color='#fff' />
               Add new Playlist
             </StyledButton>
             <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
-            <ul>
+            <StyledList>
               {PlaylistItem}
-            </ul>
+            </StyledList>
+            <StyledTitleLabel>Following - {followingPlaylists.length}</StyledTitleLabel>
+            <StyledList>
+              {FollowingItem}
+            </StyledList> 
           </StyledPlaylistContainer>
         </div>
         ) : (

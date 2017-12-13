@@ -39,14 +39,34 @@ h5 {
 h6 {
   font-size: 14px; }
 
-@media (min-width: 1200px) {
-  h1 {
-    font-size: 48px; }
+/**************************
 
-  h2 {
-    font-size: 36px; }
+External Components styling
 
-  h3 {
-    font-size: 24px; } }
+***************************/
+/* React Tabs */
+.react-tabs__tab-list {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px; }
+
+.react-tabs__tab {
+  width: 100%;
+  font-size: 10px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 400;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 0; }
+
+.react-tabs__tab--selected {
+  font-weight: 700;
+  border-bottom: 1px solid white; }
+
+.react-tabs__tab-panel--selected {
+  height: calc(100vh - 258px);
+  overflow-y: auto; }
 
 /*# sourceMappingURL=style.css.map */

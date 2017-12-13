@@ -1,40 +1,67 @@
 import React from 'react';
 import styled from 'styled-components';
+import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+
+  return acc
+}, {})
+
 const StyledPlayerContainer = styled.div`
-  height: 60px;
+  height: 120px;
   width: 100%;
   display: flex;
+  flex-direction: column;
   border-top: 1px solid rgba(255,255,255,0.1);
-  justify-content: space-between;
+  justify-content: space-around;
+  ${media.xmedium`
+    height: 60px;
+    flex-direction: row;
+    space-between;
+  `}
 `
 
 const StyledSongInfo = styled.div`
   padding-left: 20px;
   display: flex;
-  height: 60px;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
   width: 100%;
-
+  text-align: center;
+  ${media.xmedium`
+    align-items: flex-start;
+    text-align: left;
+  `}
 `
-
 const StyledPlayerControls = styled.div`
-  height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-
 `
 const StyledAditionalOptions = styled.div`
-  padding-right: 10px;
-  height: 60px;
-  display: flex;
+  padding-right: 20px;
+  display: none;
   align-items: center;
   justify-content: flex-end;
   width: 100%;
+  ${media.xmedium`
+    display: flex;
+  `}
 `
 
 const StyledButton = styled.a`

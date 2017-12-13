@@ -8,23 +8,8 @@ const VideoListContainer = styled.ul`
   list-style: none;
   padding: 20px;
   width: 100%;
+  height: calc(100vh - 140px);
 `;
-
-// const renderVideoItems = (items, togglePlayer) => {
-//   if (items.lenght > 0) {
-
-//   }
-//   const videoItems = items.map((video) => {
-//     return (
-//       <VideoItem
-//         key={video.etag}
-//         video={video}
-//         togglePlayer={togglePlayer}
-//       />
-//     )
-//   });
-//   return videoItems;
-// }
 
 const SearchResults = (props) => {
 
@@ -32,19 +17,36 @@ const SearchResults = (props) => {
     return null;
   }
 
-  console.log(`Showing ${props.searchResults.length} results, try redefining your search to see more`);
+  // console.log(`Showing ${props.searchResults.length} results, try redefining your search to see more`);
 
   const videoItems = props.searchResults.map((video) => {
+
+    console.log(video);
+
+    let date = new Date(video.snippet.publishedAt);
+    let year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let dt = date.getDate();
+
+    if (dt < 10) {
+      dt = '0' + dt;
+    }
+    if (month < 10) {
+      month = '0' + month;
+    }
+
     return (
       <VideoItem 
+        user={props.user}
         currentVideoId={props.videoId}
-        inSearchResults = {null}
+        inSearchResults = {true}
         key = {video.etag} 
         video = {video}
         videoTitle={video.snippet.title}
         videoEtag={video.etag}
         videoId={video.id.videoId}
         videoChannel={video.snippet.channelTitle}
+        datePublished={year + '-' + month + '-' + dt}
         togglePlayer = {props.togglePlayer}
         togglePlaylistPopup = {props.togglePlaylistPopup}
         onAddToPlaylist={props.onAddToPlaylist}

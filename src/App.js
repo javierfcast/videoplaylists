@@ -3,8 +3,10 @@ import React, { Component } from 'react';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
+import { css } from 'styled-components';
 import YTSearch from 'youtube-api-search';
 import YouTubePlayer from 'youtube-player';
+import MaterialIcon from 'material-icons-react';
 
 //Import app components
 import SearchBar from './components/search_bar';
@@ -16,6 +18,7 @@ import VideoPlayer from './components/video_player';
 import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
 import Playlist from './components/playlist';
+import Browse from './components/browse';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -23,6 +26,23 @@ import './style/style.css';
 
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
+
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+
+  return acc
+}, {})
 
 const StyledContainer = styled.div`
   background: linear-gradient(45deg, rgba(175,1,198,0.65) 0%,rgba(68,70,181,0.73) 52%,rgba(74,0,114,0.8) 100%);
@@ -35,7 +55,7 @@ const StyledContainer = styled.div`
   `}
   &:hover{
     opacity: 1;
-    transition-delay: 0s;  
+    transition-delay: 0s;
   }
 `;
 const StyledAside = styled.div`
@@ -45,16 +65,34 @@ const StyledAside = styled.div`
   top: 0;
   left: 0;
   height: calc(100vh - 60px);
-  overflow-y: auto;
+  display: none;
+  height: calc(100vh - 120px);
+  ${media.xmedium`
+    display: block;
+    height: calc(100vh - 60px);
+  ` }
 `;
 const StyledMain = styled.div`
-  width: calc(100% - 240px);
-  left: 240px;
+  width: 100%;
+  left: 0;
   position: relative;
-  height: calc(100vh - 60px);
-  overflow: auto;
+  height: calc(100vh - 120px);
+  overflow: hidden;
+  ${media.xmedium`
+    height: calc(100vh - 60px);
+    left: 240px;
+    width: calc(100% - 240px);
+  `}
 `;
-
+const StyledDiscover = styled.div`
+  width: 100%;
+`;
+const StyledSidenavTrigger = styled.a`
+  display: none;
+`;
+const StyledDiscoverHeading = styled.div`
+  display: flex;
+`;
 const StyledListsContainer = styled.div`
   display: flex;
 `;
@@ -67,7 +105,9 @@ class App extends Component {
     this.state = {
       searchResults: [],
       user: null,
+      //Sidenav
       myPlaylists: [],
+      followingPlaylists: [],
       //Modal States
       modalIsOpen: false,
       //Player States
@@ -103,8 +143,13 @@ class App extends Component {
       videoToBeAdded: null,
       //Playlist States
       selectedPlaylist: null,
+      selectedPlaylistPublicInfo: null,
       currentPlaylistName: null,
       playlistVideos: [],
+      //Browse
+      browsePlaylists: [],
+      popularPlaylists: [],
+      featuredPlaylists: []
     }
 
     this.onLogin = this.onLogin.bind(this);
@@ -117,7 +162,7 @@ class App extends Component {
       this.setState({ user })
       if (this.state.user){
 
-        //Load Playlists
+        //Load Playlists for Sidenav
         let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
 
         docRef = docRef.orderBy("createdOn", "desc");
@@ -129,6 +174,66 @@ class App extends Component {
           });
           this.setState({ myPlaylists })
         });
+
+        //Browse Playlists Rutes
+        let browseRef = firebase.firestore().collection('playlists');
+
+        //Order Browse by Most Recent
+        browseRef = browseRef.orderBy("createdOn", "desc");        
+
+        //Listen and set State for Recent Playlists
+        browseRef.onSnapshot(querySnapshot => {
+          const browsePlaylists = [];
+          querySnapshot.forEach(function (doc) {
+            browsePlaylists.push(doc.data());
+          });
+          this.setState({ browsePlaylists })
+        });
+
+        //Browse Popular Playlists Rutes
+        let popularRef = firebase.firestore().collection('playlists');
+
+        //Order Browse by Most Popular (based on number of followers)
+        popularRef = popularRef.orderBy("followers", "desc");
+
+        //Listen and set State for Popular Playlist
+        popularRef.onSnapshot(querySnapshot => {
+          const popularPlaylists = [];
+          querySnapshot.forEach(function (doc) {
+            popularPlaylists.push(doc.data());
+          });
+          this.setState({ popularPlaylists })
+        });
+
+
+        //Browse Featured Playlists Rutes
+        let featuredRef = firebase.firestore().collection('playlists');
+
+        //Show featured playlists
+        featuredRef = featuredRef.where("featured", "==", true);
+
+        // Listen and set State for Featured Playlists
+        featuredRef.onSnapshot(querySnapshot => {
+          const featuredPlaylists = [];
+          querySnapshot.forEach(function (doc) {
+            featuredPlaylists.push(doc.data());
+          });
+          this.setState({ featuredPlaylists })
+        });
+
+        //Load Following Playlists
+        let followingRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('following');
+
+        followingRef = followingRef.orderBy("followedOn", "desc");
+
+        followingRef.onSnapshot(querySnapshot => {
+          const followingPlaylists = [];
+          querySnapshot.forEach(function (doc) {
+            followingPlaylists.push(doc.data());
+          });
+          this.setState({ followingPlaylists })
+        });
+
       };
     });
   };
@@ -146,13 +251,12 @@ class App extends Component {
   };
 
   componentDidUpdate(prevProps, prevState){
-    // if (!this.state.videoId) {
-    //   return null;
-    // }
 
     if(this.state.videoId !== prevState.videoId){
       this.state.player.loadVideoById(this.state.videoId);
     }
+
+    console.log(this.state.selectedPlaylist);
 
     if (document.getElementById("input-playlist-popup") !== null) {
       document.getElementById("input-playlist-popup").focus();
@@ -206,10 +310,17 @@ class App extends Component {
     })
   };
 
+  onBrowse = () => {
+    this.setState({
+      selectedPlaylist: null
+    })
+    console.log(`Browsing`)
+  }
+
   onPlaylistSelect = (item) => {
-    console.log(`Selected: ${item.playlistName}`);
-    //const docRef = firebase.firestore().doc(`users/${this.state.user.uid}/playlists/${item.playlistSlugName}/videos`);
-    let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists').doc(item.playlistId).collection('videos');
+    
+    // const docRef = firebase.firestore().doc(`users/${this.state.user.uid}/playlists/${item.playlistSlugName}/videos`);
+    let docRef = firebase.firestore().collection('users').doc(item.AuthorId).collection('playlists').doc(item.playlistId).collection('videos');
     docRef = docRef.orderBy("timestamp");
 
     docRef.onSnapshot(querySnapshot => {
@@ -225,28 +336,92 @@ class App extends Component {
         playlistName: item.playlistName,
         playlistSlug: item.playlistSlugName
       });
+
+      console.log(`Viewing ${item.playlistName} (${playlistVideos.length})`)
+
+    });
+
+
+    //Bring Browse Info - Followers and Featured Info on Playlist
+
+    let playlistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
+    playlistRef.onSnapshot((doc) => {
+      
+      const playlistPublicInfo = doc.data();
+      
+      this.setState({
+        selectedPlaylistPublicInfo: playlistPublicInfo
+      });
     });
     
-    // const playlistQuery = docRef.where('videoID', '>=', '');
-    // playlistQuery.onSnapshot(querySnapshot => {
-    //   const playlistVideos = [];
-    //   querySnapshot.forEach(function (doc) {
-    //     playlistVideos.push(doc.data());
-    //   });
-    //   this.setState({ 
-    //     playlistVideos: playlistVideos,
-    //     selectedPlaylist: item,
-    //   })
-    // });
+  };
 
+  onPlaylistUnfollow = (item) => {
+  };
+
+  onPlaylistFollow = (item) => {
+    const user = this.state.user;
+
+    const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
+    followRef.get().then((doc) => {
+      if (doc.exists) {
+        console.log(`Removing Playlist: ${item.playlistName}.`)
+        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+        docRef.delete().then( () => {
+          const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+          playlistsRef.update({
+          followers: item.followers - 1,
+          }).then(function () {
+            console.log(`Playlist followers updated`);
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          });
+          console.log("Document successfully deleted!");
+        }).catch(function (error) {
+          console.error("Error removing document: ", error);
+        });
+      } else {
+        console.log(`Following Playlist: ${item.playlistName}.`)
+        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+        docRef.set({
+          followedOn: firebase.firestore.FieldValue.serverTimestamp(),
+          playlistId: item.playlistId,
+          playlistName: item.playlistName,
+          playlistSlug: item.playlistSlugName,
+          Author: item.Author,
+          AuthorId: item.AuthorId,
+        }, {
+            merge: true
+          }).then(() => {
+            console.log(`Following Playlist: ${item.playlistName}.`);
+            const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+            playlistsRef.update({
+              followers: item.followers + 1,
+            }).then(function () {
+              console.log(`Playlist followers updated`);
+            }).catch(function (error) {
+              console.log('Got an error:', error);
+            });
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+      }
+    }).catch(function (error) {
+      console.log("Error getting document:", error);
+    });
+    
   };
 
   togglePlayer = (video) => {
 
-    // const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+    //Play Selected Video from the playlist
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
-    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;    
+    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+
+    //Set the current video being played.
+    let currentVideoNumber = this.state.playlistVideos.indexOf(video);
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
 
     this.setState({
       playerIsOpen: true,
@@ -257,59 +432,36 @@ class App extends Component {
       videoChannel,
     });
 
-    console.log(`[togglePlayer] Currently Playing: ${videoTitle}`);
-
     const player = this.state.player;
 
-    if (typeof video.nextVideo !== 'undefined') {
-      const nextVideo = video.nextVideo;
-      const nextVideoId = video.nextVideoId;
-      const nextVideoTitle = video.nextVideoTitle;
-      const nextVideoChannel = video.nextVideoChannel;
-
-      const previousVideo = video.previousVideo;
-      const previousVideoId = video.previousVideoId;
-      const previousVideoTitle = video.previousVideoTitle;
-      const previousVideoChannel = video.previousVideoChannel;
-
-      this.setState({
-        nextVideo,
-        nextVideoId,
-        nextVideoTitle,
-        nextVideoChannel,
-        previousVideo,
-        previousVideoId,
-        previousVideoTitle,
-        previousVideoChannel,
-      })
-
-      console.log(`[togglePlayer] Coming Up Next: ${nextVideoTitle}`);
-
+    if ('looping' === 'looping') {
+    
       player.on('stateChange', (event) => {
 
+        // let nextVideoNumber = currentVideoNumber !== playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
+        // let previousVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : playlistVideos.length - 1;
+      
+        // console.log(nextVideoTitle);
+
+        
         if (event.data === 0) {
 
+          currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
+
+          console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
+
+          let nextVideo = this.state.playlistVideos[currentVideoNumber];
+          
           this.setState({
-            video: this.state.nextVideo,
-            videoId: this.state.nextVideoId,
-            videoTitle: this.state.nextVideoTitle,
-            videoChannel: this.state.nextVideoChannel,
+            video: nextVideo,
+            videoId: nextVideo.videoID,
+            videoTitle: nextVideo.videoTitle,
+            videoChannel: nextVideo.videoChannel,
           })
-
-          this.setState(prevState => ({
-            nextVideo: prevState.video.nextVideo,
-            nextVideoId: prevState.video.nextVideoId,
-            nextVideoTitle: prevState.video.nextVideoTitle,
-            nextVideoChannel: prevState.video.nextVideoChannel,
-          }));
-
-          console.log(`[Event Listener] Currently Playing: ${this.state.videoTitle}`)
-          console.log(`[Event Listener] Comming Up Next: ${this.state.nextVideoTitle}`)
 
         };
 
       });
-
     } else {
       player.on('stateChange', (event) => {
         if (event.data === 0) {
@@ -319,6 +471,65 @@ class App extends Component {
         };
       });
     }
+
+    // if (typeof video.nextVideo !== 'undefined') {
+    //   const nextVideo = video.nextVideo;
+    //   const nextVideoId = video.nextVideoId;
+    //   const nextVideoTitle = video.nextVideoTitle;
+    //   const nextVideoChannel = video.nextVideoChannel;
+
+    //   const previousVideo = video.previousVideo;
+    //   const previousVideoId = video.previousVideoId;
+    //   const previousVideoTitle = video.previousVideoTitle;
+    //   const previousVideoChannel = video.previousVideoChannel;
+
+    //   this.setState({
+    //     nextVideo,
+    //     nextVideoId,
+    //     nextVideoTitle,
+    //     nextVideoChannel,
+    //     previousVideo,
+    //     previousVideoId,
+    //     previousVideoTitle,
+    //     previousVideoChannel,
+    //   })
+
+    //   console.log(`[togglePlayer] Coming Up Next: ${nextVideoTitle}`);
+
+    //   player.on('stateChange', (event) => {
+
+    //     if (event.data === 0) {
+
+    //       this.setState({
+    //         video: this.state.nextVideo,
+    //         videoId: this.state.nextVideoId,
+    //         videoTitle: this.state.nextVideoTitle,
+    //         videoChannel: this.state.nextVideoChannel,
+    //       })
+
+    //       this.setState(prevState => ({
+    //         nextVideo: prevState.video.nextVideo,
+    //         nextVideoId: prevState.video.nextVideoId,
+    //         nextVideoTitle: prevState.video.nextVideoTitle,
+    //         nextVideoChannel: prevState.video.nextVideoChannel,
+    //       }));
+
+    //       console.log(`[Event Listener] Currently Playing: ${this.state.videoTitle}`)
+    //       console.log(`[Event Listener] Comming Up Next: ${this.state.nextVideoTitle}`)
+
+    //     };
+
+    //   });
+
+    // } else {
+    //   player.on('stateChange', (event) => {
+    //     if (event.data === 0) {
+    //       this.setState({
+    //         playerIsPlaying: !this.state.playerIsPlaying
+    //       })
+    //     };
+    //   });
+    // }
     
   };
 
@@ -335,26 +546,41 @@ class App extends Component {
 
   playNextVideo = () => {
 
-    this.setState(prevState => ({
-      previousVideo: this.state.Video,
-      previousVideoId: this.state.VideoId,
-      previousVideoTitle: this.state.VideoTitle,
-      previousVideoChannel: this.state.VideoChannel,
-      nextVideo: this.state.nextVideo,
-      nextVideoId: this.state.nextVideoId,
-      nextVideoTitle: this.state.nextVideoTitle,
-      nextVideoChannel: this.state.nextVideoChannel,
-    }));
+    let currentVideoNumber = this.state.playlistVideos.indexOf(video);
 
-    this.setState(prevState => ({
-      video: prevState.video.nextVideo,
-      videoId: prevState.video.nextVideoId,
-      videoTitle: prevState.video.nextVideoTitle,
-      videoChannel: prevState.video.nextVideoChannel,
-    }));
+    currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
 
-    console.log(`[Play Next] Currently Playing: ${this.state.videoTitle}`)
-    console.log(`[Play Next] Comming Up Next: ${this.state.nextVideoTitle}`)
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
+
+    let nextVideo = this.state.playlistVideos[currentVideoNumber];
+
+    this.setState({
+      video: nextVideo,
+      videoId: nextVideo.videoID,
+      videoTitle: nextVideo.videoTitle,
+      videoChannel: nextVideo.videoChannel,
+    })
+
+    // this.setState(prevState => ({
+    //   previousVideo: this.state.Video,
+    //   previousVideoId: this.state.VideoId,
+    //   previousVideoTitle: this.state.VideoTitle,
+    //   previousVideoChannel: this.state.VideoChannel,
+    //   nextVideo: this.state.nextVideo,
+    //   nextVideoId: this.state.nextVideoId,
+    //   nextVideoTitle: this.state.nextVideoTitle,
+    //   nextVideoChannel: this.state.nextVideoChannel,
+    // }));
+
+    // this.setState(prevState => ({
+    //   video: prevState.video.nextVideo,
+    //   videoId: prevState.video.nextVideoId,
+    //   videoTitle: prevState.video.nextVideoTitle,
+    //   videoChannel: prevState.video.nextVideoChannel,
+    // }));
+
+    // console.log(`[Play Next] Currently Playing: ${this.state.videoTitle}`)
+    // console.log(`[Play Next] Comming Up Next: ${this.state.nextVideoTitle}`)
 
   };
 
@@ -396,12 +622,10 @@ class App extends Component {
   };
 
   onAddToPlaylist = (video, item) => {
-    console.log(item.playlistSlugName);
-    console.log(item);
     const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
-    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;    
+    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
 
     const user = this.state.user;
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
@@ -411,10 +635,23 @@ class App extends Component {
       videoID: videoId,
       videoTitle: videoTitle,
       videoChannel: videoChannel,
+      order: 0,
     }, {
       merge: true
-    }).then(function () {
-      console.log(`${videoTitle} added to ${item.playlistName}`);
+    }).then(() => {
+      console.log(`${videoTitle} added to ${item.playlistName} (${this.state.playlistVideos.length})`);
+      
+      //Increment video count in the public playlist
+      const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+      userPlaylistRef.update({
+        videoCount: item.videoCount + 1,
+      })
+
+      //Increment video count in the user playlist
+      const publicPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
+      publicPlaylistRef.update({
+        videoCount: item.videoCount + 1,
+      })
 
     }).catch(function (error) {
       console.log('Got an error:', error);
@@ -426,12 +663,24 @@ class App extends Component {
 
   onRemoveFromPlaylist = (videoId, item) => {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
-
     const user = this.state.user;
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
-    
-    docRef.delete().then(function () {
+
+    docRef.delete().then(() => {
       console.log("Document successfully deleted!");
+
+      //Decrement video count in the public playlist
+      const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+      userPlaylistRef.update({
+        videoCount: item.videoCount - 1,
+      })
+
+      //Decrement video count in the user playlist
+      const publicPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
+      publicPlaylistRef.update({
+        videoCount: item.videoCount - 1,
+      })
+
     }).catch(function (error) {
       console.error("Error removing document: ", error);
     });
@@ -478,16 +727,36 @@ class App extends Component {
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: this.state.playlistName,
       playlistSlugName: this.state.playlistSlug,
-    }).then(function (docRef) {
+      Author: user.displayName,
+      AuthorId: user.uid,
+      videoCount: 0,
+    }).then((docRef) => {
       console.log(`Playlist saved with Id: ${docRef.id}`);
       docRef.update({
         playlistId: docRef.id
       })
+      // const playlistsRef = firebase.firestore().collection('playlists');
+      const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
+      playlistsRef.set({
+        createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+        playlistName: this.state.playlistName,
+        playlistSlugName: this.state.playlistSlug,
+        playlistId: docRef.id,
+        Author: user.displayName,
+        AuthorId: user.uid,
+        videoCount: 0,
+        followers: 0,
+        featured: false
+      }).then(function(){
+        console.log(`Playlist saved globally with Id: ${docRef.id}`);
+      }).catch(function (error){
+        console.log('Got an error:', error);
+      });
     }).catch(function (error) {
       console.log('Got an error:', error);
     })
     this.toggleClosePlaylistPopup();
-  }
+  };
 
   toggleEditPlaylistPopup = (editing) => {
     this.setState({
@@ -507,7 +776,12 @@ class App extends Component {
     console.log(`playlist name: ${this.state.playlistName}`);
     console.log(`playlist slug: ${this.state.playlistSlug}`);
     // const docRef = firestore.collection('users').doc(user.uid).collection('playlists');
+    
+    //Get Refs to public and user playlists
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${this.state.playlistId}`);
+    const playlistRef = firebase.firestore().doc(`playlists/${this.state.playlistId}`);
+    
+    //Update User Playlist
     docRef.update({
       playlistName: this.state.playlistName,
       playlistSlugName: this.state.playlistSlug
@@ -519,6 +793,17 @@ class App extends Component {
     }).catch(function (error) {
       console.log('Got an error:', error);
     })
+
+    //Update Public Playlists
+    playlistRef.update({
+      playlistName: this.state.playlistName,
+      playlistSlugName: this.state.playlistSlug
+    }).then(() => {
+      console.log('Public Playlist updated!');
+    }).catch(function (error) {
+      console.log('Got an error:', error);
+    })
+
     this.toggleClosePlaylistPopup();
   }
 
@@ -538,16 +823,10 @@ class App extends Component {
       return new Promise((resolve, reject) => {
         deleteQueryBatch(db, query, batchSize, resolve, reject);
         deletePlaylistDoc(docRef, item);
-        this.setState({
-          selectedPlaylist: null,
-        });
       });
     } else {
       return new Promise((resolve, reject) => {
         deletePlaylistDoc(docRef, item);
-        this.setState({
-          selectedPlaylist: null,
-        });
       });
     }
 
@@ -573,7 +852,6 @@ class App extends Component {
             resolve();
             return;
           }
-
           // Recurse on the next process tick, to avoid
           // exploding the stack.
           process.nextTick(function () {
@@ -584,12 +862,23 @@ class App extends Component {
     }
 
     function deletePlaylistDoc(docRef, item) {
-      docRef.delete().then(function () {
-        console.log("Document successfully deleted!");
+      docRef.delete().then(() => {
+        const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
+        playlistsRef.delete().then(function () {
+          console.log(`${docRef.id} Document successfully deleted!`);
+          this.setState({
+            selectedPlaylist: null,
+          });
+          console.log(this.state.selectedPlaylist);
+        }).catch(function (error) {
+          console.error("Error removing document: ", error);
+        });
       }).catch(function (error) {
         console.error("Error removing document: ", error);
       });
     }
+
+    
 
   };
 
@@ -606,21 +895,41 @@ class App extends Component {
               onLogout={this.onLogout}
               user={this.state.user}
               myPlaylists={this.state.myPlaylists}
+              followingPlaylists={this.state.followingPlaylists}
+              onBrowse={this.onBrowse}
               onPlaylistSelect={this.onPlaylistSelect}
               toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
             />
           </StyledAside>
           <StyledMain>
-            <SearchBar onVideoSearch={onVideoSearch}/>
+            <StyledDiscoverHeading>
+              <StyledSidenavTrigger>
+                <MaterialIcon icon="menu" color='#fff' />
+              </StyledSidenavTrigger>
+              <SearchBar onVideoSearch={onVideoSearch}/>
+            </StyledDiscoverHeading>
             <StyledListsContainer>
-              <SearchResults
-                searchResults = {this.state.searchResults} 
-                videoId={this.state.videoId}
-                togglePlayer = {this.togglePlayer}
-                togglePlaylistPopup = {this.togglePlaylistPopup}
-              />
+              <StyledDiscover>  
+                <SearchResults
+                  user = {this.state.user}
+                  searchResults = {this.state.searchResults} 
+                  videoId={this.state.videoId}
+                  togglePlayer = {this.togglePlayer}
+                  togglePlaylistPopup = {this.togglePlaylistPopup}
+                />
+                <Browse
+                  user={this.state.user}
+                  browsePlaylists={this.state.browsePlaylists}
+                  popularPlaylists={this.state.popularPlaylists}
+                  featuredPlaylists={this.state.featuredPlaylists}
+                  onPlaylistSelect={this.onPlaylistSelect}
+                  onPlaylistFollow={this.onPlaylistFollow}
+                />
+              </StyledDiscover>
               <Playlist 
+                user={this.state.user}
                 selectedPlaylist={this.state.selectedPlaylist}
+                selectedPlaylistPublicInfo={this.state.selectedPlaylistPublicInfo}
                 currentPlaylistName={this.state.currentPlaylistName}
                 playlistName={this.state.playlistName}
                 playlistVideos={this.state.playlistVideos}
@@ -630,6 +939,7 @@ class App extends Component {
                 toggleEditPlaylistPopup={this.toggleEditPlaylistPopup}
                 onRemoveFromPlaylist={this.onRemoveFromPlaylist}
                 onDeletePlaylist={this.onDeletePlaylist}
+                onPlaylistFollow={this.onPlaylistFollow}
               />
             </StyledListsContainer>
           </StyledMain>

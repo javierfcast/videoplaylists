@@ -5,21 +5,26 @@ import MaterialIcon from 'material-icons-react';
 //custom components
 import VideoItem from './video_item';
 
-const VideoListContainer = styled.ul`
-  list-style: none;
+const PlaylistContainer = styled.div`
   padding: 20px;
   width: 100%;
 `;
-
+const VideoListContainer = styled.ul`
+  list-style: none;
+  width: 100%;
+  height: calc(100vh - 248px);
+  overflow-y: auto;
+`;
 const StyledHeader = styled.div`
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 20px;
+`;
+const StyledHeaderActions = styled.div`
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  align-items: flex-end;
-  padding-bottom: 20px;
-  margin-bottom: 20px;
 `;
 const StyledPlaylistInfo = styled.div`
+  width: 100%;
 `;
 const StyledLabel = styled.h3`
   font-size: 10px;
@@ -27,7 +32,15 @@ const StyledLabel = styled.h3`
   letter-spacing: 2px;
   font-weight: 400;
 `;
-const StyledPlaylistActions = styled.div``
+const StyledAuthor = StyledLabel.extend`
+  margin-bottom: 6px;
+`;
+const StyledPlaylistActions = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+`
 const StyledButton = styled.a`
   opacity: .6;
   cursor: pointer;
@@ -37,7 +50,31 @@ const StyledButton = styled.a`
     opacity: 1;
   }
 `;
-
+const PlaylistActions = styled.a`
+  position: relative;
+  display: inline-block;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 10px;
+  cursor: pointer;
+  transition: all .3s ease;
+  overflow: hidden;
+  &:hover{
+    border: 1px solid rgba(255,255,255,1);
+  }
+`;
+const PlaylistActionsNone = styled.span`
+  position: relative;
+  display: inline-block;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  padding: 10px;
+  transition: all .3s ease;
+  overflow: hidden;
+`;
 
 const Playlist = (props) => {
 
@@ -47,39 +84,11 @@ const Playlist = (props) => {
   
   const videoItems = props.playlistVideos.map((video) => { 
     
-    const currentVideoNumber = props.playlistVideos.indexOf(video);    
-    
-
-    //Set Next Video in the list.
-    const nextVideoNumber = currentVideoNumber !== props.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
-    
-    const nextVideo = props.playlistVideos[nextVideoNumber];
-    const nextVideoId = typeof nextVideo.id !== 'undefined' ? nextVideo.id.videoId : nextVideo.videoID;
-    const nextVideoTitle = typeof nextVideo.snippet !== 'undefined' ? nextVideo.snippet.title : nextVideo.videoTitle;
-    const nextVideoChannel = typeof video.snippet !== 'undefined' ? nextVideo.snippet.channelTitle : nextVideo.videoChannel;
-
-    video.nextVideo = nextVideo;
-    video.nextVideoId = nextVideoId;
-    video.nextVideoTitle = nextVideoTitle;
-    video.nextVideoChannel = nextVideoChannel;
-
-    //Set Previous Video in the list.
-    const previousVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : props.playlistVideos.length - 1;
-    
-    const previousVideo = props.playlistVideos[previousVideoNumber];
-    const previousVideoId = typeof previousVideo.id !== 'undefined' ? previousVideo.id.videoId : previousVideo.videoID;
-    const previousVideoTitle = typeof previousVideo.snippet !== 'undefined' ? previousVideo.snippet.title : previousVideo.videoTitle;
-    const previousVideoChannel = typeof video.snippet !== 'undefined' ? previousVideo.snippet.channelTitle : previousVideo.videoChannel;
-
-    video.previousVideo = previousVideo;
-    video.previousVideoId = previousVideoId;
-    video.previousVideoTitle = previousVideoTitle;
-    video.previousVideoChannel = previousVideoChannel;
-
     return (
       <VideoItem
+        user={props.user}
         currentVideoId = {props.videoId}
-        inSearchResults={true}
+        inSearchResults={false}
         key={video.videoEtag}
         video={video}
         videoEtag={video.videoEtag}
@@ -96,22 +105,49 @@ const Playlist = (props) => {
   });
 
   const item = props.selectedPlaylist;
+  const itemPublic = props.selectedPlaylistPublicInfo;
   const batchSize = props.playlistVideos.length;
 
+  let followButton = null;
+
+  if (props.user.uid !== itemPublic.AuthorId) {
+
+    followButton = <PlaylistActions onClick={() => props.onPlaylistFollow(item)}>
+      {itemPublic.followers} Followers
+    </PlaylistActions>
+
+  } else {
+
+    followButton = <PlaylistActionsNone>
+      {itemPublic.followers} Followers
+    </PlaylistActionsNone>
+
+  }
+
   return(
-    <VideoListContainer>
+    <PlaylistContainer>
       <StyledHeader>
-        <StyledPlaylistInfo>
-          <h1>{props.currentPlaylistName}</h1>
-          <StyledLabel>{batchSize} Videos in this playlist</StyledLabel>
-        </StyledPlaylistInfo>
-        <StyledPlaylistActions>
-          <StyledButton onClick={() => props.toggleEditPlaylistPopup(item)}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
-          <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
-        </StyledPlaylistActions>
+        <h1>{props.currentPlaylistName}</h1>
+        <StyledHeaderActions>
+          <StyledPlaylistInfo>
+            <StyledAuthor>{props.selectedPlaylist.Author}</StyledAuthor>
+            <StyledLabel>{batchSize} Videos in this playlist</StyledLabel>
+          </StyledPlaylistInfo>
+          <StyledPlaylistActions>
+            {followButton}
+            {props.user.uid === props.selectedPlaylist.AuthorId &&
+              <div>
+                <StyledButton onClick={() => props.toggleEditPlaylistPopup(item)}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
+                <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
+              </div>
+            }
+          </StyledPlaylistActions>
+        </StyledHeaderActions>
       </StyledHeader>
-      {videoItems}
-    </VideoListContainer>
+      <VideoListContainer>
+        {videoItems}
+      </VideoListContainer>
+    </PlaylistContainer>
   )
 };
 

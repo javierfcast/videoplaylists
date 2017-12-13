@@ -61,16 +61,6 @@
 
 //@import url('https://fonts.googleapis.com/css?family=Playfair+Display|Raleway');
 
-$color-white:         #fff;
-$color-black:         #444;
-$color-primary:       #444;
-$color-secondary:     #ED2224;
-
-$border:              1px solid rgba(0,0,0,0.2);
-$border-transparent:  1px solid transparent;
-$border-red:          1px solid #ED2224;
-$border-white:        1px solid #fff;
-$border-black:        1px solid #000;
 
 $font-primary:        Helvetica, Arial, sans-serif;
 
@@ -107,8 +97,39 @@ h4 { font-size: 18px; }
 h5 { font-size: 16px; }
 h6 { font-size: 14px; }
 
-@include bp(xlarge){
-  h1 { font-size: 48px; }
-  h2 { font-size: 36px; }
-  h3 { font-size: 24px; }
+
+/**************************
+
+External Components styling
+
+***************************/
+
+/* React Tabs */
+
+.react-tabs__tab-list{
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+}
+
+.react-tabs__tab{
+  width: 100%;
+  font-size: 10px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 400;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 10px 0;
+}
+
+.react-tabs__tab--selected{
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,1);
+}
+
+.react-tabs__tab-panel--selected{
+  height: calc(100vh - 258px);
+  overflow-y: auto;
 }
