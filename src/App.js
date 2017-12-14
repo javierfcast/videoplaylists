@@ -247,8 +247,6 @@ class App extends Component {
       this.state.player.loadVideoById(this.state.videoId);
     }
 
-    console.log(this.state.selectedPlaylist);
-
     if (document.getElementById("input-playlist-popup") !== null) {
       document.getElementById("input-playlist-popup").focus();
     }
@@ -309,6 +307,8 @@ class App extends Component {
   }
 
   onPlaylistSelect = (item) => {
+
+    console.log('onPlaylistSelect is executing');
     
     // const docRef = firebase.firestore().doc(`users/${this.state.user.uid}/playlists/${item.playlistSlugName}/videos`);
     let docRef = firebase.firestore().collection('users').doc(item.AuthorId).collection('playlists').doc(item.playlistId).collection('videos');
@@ -337,14 +337,13 @@ class App extends Component {
 
     let playlistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
     playlistRef.onSnapshot((doc) => {
-      
-      const playlistPublicInfo = doc.data();
-      
-      this.setState({
-        selectedPlaylistPublicInfo: playlistPublicInfo
-      });
-    });
-    
+      if (doc.exists) {
+        const playlistPublicInfo = doc.data();
+        this.setState({
+          selectedPlaylistPublicInfo: playlistPublicInfo
+        });
+      }
+    }); 
   };
 
   onPlaylistUnfollow = (item) => {
@@ -829,8 +828,7 @@ class App extends Component {
     const docRef = db.doc(`users/${user.uid}/playlists/${item.playlistId}`);
     const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
 
-    console.log(batchSize);
-    console.log(this.state.selectedPlaylist);
+    let self = this;
 
     if (batchSize !== 0) {
 
@@ -838,11 +836,11 @@ class App extends Component {
 
       return new Promise((resolve, reject) => {
         deleteQueryBatch(db, query, batchSize, resolve, reject);
-        deletePlaylistDoc(docRef, item);
+        deletePlaylistDoc(docRef, item, self);
       });
     } else {
       return new Promise((resolve, reject) => {
-        deletePlaylistDoc(docRef, item);
+        deletePlaylistDoc(docRef, item, self);
       });
     }
 
@@ -877,25 +875,23 @@ class App extends Component {
         .catch(reject);
     }
 
-    function deletePlaylistDoc(docRef, item) {
+    function deletePlaylistDoc(docRef, item, self) {
+      console.log(self);
       docRef.delete().then(() => {
         const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
         playlistsRef.delete().then(function () {
           console.log(`${docRef.id} Document successfully deleted!`);
-          this.setState({
+          self.setState({
             selectedPlaylist: null,
           });
-          console.log(this.state.selectedPlaylist);
+          console.log('Selected playlist set to null');
         }).catch(function (error) {
           console.error("Error removing document: ", error);
         });
       }).catch(function (error) {
         console.error("Error removing document: ", error);
       });
-    }
-
-    
-
+    };
   };
 
   render() {
