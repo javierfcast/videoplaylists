@@ -84,6 +84,18 @@ const Playlist = (props) => {
   
   const videoItems = props.playlistVideos.map((video) => { 
     
+    let date = new Date(video.datePublished);
+    let year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let dt = date.getDate();
+
+    if (dt < 10) {
+      dt = '0' + dt;
+    }
+    if (month < 10) {
+      month = '0' + month;
+    }
+    
     return (
       <VideoItem
         user={props.user}
@@ -95,6 +107,7 @@ const Playlist = (props) => {
         videoTitle={video.videoTitle}
         videoId={video.videoID}
         videoChannel={video.videoChannel}
+        datePublished={year + '-' + month + '-' + dt}
         item={props.selectedPlaylist}
         togglePlayer={props.togglePlayer}
         togglePlaylistPopup={props.togglePlaylistPopup}

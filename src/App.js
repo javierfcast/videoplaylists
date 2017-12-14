@@ -88,7 +88,12 @@ const StyledDiscover = styled.div`
   width: 100%;
 `;
 const StyledSidenavTrigger = styled.a`
-  display: none;
+  display: block;
+  padding: 28px 0 20px 20px;
+  cursor: pointer;
+  ${media.xmedium`
+    display: none;
+  `}
 `;
 const StyledDiscoverHeading = styled.div`
   display: flex;
@@ -641,6 +646,7 @@ class App extends Component {
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+    const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
 
     const user = this.state.user;
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
@@ -650,6 +656,7 @@ class App extends Component {
       videoID: videoId,
       videoTitle: videoTitle,
       videoChannel: videoChannel,
+      datePublished: datePublished,
       order: 0,
     }, {
       merge: true
@@ -972,9 +979,6 @@ class App extends Component {
         <AddToPlaylistPopup 
           video={this.state.videoToBeAdded}
           videoTitle={this.state.videoTitle}
-          videoEtag={this.state.videoEtag}
-          videoId={this.state.videoId}
-          videoChannel={this.state.videoChannel}
           open={this.state.playlistPopupIsOpen}
           onAddToPlaylist={this.onAddToPlaylist}
           onClose={this.togglePlaylistPopup}

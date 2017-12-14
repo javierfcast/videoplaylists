@@ -50,7 +50,7 @@ const StyledButton = styled.a`
   }
 `;
 
-const AddToPlaylistPopup = ({video, videoTitle, videoEtag, videoId, videoChannel, onAddToPlaylist, open, onClose, myPlaylists}) => {
+const AddToPlaylistPopup = ({video, videoTitle, onAddToPlaylist, open, onClose, myPlaylists}) => {
 
   if (!open) {
     return null;
