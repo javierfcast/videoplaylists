@@ -1,9 +1,26 @@
 import React from 'react';
 import styled from 'styled-components';
+import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
+import VideoItem from './video_item';
+
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+  return acc
+}, {})
 
 //custom components
-import VideoItem from './video_item';
 
 const PlaylistContainer = styled.div`
   padding: 20px;
@@ -22,6 +39,10 @@ const StyledHeader = styled.div`
 const StyledHeaderActions = styled.div`
   display: flex;
   justify-content: space-between;
+  flex-direction: column;
+  ${media.xmedium`
+    flex-direction: row;
+  `}
 `;
 const StyledPlaylistInfo = styled.div`
   width: 100%;
@@ -39,7 +60,11 @@ const StyledPlaylistActions = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  margin-top: 10px;
+  ${media.xmedium`
+    justify-content: flex-end;
+  `}
 `
 const StyledButton = styled.a`
   opacity: .6;
@@ -72,6 +97,7 @@ const PlaylistActionsNone = styled.span`
   text-transform: uppercase;
   font-size: 10px;
   padding: 10px;
+  padding-left: 0;
   transition: all .3s ease;
   overflow: hidden;
 `;

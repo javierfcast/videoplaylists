@@ -6,6 +6,9 @@ import styled from 'styled-components';
 const PlaylistsContainer = styled.div`
   padding: 20px;
   width: 100%;
+  ${props => props.hidden && `
+    display: none;
+  `}
 `;
 const PlaylistItem = styled.li`
   padding: 20px 0;
@@ -62,7 +65,7 @@ const PlaylistActionsNone = styled.span`
 `;
 
 class Browse extends Component {
-
+  
   render() {
     
     //Map Recent Playlists 
@@ -159,7 +162,7 @@ class Browse extends Component {
     })
 
     return (
-      <PlaylistsContainer>
+      <PlaylistsContainer className={this.props.hidden && 'responsive-hidden'}>
         
         <h1>Browse</h1>
         <Tabs>

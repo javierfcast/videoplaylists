@@ -1,10 +1,35 @@
 import React from 'react';
 import styled from 'styled-components';
+import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
+
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+
+  return acc
+}, {})
 
 const Aside = styled.div`
   color: #fff;
   min-height: 100vh;
+  max-width: 240px;
+  background: rgba(0,0,0,0.9);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  ${media.xmedium`
+    background: none;
+    border: none;
+  `}
 `;
 const StyledUserInfo = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);

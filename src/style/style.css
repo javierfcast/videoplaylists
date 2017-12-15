@@ -69,4 +69,10 @@ External Components styling
   height: calc(100vh - 258px);
   overflow-y: auto; }
 
+.responsive-hidden {
+  display: none; }
+  @media (min-width: 720px) {
+    .responsive-hidden {
+      display: block; } }
+
 /*# sourceMappingURL=style.css.map */

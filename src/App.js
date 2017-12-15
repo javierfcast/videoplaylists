@@ -40,7 +40,6 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 			${css(...args)}
 		}
 	`
-
   return acc
 }, {})
 
@@ -59,18 +58,25 @@ const StyledContainer = styled.div`
   }
 `;
 const StyledAside = styled.div`
-  width: 240px;
+  display: none;
+  width: 100%;
+  height: 100vh;
   border-right: 1px solid rgba(255,255,255,0.1);
   position: fixed;
   top: 0;
   left: 0;
-  height: calc(100vh - 60px);
-  display: none;
-  height: calc(100vh - 120px);
+  background: rgba(0,0,0,0.4);
+  overflow-y: auto;
+  z-index: 999;
+  ${props => props.visible && `
+    display: block;
+  `}
   ${media.xmedium`
+    width: 240px;
+    background: none;
     display: block;
     height: calc(100vh - 60px);
-  ` }
+  `}
 `;
 const StyledMain = styled.div`
   width: 100%;
@@ -99,7 +105,11 @@ const StyledDiscoverHeading = styled.div`
   display: flex;
 `;
 const StyledListsContainer = styled.div`
-  display: flex;
+  display: block;
+  ${media.xmedium`
+    display: flex;
+  `}
+
 `;
 
 
@@ -110,6 +120,9 @@ class App extends Component {
     this.state = {
       searchResults: [],
       user: null,
+      //Responsive
+      navIsOpen: false,
+      playlistIsOpen: false,
       //Sidenav
       myPlaylists: [],
       followingPlaylists: [],
@@ -258,6 +271,13 @@ class App extends Component {
 
   };
 
+  toggleNav = () => {
+    console.log(`nav is open: ${this.state.navIsOpen}`);
+    this.setState({
+      navIsOpen: !this.state.navIsOpen
+    });
+  }
+
   onVideoSearch = (searchTerm) => {
     if (searchTerm === ''){
       this.setState({
@@ -306,9 +326,10 @@ class App extends Component {
 
   onBrowse = () => {
     this.setState({
-      selectedPlaylist: null
+      selectedPlaylist: null,
+      playlistIsOpen: false,
     })
-    console.log(`Browsing`)
+    console.log(`Browsing: ${this.state.playlistIsOpen}`)
   }
 
   onPlaylistSelect = (item) => {
@@ -326,6 +347,7 @@ class App extends Component {
       });
       this.setState({
         playlistVideos: playlistVideos,
+        playlistIsOpen: true,
         selectedPlaylist: item,
         currentPlaylistName: item.playlistName,
         playlistId: item.playlistId,
@@ -333,7 +355,7 @@ class App extends Component {
         playlistSlug: item.playlistSlugName
       });
 
-      console.log(`Viewing ${item.playlistName} (${playlistVideos.length})`)
+      console.log(`Viewing ${item.playlistName} (${playlistVideos.length}) - browse is hidden: ${this.state.playlistIsOpen}`)
 
     });
 
@@ -908,7 +930,7 @@ class App extends Component {
     return (
       <div>
         <StyledContainer playerIsOpen={this.state.playerIsOpen}>
-          <StyledAside>
+          <StyledAside visible={this.state.navIsOpen} onClick={() => this.toggleNav()}>
             <Sidenav
               onLogin={this.onLogin}
               onLogout={this.onLogout}
@@ -922,7 +944,7 @@ class App extends Component {
           </StyledAside>
           <StyledMain>
             <StyledDiscoverHeading>
-              <StyledSidenavTrigger>
+              <StyledSidenavTrigger onClick={() => this.toggleNav()}>
                 <MaterialIcon icon="menu" color='#fff' />
               </StyledSidenavTrigger>
               <SearchBar onVideoSearch={onVideoSearch}/>
@@ -937,7 +959,8 @@ class App extends Component {
                   toggleSearchPlayer = {this.toggleSearchPlayer}
                   togglePlaylistPopup = {this.togglePlaylistPopup}
                 />
-                <Browse
+                <Browse 
+                  hidden={this.state.playlistIsOpen}
                   user={this.state.user}
                   browsePlaylists={this.state.browsePlaylists}
                   popularPlaylists={this.state.popularPlaylists}
