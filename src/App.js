@@ -167,6 +167,8 @@ class App extends Component {
   };
 
   componentWillMount() {
+    
+    //Handle login / logout
     firebase.auth().onAuthStateChanged(user => {
       this.setState({ user })
       if (this.state.user){
@@ -184,53 +186,7 @@ class App extends Component {
           this.setState({ myPlaylists })
         });
 
-        //Browse Playlists Rutes
-        let browseRef = firebase.firestore().collection('playlists');
-
-        //Order Browse by Most Recent
-        browseRef = browseRef.orderBy("createdOn", "desc");        
-
-        //Listen and set State for Recent Playlists
-        browseRef.onSnapshot(querySnapshot => {
-          const browsePlaylists = [];
-          querySnapshot.forEach(function (doc) {
-            browsePlaylists.push(doc.data());
-          });
-          this.setState({ browsePlaylists })
-        });
-
-        //Browse Popular Playlists Rutes
-        let popularRef = firebase.firestore().collection('playlists');
-
-        //Order Browse by Most Popular (based on number of followers)
-        popularRef = popularRef.orderBy("followers", "desc");
-
-        //Listen and set State for Popular Playlist
-        popularRef.onSnapshot(querySnapshot => {
-          const popularPlaylists = [];
-          querySnapshot.forEach(function (doc) {
-            popularPlaylists.push(doc.data());
-          });
-          this.setState({ popularPlaylists })
-        });
-
-
-        //Browse Featured Playlists Rutes
-        let featuredRef = firebase.firestore().collection('playlists');
-
-        //Show featured playlists
-        featuredRef = featuredRef.where("featured", "==", true);
-
-        // Listen and set State for Featured Playlists
-        featuredRef.onSnapshot(querySnapshot => {
-          const featuredPlaylists = [];
-          querySnapshot.forEach(function (doc) {
-            featuredPlaylists.push(doc.data());
-          });
-          this.setState({ featuredPlaylists })
-        });
-
-        //Load Following Playlists
+        //Load Following Playlists for Sidenav
         let followingRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('following');
 
         followingRef = followingRef.orderBy("followedOn", "desc");
@@ -244,6 +200,52 @@ class App extends Component {
         });
 
       };
+    });
+
+    //Browse Playlists Rutes
+    let browseRef = firebase.firestore().collection('playlists');
+
+    //Order Browse by Most Recent
+    browseRef = browseRef.orderBy("createdOn", "desc");
+
+    //Listen and set State for Recent Playlists
+    browseRef.onSnapshot(querySnapshot => {
+      const browsePlaylists = [];
+      querySnapshot.forEach(function (doc) {
+        browsePlaylists.push(doc.data());
+      });
+      this.setState({ browsePlaylists })
+    });
+
+    //Browse Popular Playlists Rutes
+    let popularRef = firebase.firestore().collection('playlists');
+
+    //Order Browse by Most Popular (based on number of followers)
+    popularRef = popularRef.orderBy("followers", "desc");
+
+    //Listen and set State for Popular Playlist
+    popularRef.onSnapshot(querySnapshot => {
+      const popularPlaylists = [];
+      querySnapshot.forEach(function (doc) {
+        popularPlaylists.push(doc.data());
+      });
+      this.setState({ popularPlaylists })
+    });
+
+
+    //Browse Featured Playlists Rutes
+    let featuredRef = firebase.firestore().collection('playlists');
+
+    //Show featured playlists
+    featuredRef = featuredRef.where("featured", "==", true);
+
+    // Listen and set State for Featured Playlists
+    featuredRef.onSnapshot(querySnapshot => {
+      const featuredPlaylists = [];
+      querySnapshot.forEach(function (doc) {
+        featuredPlaylists.push(doc.data());
+      });
+      this.setState({ featuredPlaylists })
     });
   };
 
@@ -452,36 +454,38 @@ class App extends Component {
 
     const player = this.state.player;
 
-    if ('looping' === 'looping') {
-    
-      player.on('stateChange', (event) => {
-        
-        if (event.data === 0) {
-
-          currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
-
-          console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
-
-          let nextVideo = this.state.playlistVideos[currentVideoNumber];
+    if (this.state.playingFromSearch === false) {
+      if ('looping' === 'looping') {
+      
+        player.on('stateChange', (event) => {
           
-          this.setState({
-            video: nextVideo,
-            videoId: nextVideo.videoID,
-            videoTitle: nextVideo.videoTitle,
-            videoChannel: nextVideo.videoChannel,
-          })
+          if (event.data === 0) {
 
-        };
+            currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
 
-      });
-    } else {
-      player.on('stateChange', (event) => {
-        if (event.data === 0) {
-          this.setState({
-            playerIsPlaying: !this.state.playerIsPlaying
-          })
-        };
-      });
+            console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
+
+            let nextVideo = this.state.playlistVideos[currentVideoNumber];
+            
+            this.setState({
+              video: nextVideo,
+              videoId: nextVideo.videoID,
+              videoTitle: nextVideo.videoTitle,
+              videoChannel: nextVideo.videoChannel,
+            })
+
+          };
+
+        });
+      } else {
+        player.on('stateChange', (event) => {
+          if (event.data === 0) {
+            this.setState({
+              playerIsPlaying: !this.state.playerIsPlaying
+            })
+          };
+        });
+      }
     }
     
   };
@@ -509,36 +513,38 @@ class App extends Component {
 
     const player = this.state.player;
 
-    if ('looping' === 'looping') {
+    if (this.state.playingFromSearch === true) {
+      if ('looping' === 'looping') {
 
-      player.on('stateChange', (event) => {
+        player.on('stateChange', (event) => {
 
-        if (event.data === 0) {
+          if (event.data === 0) {
 
-          currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
+            currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
 
-          console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+            console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
 
-          let nextVideo = this.state.searchResults[currentVideoNumber];
+            let nextVideo = this.state.searchResults[currentVideoNumber];
 
-          this.setState({
-            video: nextVideo,
-            videoId: nextVideo.id.videoId,
-            videoTitle: nextVideo.snippet.title,
-            videoChannel: nextVideo.snippet.channelTitle,
-          })
+            this.setState({
+              video: nextVideo,
+              videoId: nextVideo.id.videoId,
+              videoTitle: nextVideo.snippet.title,
+              videoChannel: nextVideo.snippet.channelTitle,
+            })
 
-        };
+          };
 
-      });
-    } else {
-      player.on('stateChange', (event) => {
-        if (event.data === 0) {
-          this.setState({
-            playerIsPlaying: !this.state.playerIsPlaying
-          })
-        };
-      });
+        });
+      } else {
+        player.on('stateChange', (event) => {
+          if (event.data === 0) {
+            this.setState({
+              playerIsPlaying: !this.state.playerIsPlaying
+            })
+          };
+        });
+      }
     }
   }
 

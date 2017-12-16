@@ -66,8 +66,11 @@ External Components styling
   border-bottom: 1px solid white; }
 
 .react-tabs__tab-panel--selected {
-  height: calc(100vh - 258px);
+  height: calc(100vh - 318px);
   overflow-y: auto; }
+  @media (min-width: 720px) {
+    .react-tabs__tab-panel--selected {
+      height: calc(100vh - 258px); } }
 
 .responsive-hidden {
   display: none; }

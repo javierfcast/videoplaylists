@@ -84,12 +84,14 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
       </StyledVideoInfo>
   }
 
-  if (inSearchResults === true || user.uid !== AuthorId) {
-    deleteButton = null
-  } else {
-    deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, item)}>
-      <MaterialIcon icon="delete_forever" color='#fff' />
-    </StyledActionButton>
+  if (user !== null) {
+    if (inSearchResults === true || user.uid !== AuthorId) {
+      deleteButton = null
+    } else {
+      deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, item)}>
+        <MaterialIcon icon="delete_forever" color='#fff' />
+      </StyledActionButton>
+    }
   }
 
   return(

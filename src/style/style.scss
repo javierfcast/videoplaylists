@@ -130,8 +130,11 @@ External Components styling
 }
 
 .react-tabs__tab-panel--selected{
-  height: calc(100vh - 258px);
+  height: calc(100vh - 318px);
   overflow-y: auto;
+  @include bp(xmedium){
+    height: calc(100vh - 258px);
+  }
 }
 
 .responsive-hidden{

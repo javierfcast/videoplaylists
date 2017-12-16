@@ -30,12 +30,11 @@ const StyledPlayerContainer = styled.div`
   ${media.xmedium`
     height: 60px;
     flex-direction: row;
-    space-between;
+    justify-content: space-between;
   `}
 `
 
 const StyledSongInfo = styled.div`
-  padding-left: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,6 +42,7 @@ const StyledSongInfo = styled.div`
   width: 100%;
   text-align: center;
   ${media.xmedium`
+    padding-left: 20px;
     align-items: flex-start;
     text-align: left;
   `}

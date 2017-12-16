@@ -29,8 +29,11 @@ const PlaylistContainer = styled.div`
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 248px);
+  height: calc(100vh - 358px);
   overflow-y: auto;
+  ${media.xmedium`
+    height: calc(100vh - 258px);
+  `}
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -63,6 +66,7 @@ const StyledPlaylistActions = styled.div`
   justify-content: space-between;
   margin-top: 10px;
   ${media.xmedium`
+    margin-top: 0;
     justify-content: flex-end;
   `}
 `
@@ -148,19 +152,33 @@ const Playlist = (props) => {
   const batchSize = props.playlistVideos.length;
 
   let followButton = null;
+  let actionsButton = null;
 
-  if (props.user.uid !== itemPublic.AuthorId) {
+  if (props.user !== null ) {
+    if (props.user.uid !== itemPublic.AuthorId) {
 
-    followButton = <PlaylistActions onClick={() => props.onPlaylistFollow(item)}>
-      {itemPublic.followers} Followers
-    </PlaylistActions>
+      followButton = <PlaylistActions onClick={() => props.onPlaylistFollow(item)}>
+        {itemPublic.followers} Followers
+      </PlaylistActions>
 
+    } else {
+
+      followButton = <PlaylistActionsNone>
+        {itemPublic.followers} Followers
+      </PlaylistActionsNone>
+    }
+    if (props.user.uid === props.selectedPlaylist.AuthorId ) {
+      actionsButton = <div>
+        <StyledButton onClick={() => props.toggleEditPlaylistPopup(item)}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
+        <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
+      </div>
+    }
   } else {
-
     followButton = <PlaylistActionsNone>
       {itemPublic.followers} Followers
-    </PlaylistActionsNone>
-
+      </PlaylistActionsNone>
+    
+    actionsButton = null;
   }
 
   return(
@@ -174,12 +192,7 @@ const Playlist = (props) => {
           </StyledPlaylistInfo>
           <StyledPlaylistActions>
             {followButton}
-            {props.user.uid === props.selectedPlaylist.AuthorId &&
-              <div>
-                <StyledButton onClick={() => props.toggleEditPlaylistPopup(item)}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
-                <StyledButton onClick={() => props.onDeletePlaylist(item, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
-              </div>
-            }
+            {actionsButton}
           </StyledPlaylistActions>
         </StyledHeaderActions>
       </StyledHeader>
