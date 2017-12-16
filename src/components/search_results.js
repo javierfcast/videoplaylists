@@ -30,7 +30,7 @@ const SearchResultsTitle = styled.h1`
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 140px);
+  height: calc(100vh - 277px);
   overflow-y: auto;
   ${media.xmedium`
     height: calc(100vh - 218px);
