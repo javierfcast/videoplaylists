@@ -571,6 +571,10 @@ class App extends Component {
 
   playNextVideo = (video) => {
 
+    if (!video){
+      return null;
+    }
+
     let currentVideoNumber = this.state.playlistVideos.indexOf(video);
 
     currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
@@ -586,30 +590,16 @@ class App extends Component {
       videoChannel: nextVideo.videoChannel,
     })
 
-    // this.setState(prevState => ({
-    //   previousVideo: this.state.Video,
-    //   previousVideoId: this.state.VideoId,
-    //   previousVideoTitle: this.state.VideoTitle,
-    //   previousVideoChannel: this.state.VideoChannel,
-    //   nextVideo: this.state.nextVideo,
-    //   nextVideoId: this.state.nextVideoId,
-    //   nextVideoTitle: this.state.nextVideoTitle,
-    //   nextVideoChannel: this.state.nextVideoChannel,
-    // }));
-
-    // this.setState(prevState => ({
-    //   video: prevState.video.nextVideo,
-    //   videoId: prevState.video.nextVideoId,
-    //   videoTitle: prevState.video.nextVideoTitle,
-    //   videoChannel: prevState.video.nextVideoChannel,
-    // }));
-
     // console.log(`[Play Next] Currently Playing: ${this.state.videoTitle}`)
     // console.log(`[Play Next] Comming Up Next: ${this.state.nextVideoTitle}`)
 
   };
 
   playPreviousVideo = (video) => {
+
+    if (!video) {
+      return null;
+    }
 
     let currentVideoNumber = this.state.playlistVideos.indexOf(video);
 
