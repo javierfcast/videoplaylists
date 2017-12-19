@@ -66,6 +66,10 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
 
   let deleteButton = null;
 
+  let addButton = <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
+    <MaterialIcon icon="add" color='#fff' />
+  </StyledActionButton>
+
   let videoTrigger = null;
 
   if (inSearchResults === true) {
@@ -92,15 +96,13 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
         <MaterialIcon icon="delete_forever" color='#fff' />
       </StyledActionButton>
     }
-  }
+  } 
 
   return(
     <StyledVideoItem className={currentVideoId === videoId && 'active'}>
       {videoTrigger}
       <StyledActions>
-        <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
-          <MaterialIcon icon="add" color='#fff'/>
-        </StyledActionButton>
+        {addButton}
         {deleteButton}
       </StyledActions>
     </StyledVideoItem>

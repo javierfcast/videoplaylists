@@ -16,21 +16,9 @@ const StyledContent = styled.div`
   margin: 0 auto;
   background: rgba(0,0,0,0.9);
 `;
-const StyledLink = styled.a`
-  padding: 10px 0;
-  display: block;
-  cursor: pointer;
-`;
 const StyledTitle = styled.h2`
   margin-bottom: 40px;
   font-size: 18px;
-`;
-const StyledTitleLabel = styled.h3`
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 400;
-  margin-bottom: 10px;
 `;
 const StyledButton = styled.a`
   height: 40px;
@@ -72,22 +60,10 @@ const StyledButtonSubmit = styled.a`
   }
 `;
 
-const AddToPlaylistPopup = ({ user, onLogin, video, videoTitle, onAddToPlaylist, open, onClose, myPlaylists }) => {
+const LoginPopup = ({ user, onLogin, open, onClose }) => {
 
   if (!open) {
     return null;
-  }
-
-  if(!video){
-    console.log(video);
-    return(
-      <StyledPopup>
-        <h3>loading...</h3>
-        <StyledButton onClick={onClose}>
-          Close
-        </StyledButton>
-      </StyledPopup>
-    );
   }
 
   if (!user) {
@@ -95,7 +71,7 @@ const AddToPlaylistPopup = ({ user, onLogin, video, videoTitle, onAddToPlaylist,
       <StyledPopup>
         <StyledContent>
           <StyledTitle>Login</StyledTitle>
-          <p>You need to create an account in order to create playlists and add videos to them.</p>
+          <p>You need to create an account in order to create and follow playlists, save videos and more.</p>
           <StyledButtonSubmit onClick={onLogin}>
             Login with Google
           </StyledButtonSubmit>
@@ -106,30 +82,6 @@ const AddToPlaylistPopup = ({ user, onLogin, video, videoTitle, onAddToPlaylist,
       </StyledPopup>
     );
   }
-
-  const PlaylistItem = myPlaylists.map((item) => {
-    return (
-      <li key={item.playlistSlugName}>
-        <StyledLink onClick={() => onAddToPlaylist(video, item)}>{item.playlistName}</StyledLink>
-      </li>
-    )
-  });
-
-  return(
-    <StyledPopup>
-      <StyledContent>
-        <StyledTitle>Add: {videoTitle} to a playlist</StyledTitle>
-        <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
-        <ul>
-          {PlaylistItem}
-        </ul>
-        <StyledButton onClick={onClose}>
-          Cancel
-        </StyledButton>
-      </StyledContent>
-    </StyledPopup>
-  );
-
 }
 
-export default AddToPlaylistPopup;
+export default LoginPopup;

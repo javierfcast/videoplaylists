@@ -19,6 +19,7 @@ import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
 import Playlist from './components/playlist';
 import Browse from './components/browse';
+import LoginPopup from './components/login_popup.js';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -123,6 +124,8 @@ class App extends Component {
       //Responsive
       navIsOpen: false,
       playlistIsOpen: false,
+      //Login Popup States
+      loginPopupIsOpen: false,
       //Sidenav
       myPlaylists: [],
       followingPlaylists: [],
@@ -375,59 +378,66 @@ class App extends Component {
     }); 
   };
 
-  onPlaylistUnfollow = (item) => {
-  };
-
   onPlaylistFollow = (item) => {
-    const user = this.state.user;
+    
+    if (this.state.user === null) {
 
-    const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
-    followRef.get().then((doc) => {
-      if (doc.exists) {
-        console.log(`Removing Playlist: ${item.playlistName}.`)
-        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
-        docRef.delete().then( () => {
-          const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
-          playlistsRef.update({
-          followers: item.followers - 1,
-          }).then(function () {
-            console.log(`Playlist followers updated`);
-          }).catch(function (error) {
-            console.log('Got an error:', error);
-          });
-          console.log("Document successfully deleted!");
-        }).catch(function (error) {
-          console.error("Error removing document: ", error);
-        });
-      } else {
-        console.log(`Following Playlist: ${item.playlistName}.`)
-        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
-        docRef.set({
-          followedOn: firebase.firestore.FieldValue.serverTimestamp(),
-          playlistId: item.playlistId,
-          playlistName: item.playlistName,
-          playlistSlug: item.playlistSlugName,
-          Author: item.Author,
-          AuthorId: item.AuthorId,
-        }, {
-            merge: true
-          }).then(() => {
-            console.log(`Following Playlist: ${item.playlistName}.`);
+      this.setState({
+        loginPopupIsOpen: !this.state.loginPopupIsOpen
+      });
+
+    } else {
+      
+      const user = this.state.user;    
+
+      const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
+      followRef.get().then((doc) => {
+        if (doc.exists) {
+          console.log(`Removing Playlist: ${item.playlistName}.`)
+          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+          docRef.delete().then( () => {
             const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
             playlistsRef.update({
-              followers: item.followers + 1,
+            followers: item.followers - 1,
             }).then(function () {
               console.log(`Playlist followers updated`);
             }).catch(function (error) {
               console.log('Got an error:', error);
             });
+            console.log("Document successfully deleted!");
           }).catch(function (error) {
-            console.log('Got an error:', error);
-          })
-      }
-    }).catch(function (error) {
-      console.log("Error getting document:", error);
-    });
+            console.error("Error removing document: ", error);
+          });
+        } else {
+          console.log(`Following Playlist: ${item.playlistName}.`)
+          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+          docRef.set({
+            followedOn: firebase.firestore.FieldValue.serverTimestamp(),
+            playlistId: item.playlistId,
+            playlistName: item.playlistName,
+            playlistSlug: item.playlistSlugName,
+            Author: item.Author,
+            AuthorId: item.AuthorId,
+          }, {
+              merge: true
+            }).then(() => {
+              console.log(`Following Playlist: ${item.playlistName}.`);
+              const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+              playlistsRef.update({
+                followers: item.followers + 1,
+              }).then(function () {
+                console.log(`Playlist followers updated`);
+              }).catch(function (error) {
+                console.log('Got an error:', error);
+              });
+            }).catch(function (error) {
+              console.log('Got an error:', error);
+            })
+        }
+      }).catch(function (error) {
+        console.log("Error getting document:", error);
+      });
+    }
     
   };
 
@@ -1006,6 +1016,8 @@ class App extends Component {
           />
         </StyledContainer>
         <AddToPlaylistPopup 
+          user={this.state.user}
+          onLogin={this.onLogin}
           video={this.state.videoToBeAdded}
           videoTitle={this.state.videoTitle}
           open={this.state.playlistPopupIsOpen}
@@ -1025,6 +1037,12 @@ class App extends Component {
           playlistSlug={this.state.playlistSlug}
           selectedPlaylist={this.state.selectedPlaylist}
           addingNewPlaylist={this.state.addingNewPlaylist}
+        />
+        <LoginPopup
+          user={this.state.user}
+          onLogin={this.onLogin}
+          open={this.state.loginPopupIsOpen}
+          onClose={this.onPlaylistFollow}
         />
         <VideoPlayer
           video={this.state.video}

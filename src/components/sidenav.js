@@ -78,6 +78,7 @@ const StyledLogin = styled.a`
   padding: 10px 20px;
   margin-top: 80px;
   display: block;
+  text-align: center;
   transition: all .3s ease;
   &:hover{
     border: 1px solid rgba(255,255,255,1);
