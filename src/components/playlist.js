@@ -111,6 +111,8 @@ const Playlist = (props) => {
   if (!props.selectedPlaylist) {
     return null;
   }
+
+  console.log(this.props);
   
   const videoItems = props.playlistVideos.map((video) => { 
     
