@@ -7,13 +7,17 @@ import { css } from 'styled-components';
 import YTSearch from 'youtube-api-search';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom'
 
 //Import app components
 import SearchBar from './components/search_bar';
 import SearchResults from './components/search_results';
 import Sidenav from './components/sidenav';
 import PlayerControls from './components/player_controls';
-//import Modal from './components/modal';
 import VideoPlayer from './components/video_player';
 import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
