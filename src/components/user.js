@@ -3,7 +3,6 @@ import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import MaterialIcon from 'material-icons-react';
 
 const sizes = {
   small: 360,
@@ -21,7 +20,7 @@ const media = Object.keys(sizes).reduce((acc, label) => {
   return acc
 }, {})
 
-const StyledContainer = styled.div`
+const StyledUserContainer = styled.div`
   padding: 20px;
   width: 100%;
 `;
@@ -44,7 +43,7 @@ class User extends Component {
   componentWillMount() {
 
     //Browse Playlists Rutes
-    let userRef = firebase.firestore().collection('users').doc(this.props.match.params.id);
+    // let userRef = firebase.firestore().collection('users').doc(this.props.match.params.id);
 
   };
 
@@ -53,14 +52,14 @@ class User extends Component {
     //   return <div><h1>User not found</h1></div>
     // }
     return (
-      <StyledContainer>
+      <StyledUserContainer>
         <StyledHeader>
           <h1>User: {this.props.match.params.id}</h1>
         </StyledHeader>
         <StyledContent>
           Lorem ipsum dolor sit amet
         </StyledContent>
-      </StyledContainer>
+      </StyledUserContainer>
     )
   }
 }

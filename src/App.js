@@ -19,6 +19,7 @@ import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
 import Playlist from './components/playlist';
 import Browse from './components/browse';
+import Users from './components/users';
 import User from './components/user';
 import LoginPopup from './components/login_popup.js';
 
@@ -176,20 +177,6 @@ class App extends Component {
       this.setState({ user })
       if (this.state.user){
 
-        // userRef.onSnapshot((doc) => {
-        //   if (!doc.exists) {
-        //     userRef.set({
-        //       joinedOn: firebase.firestore.FieldValue.serverTimestamp(),
-        //       displayName: user.displayName,
-        //       photoURL: user.photoURL,
-        //     }).then((docRef) => {
-        //       console.log(`User created with Id: ${docRef.id}`);
-        //     }).catch(function (error) {
-        //       console.log('Got an error:', error);
-        //     })
-        //   }
-        // }); 
-
         //Load Playlists for Sidenav
         let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
 
@@ -327,7 +314,6 @@ class App extends Component {
         user: user
       });
       
-      // const userRef = firebase.firestore().collection('users').doc(user.uid);
       const userRef = firebase.firestore().doc(`users/${user.uid}`);
 
       userRef.set({
@@ -335,6 +321,7 @@ class App extends Component {
         lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
         displayName: user.displayName,
         photoURL: user.photoURL,
+        uid: user.uid
       }).then(() => {
         console.log(`User created succesfully`);
       }).catch(function (error) {
@@ -1031,6 +1018,7 @@ class App extends Component {
                 />
               </StyledDiscover>
               <Switch>
+                <Route exact path='/users' component={Users} />
                 <Route path='/users/:id' component={User} />
               </Switch>
               <Playlist 
