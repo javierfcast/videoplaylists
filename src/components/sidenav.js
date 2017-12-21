@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
@@ -97,6 +98,13 @@ const StyledNavItem = styled.li`
   padding: 10px 0;
   cursor: pointer;
 `;
+const StyledNavItemLink = styled(Link)`
+  padding: 10px 0;
+  cursor: pointer;
+  color: #fff;
+  display: block;
+  text-decoration: none;
+`;
 const StyledPlaylistContainer = styled.div`
   padding: 20px;
 `;
@@ -164,7 +172,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
           <StyledPlaylistContainer>
             <StyledNavList>
               <StyledNavItem onClick={onBrowse}>Browse</StyledNavItem>
-              {/* <StyledNavItem>My Library</StyledNavItem> */}
+              <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
             </StyledNavList>
             <StyledButton onClick={toggleAddPlaylistPopup}>
               <MaterialIcon icon="add" color='#fff' />

@@ -40,21 +40,73 @@ const StyledContent = styled.div`
 
 class User extends Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      user: null,
+      playlists: [],
+    };
+  };
+
   componentWillMount() {
+    
+    //Get User Info
+    let userRef = firebase.firestore().collection('users').doc(this.props.match.params.id);
+    
+    userRef.get().then((doc) => {
+      if (doc.exists) {
+        this.setState({
+          user: doc.data(),
+        })
+      } else {
+        console.log("No such document!");
+        this.setState({
+          user: 'not found',
+        })
+      }
+    }).catch(function (error) {
+      console.log("Error getting document:", error);
+    });
 
     //Browse Playlists Rutes
-    // let userRef = firebase.firestore().collection('users').doc(this.props.match.params.id);
+
+
 
   };
 
   render() {
-    // if (!user){
-    //   return <div><h1>User not found</h1></div>
-    // }
+    if (!this.state.user) {
+      return (
+        <StyledUserContainer>
+          <StyledHeader>
+            <h1>Loading...</h1>
+          </StyledHeader>
+          <StyledContent>
+            
+          </StyledContent>
+        </StyledUserContainer>
+      )
+    }
+
+    if (this.state.user === 'not found'){
+      return (
+        <StyledUserContainer>
+          <StyledHeader>
+            <h1>User not found</h1>
+          </StyledHeader>
+          <StyledContent>
+            Browse or go to Recently Active Users to search for more.
+        </StyledContent>
+        </StyledUserContainer>
+      )
+    }
+
+    const user = this.state.user;
+
     return (
       <StyledUserContainer>
         <StyledHeader>
-          <h1>User: {this.props.match.params.id}</h1>
+          <h1>{user.displayName}</h1>
         </StyledHeader>
         <StyledContent>
           Lorem ipsum dolor sit amet
