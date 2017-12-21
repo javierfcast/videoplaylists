@@ -39,6 +39,22 @@ const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 20px;
 `;
+const StyledContent = styled.div`
+  padding: 20px 0;
+  text-align: center;
+  height: calc(100vh - 358px);
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  ${media.xmedium`
+    height: calc(100vh - 258px);
+  `} 
+  h3{
+    margin-bottom: 30px;
+  }
+`;
 const StyledHeaderActions = styled.div`
   display: flex;
   justify-content: space-between;
@@ -112,7 +128,25 @@ const Playlist = (props) => {
     return null;
   }
 
-  console.log(this.props);
+  const item = props.selectedPlaylist;
+  const itemPublic = props.selectedPlaylistPublicInfo;
+  const batchSize = props.playlistVideos.length;
+
+  if (!itemPublic) {
+    return (
+      <PlaylistContainer>
+        <StyledHeader>
+          <h1>{props.currentPlaylistName}</h1>
+        </StyledHeader>
+        <StyledContent>
+          <h3>This playlist no longer exists.</h3>
+          <PlaylistActions onClick={() => props.onPlaylistUnfollow(item)}>
+            Unfollow
+          </PlaylistActions>
+        </StyledContent>
+      </PlaylistContainer>
+    )
+  }
   
   const videoItems = props.playlistVideos.map((video) => { 
     
@@ -148,10 +182,6 @@ const Playlist = (props) => {
       />
     )
   });
-
-  const item = props.selectedPlaylist;
-  const itemPublic = props.selectedPlaylistPublicInfo;
-  const batchSize = props.playlistVideos.length;
 
   let followButton = null;
   let actionsButton = null;

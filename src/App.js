@@ -472,6 +472,27 @@ class App extends Component {
     
   };
 
+  onPlaylistUnfollow = (item) => {
+    const user = this.state.user;
+    const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
+    followRef.get().then((doc) => {
+      if (doc.exists) {
+        console.log(`Removing Playlist: ${item.playlistName}.`)
+        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+        docRef.delete().then(() => {
+          console.log("Document successfully deleted!");
+          this.setState({
+            selectedPlaylist: null,
+          });
+        }).catch(function (error) {
+          console.error("Error removing document: ", error);
+        });
+      } 
+    }).catch(function (error) {
+      console.log("Error getting document:", error);
+    });
+  }
+
   togglePlayer = (video) => {
 
     //Play Selected Video from the playlist
@@ -1026,6 +1047,7 @@ class App extends Component {
                 onRemoveFromPlaylist={this.onRemoveFromPlaylist}
                 onDeletePlaylist={this.onDeletePlaylist}
                 onPlaylistFollow={this.onPlaylistFollow}
+                onPlaylistUnfollow={this.onPlaylistUnfollow}
               />
             </StyledListsContainer>
           </StyledMain>
