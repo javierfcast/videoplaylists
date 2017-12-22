@@ -408,26 +408,46 @@ class App extends Component {
       
       const user = this.state.user;    
 
+      //Route to User Following Playlist Collection
       const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
       followRef.get().then((doc) => {
+        
+        //Checking if the user is already following the playlist and if they do, Unfollow.
         if (doc.exists) {
           console.log(`Removing Playlist: ${item.playlistName}.`)
           const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
           docRef.delete().then( () => {
+            
+
+            //Update count on public playlists collections
             const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
             playlistsRef.update({
-            followers: item.followers - 1,
+              followers: item.followers - 1,
             }).then(function () {
               console.log(`Playlist followers updated`);
             }).catch(function (error) {
               console.log('Got an error:', error);
             });
-            console.log("Document successfully deleted!");
+
+            //Update count on user playlist collections
+            const playlistUserRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
+            playlistUserRef.update({
+              followers: item.followers - 1,
+            }).then(function () {
+              console.log(`Playlist followers updated`);
+            }).catch(function (error) {
+              console.log('Got an error:', error);
+            });
+
           }).catch(function (error) {
             console.error("Error removing document: ", error);
           });
+
+        //If the user does not follow the playlist. Follow.
         } else {
+
           console.log(`Following Playlist: ${item.playlistName}.`)
+
           const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
           docRef.set({
             followedOn: firebase.firestore.FieldValue.serverTimestamp(),
@@ -439,7 +459,8 @@ class App extends Component {
           }, {
               merge: true
             }).then(() => {
-              console.log(`Following Playlist: ${item.playlistName}.`);
+
+              //Update count on public playlists collections
               const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
               playlistsRef.update({
                 followers: item.followers + 1,
@@ -448,6 +469,17 @@ class App extends Component {
               }).catch(function (error) {
                 console.log('Got an error:', error);
               });
+
+              //Update count on user playlists collections
+              const playlistUserRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
+              playlistUserRef.update({
+                followers: item.followers + 1,
+              }).then(function () {
+                console.log(`Playlist followers updated`);
+              }).catch(function (error) {
+                console.log('Got an error:', error);
+              });
+
             }).catch(function (error) {
               console.log('Got an error:', error);
             })
@@ -811,7 +843,6 @@ class App extends Component {
     console.log(`playlist name: ${this.state.playlistName}`);
     console.log(`playlist slug: ${this.state.playlistSlug}`);
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
-    // const docRef = firebase.firestore().doc(`users/${user.uid}/playlists`);
     docRef.add({
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: this.state.playlistName,
@@ -819,12 +850,13 @@ class App extends Component {
       Author: user.displayName,
       AuthorId: user.uid,
       videoCount: 0,
+      followers: 0,
+      featured: false
     }).then((docRef) => {
       console.log(`Playlist saved with Id: ${docRef.id}`);
       docRef.update({
         playlistId: docRef.id
       })
-      // const playlistsRef = firebase.firestore().collection('playlists');
       const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
       playlistsRef.set({
         createdOn: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1019,7 +1051,12 @@ class App extends Component {
               </StyledDiscover>
               <Switch>
                 <Route exact path='/users' component={Users} />
-                <Route path='/users/:id' component={User} />
+                <Route exact path='/users/:profileId' render={({ match }) =>
+                  <User
+                    match={match}
+                    user={this.state.user}
+                  /> } 
+                />
               </Switch>
               <Playlist 
                 user={this.state.user}
