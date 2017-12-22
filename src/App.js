@@ -93,8 +93,14 @@ const StyledMain = styled.div`
     width: calc(100% - 240px);
   `}
 `;
-const StyledDiscover = styled.div`
-  width: 100%;
+const StyledMainHeading = styled.div`
+  display: flex;
+`;
+const StyledMainContainer = styled.div`
+  display: block;
+  ${media.xmedium`
+    display: flex;
+  `}
 `;
 const StyledSidenavTrigger = styled.a`
   display: block;
@@ -102,15 +108,6 @@ const StyledSidenavTrigger = styled.a`
   cursor: pointer;
   ${media.xmedium`
     display: none;
-  `}
-`;
-const StyledDiscoverHeading = styled.div`
-  display: flex;
-`;
-const StyledListsContainer = styled.div`
-  display: block;
-  ${media.xmedium`
-    display: flex;
   `}
 `;
 
@@ -177,6 +174,7 @@ class App extends Component {
       this.setState({ user })
       if (this.state.user){
 
+        console.log(user)
         //Load Playlists for Sidenav
         let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
 
@@ -1023,33 +1021,33 @@ class App extends Component {
             />
           </StyledAside>
           <StyledMain>
-            <StyledDiscoverHeading>
+            <StyledMainHeading>
               <StyledSidenavTrigger onClick={() => this.toggleNav()}>
                 <MaterialIcon icon="menu" color='#fff' />
               </StyledSidenavTrigger>
               <SearchBar onVideoSearch={onVideoSearch}/>
-            </StyledDiscoverHeading>
-            <StyledListsContainer>
-              <StyledDiscover>  
-                <SearchResults
-                  user = {this.state.user}
-                  searchResults = {this.state.searchResults} 
-                  videoId={this.state.videoId}
-                  togglePlayer = {this.togglePlayer}
-                  toggleSearchPlayer = {this.toggleSearchPlayer}
-                  togglePlaylistPopup = {this.togglePlaylistPopup}
-                />
-                <Browse 
-                  hidden={this.state.playlistIsOpen}
-                  user={this.state.user}
-                  browsePlaylists={this.state.browsePlaylists}
-                  popularPlaylists={this.state.popularPlaylists}
-                  featuredPlaylists={this.state.featuredPlaylists}
-                  onPlaylistSelect={this.onPlaylistSelect}
-                  onPlaylistFollow={this.onPlaylistFollow}
-                />
-              </StyledDiscover>
+            </StyledMainHeading>
+            <StyledMainContainer>
+              <SearchResults
+                user = {this.state.user}
+                searchResults = {this.state.searchResults} 
+                videoId={this.state.videoId}
+                togglePlayer = {this.togglePlayer}
+                toggleSearchPlayer = {this.toggleSearchPlayer}
+                togglePlaylistPopup = {this.togglePlaylistPopup}
+              />     
               <Switch>
+                <Route exact path='/' render={({ match }) =>
+                  <Browse
+                    hidden={this.state.playlistIsOpen}
+                    user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
+                    popularPlaylists={this.state.popularPlaylists}
+                    featuredPlaylists={this.state.featuredPlaylists}
+                    onPlaylistSelect={this.onPlaylistSelect}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                  /> }
+                />
                 <Route exact path='/users' component={Users} />
                 <Route exact path='/users/:profileId' render={({ match }) =>
                   <User
@@ -1057,24 +1055,26 @@ class App extends Component {
                     user={this.state.user}
                   /> } 
                 />
+                <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
+                  <Playlist
+                    user={this.state.user}
+                    selectedPlaylist={this.state.selectedPlaylist}
+                    selectedPlaylistPublicInfo={this.state.selectedPlaylistPublicInfo}
+                    currentPlaylistName={this.state.currentPlaylistName}
+                    playlistName={this.state.playlistName}
+                    playlistVideos={this.state.playlistVideos}
+                    videoId={this.state.videoId}
+                    togglePlayer={this.togglePlayer}
+                    togglePlaylistPopup={this.togglePlaylistPopup}
+                    toggleEditPlaylistPopup={this.toggleEditPlaylistPopup}
+                    onRemoveFromPlaylist={this.onRemoveFromPlaylist}
+                    onDeletePlaylist={this.onDeletePlaylist}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                    onPlaylistUnfollow={this.onPlaylistUnfollow}
+                  />}
+                />
               </Switch>
-              <Playlist 
-                user={this.state.user}
-                selectedPlaylist={this.state.selectedPlaylist}
-                selectedPlaylistPublicInfo={this.state.selectedPlaylistPublicInfo}
-                currentPlaylistName={this.state.currentPlaylistName}
-                playlistName={this.state.playlistName}
-                playlistVideos={this.state.playlistVideos}
-                videoId={this.state.videoId}
-                togglePlayer={this.togglePlayer}
-                togglePlaylistPopup={this.togglePlaylistPopup}
-                toggleEditPlaylistPopup={this.toggleEditPlaylistPopup}
-                onRemoveFromPlaylist={this.onRemoveFromPlaylist}
-                onDeletePlaylist={this.onDeletePlaylist}
-                onPlaylistFollow={this.onPlaylistFollow}
-                onPlaylistUnfollow={this.onPlaylistUnfollow}
-              />
-            </StyledListsContainer>
+            </StyledMainContainer>
           </StyledMain>
           <PlayerControls
             playPreviousVideo={this.playPreviousVideo}

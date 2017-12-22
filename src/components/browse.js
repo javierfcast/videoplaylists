@@ -164,7 +164,7 @@ class Browse extends Component {
     return (
       <PlaylistsContainer className={this.props.hidden && 'responsive-hidden'}>
         
-        <h1>Browse</h1>
+        <h1>Discover</h1>
         <Tabs>
           <TabList>
             <Tab>Recent</Tab>

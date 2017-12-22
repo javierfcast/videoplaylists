@@ -94,10 +94,6 @@ const StyledLogout = styled.a`
 const StyledNavList = styled.ul`
   margin-bottom: 30px;
 `;
-const StyledNavItem = styled.li`
-  padding: 10px 0;
-  cursor: pointer;
-`;
 const StyledNavItemLink = styled(Link)`
   padding: 10px 0;
   cursor: pointer;
@@ -110,11 +106,6 @@ const StyledPlaylistContainer = styled.div`
 `;
 const StyledList = styled.ul`
   margin-bottom: 30px;
-`;
-const StyledPlaylistLink = styled.a`
-  padding: 10px 0;
-  display: block;
-  cursor: pointer;
 `;
 const StyledButton = styled.a`
   height: 40px;
@@ -146,7 +137,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
   const PlaylistItem = myPlaylists.map((item) => {
     return (
       <li key = {item.playlistSlugName}>
-        <StyledPlaylistLink onClick={() => onPlaylistSelect(item)}>{item.playlistName}</StyledPlaylistLink>
+        <StyledNavItemLink to={`/users/${item.AuthorId}/${item.playlistId}`}>{item.playlistName}</StyledNavItemLink>
       </li>
     )
   });
@@ -154,7 +145,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
   const FollowingItem = followingPlaylists.map((item) => {
     return (
       <li key={item.playlistId}>
-        <StyledPlaylistLink onClick={() => onPlaylistSelect(item)}>{item.playlistName}</StyledPlaylistLink>
+        <StyledNavItemLink to={`/users/${item.authorId}/${item.playlistId}`}>{item.playlistName}</StyledNavItemLink>
       </li>
     )
   });
@@ -171,7 +162,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
           </StyledUserInfo>
           <StyledPlaylistContainer>
             <StyledNavList>
-              <StyledNavItem onClick={onBrowse}>Browse</StyledNavItem>
+              <StyledNavItemLink to="/">Discover</StyledNavItemLink>
               <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
             </StyledNavList>
             <StyledButton onClick={toggleAddPlaylistPopup}>

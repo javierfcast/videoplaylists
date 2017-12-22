@@ -22,6 +22,7 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 
 const SearchResultsContainer = styled.div`
   padding: 20px;
+  width: 100%;
 `
 const SearchResultsTitle = styled.h1`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -46,8 +47,6 @@ const SearchResults = (props) => {
   // console.log(`Showing ${props.searchResults.length} results, try redefining your search to see more`);
 
   const videoItems = props.searchResults.map((video) => {
-
-    console.log(video);
 
     let date = new Date(video.snippet.publishedAt);
     let year = date.getFullYear();
