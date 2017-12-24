@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
@@ -48,8 +49,10 @@ const PlaylistItem = styled.li`
     background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
   }
 `;
-const PlaylistLink = styled.a`
+const PlaylistLink = styled(Link)`
   cursor: pointer;
+  color: #fff;
+  text-decoration: none;
 `;
 const PlaylistTitle = styled.span`
   display: block;
@@ -187,7 +190,7 @@ class User extends Component {
 
       return (
         <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink onClick={() => this.props.onPlaylistSelect(playlist)}>
+          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
             <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
           </PlaylistLink>

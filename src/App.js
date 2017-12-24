@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React, { Component } from 'react';
-import { Switch, Route } from 'react-router-dom';
+import { Switch, Route, withRouter } from 'react-router-dom';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
@@ -121,7 +121,6 @@ class App extends Component {
       user: null,
       //Responsive
       navIsOpen: false,
-      playlistIsOpen: false,
       //Login Popup States
       loginPopupIsOpen: false,
       //Sidenav
@@ -143,8 +142,6 @@ class App extends Component {
       //Edit Playlist Popup
       editPlaylistPopupIsOpen: false,
       addingNewPlaylist: false,
-      previousPlaylistName: '',
-      previousPlaylistSlug: '',
       playlistId: '',
       playlistName: '',
       playlistSlug: '',
@@ -174,7 +171,6 @@ class App extends Component {
       this.setState({ user })
       if (this.state.user){
 
-        console.log(user)
         //Load Playlists for Sidenav
         let docRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('playlists');
 
@@ -356,8 +352,7 @@ class App extends Component {
   }
 
   onPlaylistSelect = (item) => {
-    
-    // const docRef = firebase.firestore().doc(`users/${this.state.user.uid}/playlists/${item.playlistSlugName}/videos`);
+
     let docRef = firebase.firestore().collection('users').doc(item.AuthorId).collection('playlists').doc(item.playlistId).collection('videos');
     docRef = docRef.orderBy("timestamp");
 
@@ -394,7 +389,7 @@ class App extends Component {
     }); 
   };
 
-  onPlaylistFollow = (item) => {
+  onPlaylistFollow = (playlist, playlistFollowers) => {
     
     if (this.state.user === null) {
 
@@ -407,30 +402,19 @@ class App extends Component {
       const user = this.state.user;    
 
       //Route to User Following Playlist Collection
-      const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
+      const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(playlist.playlistId);
       followRef.get().then((doc) => {
         
         //Checking if the user is already following the playlist and if they do, Unfollow.
         if (doc.exists) {
-          console.log(`Removing Playlist: ${item.playlistName}.`)
-          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+          console.log(`Removing Playlist: ${playlist.playlistName}.`)
+          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${playlist.playlistId}`);
           docRef.delete().then( () => {
             
-
             //Update count on public playlists collections
-            const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+            const playlistsRef = firebase.firestore().doc(`playlists/${playlist.playlistId}`);
             playlistsRef.update({
-              followers: item.followers - 1,
-            }).then(function () {
-              console.log(`Playlist followers updated`);
-            }).catch(function (error) {
-              console.log('Got an error:', error);
-            });
-
-            //Update count on user playlist collections
-            const playlistUserRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
-            playlistUserRef.update({
-              followers: item.followers - 1,
+              followers: playlistFollowers - 1,
             }).then(function () {
               console.log(`Playlist followers updated`);
             }).catch(function (error) {
@@ -444,34 +428,24 @@ class App extends Component {
         //If the user does not follow the playlist. Follow.
         } else {
 
-          console.log(`Following Playlist: ${item.playlistName}.`)
+          console.log(`Following Playlist: ${playlist.playlistName}.`)
 
-          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${playlist.playlistId}`);
           docRef.set({
             followedOn: firebase.firestore.FieldValue.serverTimestamp(),
-            playlistId: item.playlistId,
-            playlistName: item.playlistName,
-            playlistSlug: item.playlistSlugName,
-            Author: item.Author,
-            AuthorId: item.AuthorId,
+            playlistId: playlist.playlistId,
+            playlistName: playlist.playlistName,
+            playlistSlug: playlist.playlistSlugName,
+            Author: playlist.Author,
+            AuthorId: playlist.AuthorId,
           }, {
               merge: true
             }).then(() => {
 
               //Update count on public playlists collections
-              const playlistsRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+              const playlistsRef = firebase.firestore().doc(`playlists/${playlist.playlistId}`);
               playlistsRef.update({
-                followers: item.followers + 1,
-              }).then(function () {
-                console.log(`Playlist followers updated`);
-              }).catch(function (error) {
-                console.log('Got an error:', error);
-              });
-
-              //Update count on user playlists collections
-              const playlistUserRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
-              playlistUserRef.update({
-                followers: item.followers + 1,
+                followers: playlistFollowers + 1,
               }).then(function () {
                 console.log(`Playlist followers updated`);
               }).catch(function (error) {
@@ -489,18 +463,15 @@ class App extends Component {
     
   };
 
-  onPlaylistUnfollow = (item) => {
+  onPlaylistUnfollow = (playlistId) => {
     const user = this.state.user;
-    const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(item.playlistId);
+    const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(playlistId);
     followRef.get().then((doc) => {
       if (doc.exists) {
-        console.log(`Removing Playlist: ${item.playlistName}.`)
-        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${item.playlistId}`);
+        const docRef = firebase.firestore().doc(`users/${user.uid}/following/${playlistId}`);
         docRef.delete().then(() => {
           console.log("Document successfully deleted!");
-          this.setState({
-            selectedPlaylist: null,
-          });
+          this.props.history.push(`/`);
         }).catch(function (error) {
           console.error("Error removing document: ", error);
         });
@@ -510,7 +481,7 @@ class App extends Component {
     });
   }
 
-  togglePlayer = (video) => {
+  togglePlayer = (video, playlistVideos) => {
 
     //Play Selected Video from the playlist
     const videoId = video.videoID;
@@ -518,13 +489,14 @@ class App extends Component {
     const videoChannel = video.videoChannel;
 
     //Set the current video being played.
-    let currentVideoNumber = this.state.playlistVideos.indexOf(video);
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
+    let currentVideoNumber = playlistVideos.indexOf(video);
+    console.log(`The current video number is ${currentVideoNumber} out of ${playlistVideos.length}`);
 
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
       playingFromSearch: false,
+      playlistVideos: playlistVideos,
       video,
       videoId,
       videoTitle,
@@ -540,11 +512,11 @@ class App extends Component {
           
           if (event.data === 0) {
 
-            currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
+            currentVideoNumber = currentVideoNumber !== playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
 
-            console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
+            console.log(`The current video number is ${currentVideoNumber} out of ${playlistVideos.length}`);
 
-            let nextVideo = this.state.playlistVideos[currentVideoNumber];
+            let nextVideo = playlistVideos[currentVideoNumber];
             
             this.setState({
               video: nextVideo,
@@ -556,6 +528,7 @@ class App extends Component {
           };
 
         });
+
       } else {
         player.on('stateChange', (event) => {
           if (event.data === 0) {
@@ -566,7 +539,6 @@ class App extends Component {
         });
       }
     }
-    
   };
 
   toggleSearchPlayer = (video) => {
@@ -758,7 +730,7 @@ class App extends Component {
     }, {
       merge: true
     }).then(() => {
-      console.log(`${videoTitle} added to ${item.playlistName} (${this.state.playlistVideos.length})`);
+      console.log(`${videoTitle} added to ${item.playlistName}`);
       
       //Increment video count in the public playlist
       const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
@@ -877,11 +849,11 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   };
 
-  toggleEditPlaylistPopup = (editing) => {
+  toggleEditPlaylistPopup = (playlist) => {
     this.setState({
-      previousPlaylistName: editing.playlistName,
-      previousPlaylistSlug: editing.playlistSlugName,
-      playlistId: editing.playlistId,
+      playlistName: playlist.playlistName,
+      playlistSlug: playlist.playlistSlugName,
+      playlistId: playlist.playlistId,
       addingNewPlaylist: false,
       editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
     });
@@ -889,12 +861,6 @@ class App extends Component {
 
   onEditPlaylist = () => {
     const user = this.state.user;
-    console.log(`User id: ${user.uid}`);
-    console.log(`Previous playlist name: ${this.state.previousPlaylistName}`)
-    console.log(`Previous playlist slug: ${this.state.previousPlaylistSlug}`)
-    console.log(`playlist name: ${this.state.playlistName}`);
-    console.log(`playlist slug: ${this.state.playlistSlug}`);
-    // const docRef = firestore.collection('users').doc(user.uid).collection('playlists');
     
     //Get Refs to public and user playlists
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${this.state.playlistId}`);
@@ -926,11 +892,11 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   }
 
-  onDeletePlaylist = (item, batchSize) => {
+  onDeletePlaylist = (playlist, batchSize) => {
     const user = this.state.user;
     const db = firebase.firestore();
-    const docRef = db.doc(`users/${user.uid}/playlists/${item.playlistId}`);
-    const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
+    const docRef = db.doc(`users/${user.uid}/playlists/${playlist.playlistId}`);
+    const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlist.playlistId).collection('videos');
 
     let self = this;
 
@@ -940,11 +906,11 @@ class App extends Component {
 
       return new Promise((resolve, reject) => {
         deleteQueryBatch(db, query, batchSize, resolve, reject);
-        deletePlaylistDoc(docRef, item, self);
+        deletePlaylistDoc(docRef, playlist, self);
       });
     } else {
       return new Promise((resolve, reject) => {
-        deletePlaylistDoc(docRef, item, self);
+        deletePlaylistDoc(docRef, playlist, self);
       });
     }
 
@@ -979,23 +945,22 @@ class App extends Component {
         .catch(reject);
     }
 
-    function deletePlaylistDoc(docRef, item, self) {
-      console.log(self);
+    function deletePlaylistDoc(docRef, playlist, self) {
       docRef.delete().then(() => {
         const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
         playlistsRef.delete().then(function () {
           console.log(`${docRef.id} Document successfully deleted!`);
-          self.setState({
-            selectedPlaylist: null,
-          });
-          console.log('Selected playlist set to null');
+          self.props.history.push(`/users/${user.uid}`);
+          // self.setState({
+          //   playlistVideos: [],
+          // });
         }).catch(function (error) {
           console.error("Error removing document: ", error);
         });
       }).catch(function (error) {
         console.error("Error removing document: ", error);
       });
-    };
+    }
   };
 
 
@@ -1015,8 +980,6 @@ class App extends Component {
               user={this.state.user}
               myPlaylists={this.state.myPlaylists}
               followingPlaylists={this.state.followingPlaylists}
-              onBrowse={this.onBrowse}
-              onPlaylistSelect={this.onPlaylistSelect}
               toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
             />
           </StyledAside>
@@ -1039,12 +1002,10 @@ class App extends Component {
               <Switch>
                 <Route exact path='/' render={({ match }) =>
                   <Browse
-                    hidden={this.state.playlistIsOpen}
                     user={this.state.user}
                     browsePlaylists={this.state.browsePlaylists}
                     popularPlaylists={this.state.popularPlaylists}
                     featuredPlaylists={this.state.featuredPlaylists}
-                    onPlaylistSelect={this.onPlaylistSelect}
                     onPlaylistFollow={this.onPlaylistFollow}
                   /> }
                 />
@@ -1057,11 +1018,9 @@ class App extends Component {
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
                   <Playlist
+                    match={match}
+                    key={window.location.href}
                     user={this.state.user}
-                    selectedPlaylist={this.state.selectedPlaylist}
-                    selectedPlaylistPublicInfo={this.state.selectedPlaylistPublicInfo}
-                    currentPlaylistName={this.state.currentPlaylistName}
-                    playlistName={this.state.playlistName}
                     playlistVideos={this.state.playlistVideos}
                     videoId={this.state.videoId}
                     togglePlayer={this.togglePlayer}
@@ -1126,4 +1085,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withRouter(App);

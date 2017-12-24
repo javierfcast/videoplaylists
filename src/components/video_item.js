@@ -56,13 +56,9 @@ const StyledActionButton = styled.a`
 
 
 
-const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, item, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
   
-  //If i used (props) i would have to define this variables:
-  //const video = props.video;
-  //const onVideoPlay = props.onVideoPlay
-  
-  const AuthorId = typeof item !== 'undefined' ? item.AuthorId : null;
+  const AuthorId = typeof playlist !== 'undefined' ? playlist.AuthorId : null;
 
   let deleteButton = null;
 
@@ -81,7 +77,7 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
       </StyledVideoInfo>
   } else {
     videoTrigger = 
-      <StyledVideoInfo onClick={() => togglePlayer(video)}>
+      <StyledVideoInfo onClick={() => togglePlayer(video, playlistVideos)}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoMeta>Published: {datePublished}</VideoMeta>
@@ -92,7 +88,7 @@ const VideoItem = ({ user, video, videoTitle, videoEtag, videoId, videoChannel, 
     if (inSearchResults === true || user.uid !== AuthorId) {
       deleteButton = null
     } else {
-      deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, item)}>
+      deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, playlist)}>
         <MaterialIcon icon="delete_forever" color='#fff' />
       </StyledActionButton>
     }

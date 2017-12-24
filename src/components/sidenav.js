@@ -134,18 +134,18 @@ const StyledTitleLabel = styled.h3`
 
 const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
 
-  const PlaylistItem = myPlaylists.map((item) => {
+  const MyPlaylists = myPlaylists.map((playlist) => {
     return (
-      <li key = {item.playlistSlugName}>
-        <StyledNavItemLink to={`/users/${item.AuthorId}/${item.playlistId}`}>{item.playlistName}</StyledNavItemLink>
+      <li key = {playlist.playlistSlugName}>
+        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>{playlist.playlistName}</StyledNavItemLink>
       </li>
     )
   });
 
-  const FollowingItem = followingPlaylists.map((item) => {
+  const FollowingPlaylists = followingPlaylists.map((playlist) => {
     return (
-      <li key={item.playlistId}>
-        <StyledNavItemLink to={`/users/${item.authorId}/${item.playlistId}`}>{item.playlistName}</StyledNavItemLink>
+      <li key={playlist.playlistId}>
+        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}?following=true`}>{playlist.playlistName}</StyledNavItemLink>
       </li>
     )
   });
@@ -171,11 +171,11 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
             </StyledButton>
             <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
             <StyledList>
-              {PlaylistItem}
+              {MyPlaylists}
             </StyledList>
             <StyledTitleLabel>Following - {followingPlaylists.length}</StyledTitleLabel>
             <StyledList>
-              {FollowingItem}
+              {FollowingPlaylists}
             </StyledList> 
           </StyledPlaylistContainer>
         </div>
@@ -188,6 +188,10 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
             <StyledLandingTitle>Video Playlists</StyledLandingTitle>
           </StyledLandingHeading>
           <StyledLandingDescription>Create, share and discover great video playlists.</StyledLandingDescription>
+          <StyledNavList>
+            <StyledNavItemLink to="/">Discover</StyledNavItemLink>
+            <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
+          </StyledNavList>
           <StyledLogin onClick={onLogin}>Log In with Google</StyledLogin>
         </StyledLanding>
         )

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import styled from 'styled-components';
 //import MaterialIcon from 'material-icons-react';
@@ -6,9 +7,6 @@ import styled from 'styled-components';
 const PlaylistsContainer = styled.div`
   padding: 20px;
   width: 100%;
-  ${props => props.hidden && `
-    display: none;
-  `}
 `;
 const PlaylistItem = styled.li`
   padding: 20px 0;
@@ -21,8 +19,10 @@ const PlaylistItem = styled.li`
     background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
   }
 `;
-const PlaylistLink = styled.a`
+const PlaylistLink = styled(Link)`
   cursor: pointer;
+  color: #fff;
+  text-decoration: none;
 `;
 const PlaylistTitle = styled.span`
   display: block;
@@ -77,7 +77,7 @@ class Browse extends Component {
 
       if (UserId !== playlist.AuthorId) {
 
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist)}>
+        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
           {playlist.followers} Followers
         </PlaylistActions>
 
@@ -91,7 +91,7 @@ class Browse extends Component {
 
       return (
         <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink onClick={() => this.props.onPlaylistSelect(playlist)}>
+          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
             <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
           </PlaylistLink>
@@ -107,7 +107,7 @@ class Browse extends Component {
       let followButton = null;
       if (UserId !== playlist.AuthorId) {
 
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist)}>
+        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
           {playlist.followers} Followers
         </PlaylistActions>
 
@@ -121,7 +121,7 @@ class Browse extends Component {
 
       return (
         <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink onClick={() => this.props.onPlaylistSelect(playlist)}>
+          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
             <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
           </PlaylistLink>
@@ -137,7 +137,7 @@ class Browse extends Component {
       let followButton = null;
       if (UserId !== playlist.AuthorId) {
 
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist)}>
+        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
           {playlist.followers} Followers
         </PlaylistActions>
 
@@ -151,7 +151,7 @@ class Browse extends Component {
 
       return (
         <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink onClick={() => this.props.onPlaylistSelect(playlist)}>
+          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
             <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
           </PlaylistLink>
@@ -162,7 +162,7 @@ class Browse extends Component {
     })
 
     return (
-      <PlaylistsContainer className={this.props.hidden && 'responsive-hidden'}>
+      <PlaylistsContainer>
         
         <h1>Discover</h1>
         <Tabs>
