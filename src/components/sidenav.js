@@ -4,6 +4,12 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 
+//Import Images
+import logo from '../images/logo_videoplaylists.svg';
+import logoFacebook from '../images/logo_facebook.svg';
+import logoTwitter from '../images/logo_twitter.svg';
+import logoInstagram from '../images/logo_instagram.svg';
+
 const sizes = {
   small: 360,
   xmedium: 720,
@@ -28,13 +34,25 @@ const Aside = styled.div`
   background: rgba(0,0,0,0.9);
   border-right: 1px solid rgba(255,255,255,0.1);
   ${media.xmedium`
+    min-height: inherit;
     background: none;
     border: none;
   `}
 `;
+const StyledContainer = styled.div`
+  padding: 30px 20px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
+const StyledTopContainer = styled.div`
+`;
+const StyledBottomContainer = styled.div`
+`;
 const StyledUserInfo = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding: 20px;
   padding-bottom: 40px;
   margin-bottom: 20px;
 `;
@@ -49,9 +67,7 @@ const StyledUserName = styled.h4`
   font-weight: 100;
   margin-bottom: 20px;
 `;
-const StyledLanding = styled.div`
-  padding: 40px 20px;
-`;
+
 const StyledLandingHeading = styled.div`
   display: flex;
   align-items: center;
@@ -59,9 +75,17 @@ const StyledLandingHeading = styled.div`
 `;
 const StyledLandingLogo = styled.div`
   margin-right: 10px;
+  display: flex;
+  align-items: center;
+`;
+const StyledLogo = styled.img`
+  width: 26px;
+  height: 26px;
+  margin-right: 10px;
+  display: block;
 `;
 const StyledLandingTitle = styled.h1`
-  font-size: 14px;
+  font-size: 12px;
   text-transform: uppercase;
   font-weight: 400;
   letter-spacing: 2px;
@@ -76,11 +100,10 @@ const StyledLogin = styled.a`
   cursor: pointer;
   border: 1px solid rgba(255,255,255,0.1);
   display: block;
-  padding: 10px 20px;
-  margin-top: 80px;
-  display: block;
+  padding: 10px;
   text-align: center;
   transition: all .3s ease;
+  margin-bottom: 10px;
   &:hover{
     border: 1px solid rgba(255,255,255,1);
   }
@@ -102,7 +125,6 @@ const StyledNavItemLink = styled(Link)`
   text-decoration: none;
 `;
 const StyledPlaylistContainer = styled.div`
-  padding: 20px;
 `;
 const StyledList = styled.ul`
   margin-bottom: 30px;
@@ -131,8 +153,33 @@ const StyledTitleLabel = styled.h3`
   font-weight: 400;
   margin-bottom: 10px;
 `;
+const StyledLabelLink = styled(Link)`
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: #fff;
+  margin-bottom: 10px;
+  display: block;
+  text-decoration: none;
+`;
+const StyledLabel = styled.p`
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-bottom: 10px;
+`;
+const StyledSocialList = styled.div`
+`;
+const StyledSocialLogo = styled.img`
+  width: 24px;
+  height: 24px;
+`;
+const StyledSocialLink = styled.a`
+  display: inline-block;
+  margin-right: 10px;
+`;
 
-const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
+const Sidenav = ({ toggleAddPlaylistPopup, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
 
   const MyPlaylists = myPlaylists.map((playlist) => {
     return (
@@ -153,50 +200,76 @@ const Sidenav = ({ toggleAddPlaylistPopup, onBrowse, onPlaylistSelect, myPlaylis
   return (
     <Aside>
       {(user) ? (
-        <div>
-          <StyledUserInfo>
-            <StyledUserImg width="100" src={user.photoURL} alt={user.displayName} />
-            <p>Hola</p>
-            <StyledUserName>{user.displayName || user.email}!</StyledUserName>
-            <StyledLogout onClick={onLogout}>Logout</StyledLogout>
-          </StyledUserInfo>
-          <StyledPlaylistContainer>
+        <StyledContainer>
+          <StyledTopContainer>
+            <StyledUserInfo>
+              <StyledUserImg width="100" src={user.photoURL} alt={user.displayName} />
+              <p>Hola</p>
+              <StyledUserName>{user.displayName || user.email}!</StyledUserName>
+              <StyledLogout onClick={onLogout}>Logout</StyledLogout>
+            </StyledUserInfo>
+            <StyledPlaylistContainer>
+              <StyledNavList>
+                <StyledNavItemLink to="/">Discover</StyledNavItemLink>
+                <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
+              </StyledNavList>
+              <StyledButton onClick={toggleAddPlaylistPopup}>
+                <MaterialIcon icon="add" color='#fff' />
+                Add new Playlist
+              </StyledButton>
+              <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
+              <StyledList>
+                {MyPlaylists}
+              </StyledList>
+              <StyledTitleLabel>Following - {followingPlaylists.length}</StyledTitleLabel>
+              <StyledList>
+                {FollowingPlaylists}
+              </StyledList> 
+            </StyledPlaylistContainer>
+          </StyledTopContainer>
+          <StyledBottomContainer>
+            <StyledLabelLink to="/about">About</StyledLabelLink>
+            <StyledLabelLink to="/terms">Terms of Service</StyledLabelLink>
+            <StyledLabelLink to="/privacy">Privacy Policy</StyledLabelLink>
+            <StyledLabel>Follow Us</StyledLabel>
+            <StyledSocialList>
+              <StyledSocialLink href="https://facebook.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoFacebook} alt='Logo Facebook' /></StyledSocialLink>
+              <StyledSocialLink href="https://twitter.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoTwitter} alt='Logo Twitter' /></StyledSocialLink>
+              <StyledSocialLink href="https://instagram.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoInstagram} alt='Logo Instagram' /></StyledSocialLink>
+            </StyledSocialList>
+          </StyledBottomContainer>
+        </StyledContainer>
+        ) : (
+        <StyledContainer>
+          <StyledTopContainer>
+            <StyledLandingHeading>
+              <StyledLandingLogo>
+                <StyledLogo src={logo} alt='VideoPlaylist Logo' />
+                <StyledLandingTitle>VideoPlaylists.tv</StyledLandingTitle>
+              </StyledLandingLogo>
+            </StyledLandingHeading>
+            <StyledLandingDescription>Create, share and discover great video playlists.</StyledLandingDescription>
             <StyledNavList>
               <StyledNavItemLink to="/">Discover</StyledNavItemLink>
               <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
             </StyledNavList>
-            <StyledButton onClick={toggleAddPlaylistPopup}>
-              <MaterialIcon icon="add" color='#fff' />
-              Add new Playlist
-            </StyledButton>
-            <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
-            <StyledList>
-              {MyPlaylists}
-            </StyledList>
-            <StyledTitleLabel>Following - {followingPlaylists.length}</StyledTitleLabel>
-            <StyledList>
-              {FollowingPlaylists}
-            </StyledList> 
-          </StyledPlaylistContainer>
-        </div>
-        ) : (
-        <StyledLanding>
-          <StyledLandingHeading>
-            <StyledLandingLogo>
-              <MaterialIcon icon="playlist_play" color='#fff' size='medium'/>
-            </StyledLandingLogo>
-            <StyledLandingTitle>Video Playlists</StyledLandingTitle>
-          </StyledLandingHeading>
-          <StyledLandingDescription>Create, share and discover great video playlists.</StyledLandingDescription>
-          <StyledNavList>
-            <StyledNavItemLink to="/">Discover</StyledNavItemLink>
-            <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
-          </StyledNavList>
-          <StyledLogin onClick={onLogin}>Log In with Google</StyledLogin>
-        </StyledLanding>
+            <StyledLogin onClick={() => onLogin('google')}>Login with Google</StyledLogin>
+            <StyledLogin onClick={() => onLogin('facebook')}>Login with Facebook</StyledLogin>
+          </StyledTopContainer>
+          <StyledBottomContainer>
+            <StyledLabelLink to="/about">About</StyledLabelLink>
+            <StyledLabelLink to="/terms">Terms of Service</StyledLabelLink>
+            <StyledLabelLink to="/privacy">Privacy Policy</StyledLabelLink>
+            <StyledLabel>Follow Us</StyledLabel>
+            <StyledSocialList>
+              <StyledSocialLink href="https://facebook.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoFacebook} alt='Logo Facebook' /></StyledSocialLink>
+              <StyledSocialLink href="https://twitter.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoTwitter} alt='Logo Twitter' /></StyledSocialLink>
+              <StyledSocialLink href="https://instagram.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoInstagram} alt='Logo Instagram' /></StyledSocialLink>
+            </StyledSocialList>
+          </StyledBottomContainer>
+        </StyledContainer>
         )
       }
-
     </Aside>
   )
 }

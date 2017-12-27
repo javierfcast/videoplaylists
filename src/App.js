@@ -5,6 +5,7 @@ import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
+import { keyframes } from 'styled-components';
 import YTSearch from 'youtube-api-search';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
@@ -22,6 +23,9 @@ import Browse from './components/browse';
 import Users from './components/users';
 import User from './components/user';
 import LoginPopup from './components/login_popup.js';
+import About from './components/about';
+import Terms from './components/terms';
+import Privacy from './components/privacy';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -46,8 +50,16 @@ const media = Object.keys(sizes).reduce((acc, label) => {
   return acc
 }, {})
 
+const animatedBg = keyframes`
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+`;
+
 const StyledContainer = styled.div`
-  background: linear-gradient(45deg, rgba(175,1,198,0.65) 0%,rgba(68,70,181,0.73) 52%,rgba(74,0,114,0.8) 100%);
+  background: linear-gradient(230deg, rgba(72,43,174,0.65),rgba(155,8,193,0.75),rgba(0,160,151,0.8),rgba(2,153,207,0.75),rgba(51,25,124,0.6));
+  background-size: 1000% 1000%;
+  animation: ${animatedBg} 100s linear infinite;
   transition: all, .5s ease;
   transition-delay: .5s;
   height: 100vh;
@@ -298,8 +310,15 @@ class App extends Component {
     );
   };
 
-  onLogin = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
+  onLogin = (source) => {
+
+    let provider = null;
+
+    if (source === 'google'){
+      provider = new firebase.auth.GoogleAuthProvider();
+    } else if (source === 'facebook') {
+      provider = new firebase.auth.FacebookAuthProvider();
+    }
 
     firebase.auth().signInWithPopup(provider)
     .then((result) => { 
@@ -329,6 +348,8 @@ class App extends Component {
       console.log(`Error ${error.code}: ${error.message}`)
     })
   };
+
+
 
   onLogout = () => {
     firebase.auth().signOut()
@@ -1032,6 +1053,9 @@ class App extends Component {
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
                   />}
                 />
+                <Route exact path='/about' component={About} />
+                <Route exact path='/terms' component={Terms} />
+                <Route exact path='/privacy' component={Privacy} />
               </Switch>
             </StyledMainContainer>
           </StyledMain>
