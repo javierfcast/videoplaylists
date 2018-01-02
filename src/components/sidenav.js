@@ -41,11 +41,14 @@ const Aside = styled.div`
 `;
 const StyledContainer = styled.div`
   padding: 30px 20px;
-  height: calc(100vh - 60px);
+  height: 100vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  ${media.xmedium`
+    height: calc(100vh - 60px);
+  `}
 `;
 const StyledTopContainer = styled.div`
 `;

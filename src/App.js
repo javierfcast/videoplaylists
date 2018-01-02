@@ -296,7 +296,8 @@ class App extends Component {
   onVideoSearch = (searchTerm) => {
     if (searchTerm === ''){
       this.setState({
-        searchResults: []
+        searchResults: [],
+        playingFromSearch: false
       })
       return null;
     }
@@ -349,8 +350,6 @@ class App extends Component {
     })
   };
 
-
-
   onLogout = () => {
     firebase.auth().signOut()
     .then((result) => { 
@@ -371,44 +370,6 @@ class App extends Component {
     })
     console.log(`Browsing: ${this.state.playlistIsOpen}`)
   }
-
-  onPlaylistSelect = (item) => {
-
-    let docRef = firebase.firestore().collection('users').doc(item.AuthorId).collection('playlists').doc(item.playlistId).collection('videos');
-    docRef = docRef.orderBy("timestamp");
-
-    docRef.onSnapshot(querySnapshot => {
-      const playlistVideos = [];
-      querySnapshot.forEach(function (doc) {
-        playlistVideos.push(doc.data());
-      });
-      this.setState({
-        playlistVideos: playlistVideos,
-        playlistIsOpen: true,
-        selectedPlaylist: item,
-        currentPlaylistName: item.playlistName,
-        playlistId: item.playlistId,
-        playlistName: item.playlistName,
-        playlistSlug: item.playlistSlugName
-      });
-
-      console.log(`Viewing ${item.playlistName} (${playlistVideos.length}) - browse is hidden: ${this.state.playlistIsOpen}`)
-
-    });
-
-
-    //Bring Browse Info - Followers and Featured Info on Playlist
-
-    let playlistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
-    playlistRef.onSnapshot((doc) => {
-      if (doc.exists) {
-        const playlistPublicInfo = doc.data();
-        this.setState({
-          selectedPlaylistPublicInfo: playlistPublicInfo
-        });
-      }
-    }); 
-  };
 
   onPlaylistFollow = (playlist, playlistFollowers) => {
     
@@ -501,6 +462,9 @@ class App extends Component {
       console.log("Error getting document:", error);
     });
   }
+
+
+  //Play controls for playlists and search results Methods
 
   togglePlayer = (video, playlistVideos) => {
 
@@ -747,11 +711,10 @@ class App extends Component {
       videoTitle: videoTitle,
       videoChannel: videoChannel,
       datePublished: datePublished,
-      order: 0,
+      order: item.videoCount + 1
     }, {
       merge: true
     }).then(() => {
-      console.log(`${videoTitle} added to ${item.playlistName}`);
       
       //Increment video count in the public playlist
       const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
@@ -765,7 +728,11 @@ class App extends Component {
         videoCount: item.videoCount + 1,
       })
 
-    }).catch(function (error) {
+    })
+    .then(() => {
+      console.log(`${videoTitle} added to ${item.playlistName}`);
+    })
+    .catch(function (error) {
       console.log('Got an error:', error);
     })
     this.setState({
@@ -779,8 +746,6 @@ class App extends Component {
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
 
     docRef.delete().then(() => {
-      console.log("Document successfully deleted!");
-
       //Decrement video count in the public playlist
       const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
       userPlaylistRef.update({
@@ -792,8 +757,11 @@ class App extends Component {
       publicPlaylistRef.update({
         videoCount: item.videoCount - 1,
       })
-
-    }).catch(function (error) {
+    })
+    .then(function() {
+      console.log("Document successfully deleted!");
+    })
+    .catch(function (error) {
       console.error("Error removing document: ", error);
     });
   };
@@ -842,7 +810,9 @@ class App extends Component {
       AuthorId: user.uid,
       videoCount: 0,
       followers: 0,
-      featured: false
+      featured: false,
+      orderBy: 'timestamp',
+      orderDirection: 'asc',
     }).then((docRef) => {
       console.log(`Playlist saved with Id: ${docRef.id}`);
       docRef.update({
@@ -1076,7 +1046,6 @@ class App extends Component {
           user={this.state.user}
           onLogin={this.onLogin}
           video={this.state.videoToBeAdded}
-          videoTitle={this.state.videoTitle}
           open={this.state.playlistPopupIsOpen}
           onAddToPlaylist={this.onAddToPlaylist}
           onClose={this.togglePlaylistPopup}

@@ -28,11 +28,12 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 const PlaylistContainer = styled.div`
   padding: 20px;
   width: 100%;
+  overflow: hidden;
 `;
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 358px);
+  height: calc(100vh - 354px);
   overflow-y: auto;
   ${media.xmedium`
     height: calc(100vh - 258px);
@@ -42,9 +43,14 @@ const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 10px;
 `;
+const StyledPlaylistName = styled.h1`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 const StyledNoFoundContent = styled.div`
   width: 100%;
-  height: calc(100vh - 358px);
+  height: calc(100vh - 354px);
   overflow-y: auto;
   display: flex;
   align-items: center;
@@ -70,6 +76,9 @@ const StyledPlaylistInfo = styled.div`
   display: flex;
   align-items: center;
   padding-top: 10px;
+  ${media.xmedium`
+    padding-top: 0;
+  `}
 `;
 const StyledLabel = styled.h3`
   font-size: 10px;
@@ -92,20 +101,12 @@ const StyledPlaylistActions = styled.div`
   align-items: center;
   justify-content: space-between;
   margin-top: 10px;
+  position: relative;
   ${media.xmedium`
     margin-top: 0;
     justify-content: flex-end;
   `}
 `
-const StyledButton = styled.a`
-  opacity: .6;
-  cursor: pointer;
-  transition: all .3s ease;
-  margin-left: 20px;
-  &:hover{
-    opacity: 1;
-  }
-`;
 const PlaylistActions = styled.a`
   position: relative;
   display: inline-block;
@@ -132,6 +133,51 @@ const PlaylistActionsNone = styled.span`
   transition: all .3s ease;
   overflow: hidden;
 `;
+const StyledOptionsPopup = styled.div`
+  position: absolute;
+  top: 40px;
+  width: 220px;
+  background: rgba(0,0,0,0.9);
+  color: #fff;
+  padding: 10px 0;
+  z-index: 100;
+  hr{
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .material-icons{
+    margin-left: 10px;
+  }
+`;
+const StyledOptionsLabel = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 2px;
+`;
+const StyledButton = styled.a`
+  opacity: .6;
+  cursor: pointer;
+  transition: all .3s ease;
+  margin-left: 10px;
+  display: block;
+  &:hover{
+    opacity: 1;
+  }
+`;
+const StyledButtonPopup = StyledButton.extend`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 2px;
+`;
 
 class Playlist extends Component {
 
@@ -143,15 +189,13 @@ class Playlist extends Component {
       playlist: null,
       playlistPublicInfo: null,
       playlistVideos: [],
-      //States that I think will need to be global.
-      // playlistName: '',
-      // currentPlaylistName: null,
-      // playlistId: '',
-      // playlistSlug: '',
+      playlistOptionsIsOpen: false,
+      orderBy: null,
+      orderDirection: null,
     };
   };
 
-  componentWillMount() {
+  componentDidMount() {
 
     //Get Playlist document basic info
     let docRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
@@ -160,6 +204,8 @@ class Playlist extends Component {
       if (doc.exists) {
         this.setState({
           playlist: doc.data(),
+          orderBy: doc.data().orderBy,
+          orderDirection: doc.data().orderDirection
         })
       } else {
         this.setState({
@@ -181,8 +227,11 @@ class Playlist extends Component {
     }); 
 
     //Get videos inside playlist
+    if (!this.state.playlist){
+      return null;
+    }
     let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
-    videosRef = videosRef.orderBy("timestamp");
+    videosRef = videosRef.orderBy(this.state.playlist.orderBy, this.state.playlist.orderDirection);
 
     videosRef.onSnapshot(querySnapshot => {
       const playlistVideos = [];
@@ -196,9 +245,69 @@ class Playlist extends Component {
 
   }
 
-  render() {
+  componentDidUpdate() {
+    if (!this.state.playlist){
+      return null;
+    }
+    //Get videos inside playlist
+    let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');    
 
-    
+    videosRef = videosRef.orderBy(this.state.orderBy, this.state.orderDirection);
+
+    videosRef.onSnapshot(querySnapshot => {
+      const playlistVideos = [];
+      querySnapshot.forEach(function (doc) {
+        playlistVideos.push(doc.data());
+      });
+      this.setState({
+        playlistVideos: playlistVideos,
+      });
+    });
+  }
+
+  //Playlists Methods
+  togglePlaylistsOptions = () => {
+    this.setState({
+      playlistOptionsIsOpen: !this.state.playlistOptionsIsOpen
+    });
+  };
+
+  orderBy = (type) => {
+
+    let orderDirection = this.state.orderDirection;
+
+    if (orderDirection === 'asc'){
+      orderDirection = 'desc'
+    } else {
+      orderDirection = 'asc'
+    }
+
+    this.setState({
+      orderBy: type,
+      orderDirection: orderDirection,
+      playlistOptionsIsOpen: !this.state.playlistOptionsIsOpen
+    })
+
+    if (this.props.user.uid === this.state.profileId) {
+      const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
+
+      playlistRef.update({
+        orderBy: type,
+        orderDirection: orderDirection,
+      })
+      .then(function () {
+        console.log("Order updated Succesfully");
+      })
+      .catch(function (error) {
+        // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+      });
+
+    }
+
+  }
+
+  render() {    
 
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
       return null;
@@ -230,12 +339,16 @@ class Playlist extends Component {
       }
     }
 
+
+    //Basic constants
+
     const playlist = this.state.playlist;
     const playlistName = this.state.playlist.playlistName;
     const playlistAuthor = this.state.playlist.Author;
     const playlistFollowers = this.state.playlistPublicInfo.followers;
     const batchSize = this.state.playlistVideos.length;
     
+    //Map videos inside playlist
     const videoItems = this.state.playlistVideos.map((video) => { 
       
       let date = new Date(video.datePublished);
@@ -272,49 +385,76 @@ class Playlist extends Component {
       )
     });
 
+    //Set Follow for playlists
     let followButton = null;
-    let actionsButton = null;
 
     if (this.props.user !== null ) {
       if (this.props.user.uid !== playlist.AuthorId) {
 
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlistFollowers)}>
+        followButton = 
+        <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlistFollowers)}>
           {playlistFollowers} Followers
         </PlaylistActions>
 
       } else {
+        followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
+      }
 
-        followButton = <PlaylistActionsNone>
-          {playlistFollowers} Followers
-        </PlaylistActionsNone>
-      }
-      if (this.props.user.uid === playlist.AuthorId ) {
-        actionsButton = <div>
-          <StyledButton onClick={() => this.props.toggleEditPlaylistPopup(playlist)}><MaterialIcon icon="edit" color='#fff' /></StyledButton>
-          <StyledButton onClick={() => this.props.onDeletePlaylist(playlist, batchSize)}><MaterialIcon icon="delete_forever" color='#fff' /></StyledButton>
-        </div>
-      }
     } else {
-      followButton = <PlaylistActionsNone>
-        {playlistFollowers} Followers
-        </PlaylistActionsNone>
-      
-      actionsButton = null;
+      followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
     }
+
+    //Set Playlist options popup
+    let playlistOptionsPopup = null;
+
+    if (this.state.playlistOptionsIsOpen){
+      if (this.props.user.uid === playlist.AuthorId) {
+        
+        playlistOptionsPopup = 
+
+        <StyledOptionsPopup>
+          <StyledOptionsLabel>
+            Order by <MaterialIcon icon="sort" color='#fff' />
+          </StyledOptionsLabel>
+          <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
+            Recently Added
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
+            Video Date
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
+            Video Title
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
+            Channel
+          </StyledButtonPopup>
+          <hr />
+          <StyledButtonPopup onClick={() => this.props.toggleEditPlaylistPopup(playlist)}>
+            Edit Playlist's Name <MaterialIcon icon="edit" color='#fff' />
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.props.onDeletePlaylist(playlist, batchSize)}>
+            Delete Playlist <MaterialIcon icon="delete_forever" color='#fff' />
+          </StyledButtonPopup>
+        </StyledOptionsPopup>
+
+      }
+    }
+      
 
     return(
       <PlaylistContainer>
         <StyledHeader>
           <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
-          <h1>{playlistName}</h1>
+          <StyledPlaylistName>{playlistName}</StyledPlaylistName>
           <StyledHeaderActions>
             <StyledPlaylistInfo>
               <StyledLabel>{batchSize} Videos in this playlist</StyledLabel>
             </StyledPlaylistInfo>
             <StyledPlaylistActions>
               {followButton}
-              {actionsButton}
-            </StyledPlaylistActions>
+              <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+              {playlistOptionsPopup}
+            </StyledPlaylistActions>  
           </StyledHeaderActions>
         </StyledHeader>
         <VideoListContainer>

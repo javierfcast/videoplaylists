@@ -23,14 +23,15 @@ const StyledContainer = styled.div`
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  height: calc(100vh - 358px);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   flex-direction: column;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
   ${media.xmedium`
-    height: calc(100vh - 258px);
+    height: calc(100vh - 140px);
   `}
   h1{
     margin-bottom: 40px;

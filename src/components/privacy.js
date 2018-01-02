@@ -23,7 +23,7 @@ const StyledContainer = styled.div`
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  height: calc(100vh - 140px);
+  height: calc(100vh - 200px);
   overflow-y: auto;
   ${media.xmedium`
     height: calc(100vh - 140px);

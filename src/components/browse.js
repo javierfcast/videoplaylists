@@ -93,7 +93,7 @@ class Browse extends Component {
         <PlaylistItem key={playlist.playlistId}>
           <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
+            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
           </PlaylistLink>
           {followButton}
         </PlaylistItem>
@@ -123,7 +123,7 @@ class Browse extends Component {
         <PlaylistItem key={playlist.playlistId}>
           <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
+            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
           </PlaylistLink>
           {followButton}
         </PlaylistItem>
@@ -153,7 +153,7 @@ class Browse extends Component {
         <PlaylistItem key={playlist.playlistId}>
           <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
+            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
           </PlaylistLink>
           {followButton}
         </PlaylistItem>

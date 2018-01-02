@@ -33,31 +33,35 @@ const StyledContent = styled.div`
   list-style: none;
   width: calc(100% + 20px);
   margin-left: -10px;
-  height: calc(100vh - 358px);
+  height: calc(100vh - 288px);
   overflow-y: auto;
   padding: 20px 0;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: stretch;
   ${media.xmedium`
     height: calc(100vh - 258px);
   `}
 `;
-const StyledUserItem = styled(Link)`
-  padding: 20px 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  margin: 10px;
-  text-align: center;
+const StyledUserItemContainer = styled.div`
+  padding: 10px;
   width: 50%;
-  color: #fff;
-  text-decoration: none;
-  transition: all .3s;
   ${media.xmedium`
     width: 33.3333%;
   `}
   ${media.xlarge`
     width: 25%;
   `}
+`
+const StyledUserItem = styled(Link)`
+  display: block;
+  height: 100%;
+  padding: 20px 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  color: #fff;
+  text-decoration: none;
+  transition: all .3s;
   &:hover{
     border: 1px solid #fff;
   }
@@ -101,11 +105,13 @@ class Users extends Component {
 
     const userItems = this.state.usersList.map((user) => {
       return (
-        <StyledUserItem to = {`/users/${user.uid}`} key={user.uid}> 
-          <StyledUserImage src={user.photoURL} />
-          <h4>{user.displayName}</h4>
-          {/* <p>{user.uid}</p> */}
-        </StyledUserItem>
+        <StyledUserItemContainer>
+          <StyledUserItem to = {`/users/${user.uid}`} key={user.uid}> 
+            <StyledUserImage src={user.photoURL} />
+            <h4>{user.displayName}</h4>
+            {/* <p>{user.uid}</p> */}
+          </StyledUserItem>
+        </StyledUserItemContainer>
       )
     });
 

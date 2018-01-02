@@ -32,8 +32,7 @@ const StyledPlayerContainer = styled.div`
     flex-direction: row;
     justify-content: space-between;
   `}
-`
-
+`;
 const StyledSongInfo = styled.div`
   display: flex;
   flex-direction: column;
@@ -41,29 +40,41 @@ const StyledSongInfo = styled.div`
   justify-content: center;
   width: 100%;
   text-align: center;
+  flex: 1 0 auto;
+  padding: 0 10px;
   ${media.xmedium`
+    width: 33.3333%;
+    padding: 0;
     padding-left: 20px;
     align-items: flex-start;
     text-align: left;
   `}
-`
+`;
+const StyledSongInfoContainer = styled.div`
+  width: 100%;
+`;
 const StyledPlayerControls = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-`
+  flex: 1 0 auto;
+  ${media.xmedium`
+    width: 33.3333%;
+  `}
+`;
 const StyledAditionalOptions = styled.div`
   padding-right: 20px;
   display: none;
   align-items: center;
   justify-content: flex-end;
   width: 100%;
+  flex: 1 0 auto;
   ${media.xmedium`
     display: flex;
+    width: 33.3333%;
   `}
-`
-
+`;
 const StyledButton = styled.a`
   cursor: pointer;
   padding: 0 10px;
@@ -72,12 +83,14 @@ const StyledButton = styled.a`
   &:hover{
     opacity: 1;
   }
-`
+`;
 const VideoTitle = styled.p`
   display: block;
   width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
-
 const Label = styled.span`
   display: inline-block;
   letter-spacing: 2px;
@@ -122,10 +135,10 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
     <StyledPlayerContainer>
       <StyledSongInfo>
         {videoTitle &&
-          <div>
+          <StyledSongInfoContainer>
             <VideoTitle>{videoTitle}</VideoTitle>
             <Label>{videoChannel}</Label>
-          </div>
+          </StyledSongInfoContainer>
         }
       </StyledSongInfo>
       <StyledPlayerControls>

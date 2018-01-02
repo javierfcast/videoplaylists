@@ -29,10 +29,15 @@ const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 20px;
 `;
+const StyledUserName = styled.h1`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 const StyledContent = styled.div`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 358px);
+  height: calc(100vh - 288px);
   overflow-y: auto;
   ${media.xmedium`
     height: calc(100vh - 258px);
@@ -202,7 +207,7 @@ class User extends Component {
     return (
       <StyledUserContainer>
         <StyledHeader>
-          <h1>{profile.displayName}</h1>
+          <StyledUserName>{profile.displayName}</StyledUserName>
         </StyledHeader>
         <StyledContent>
           {playlistItem}

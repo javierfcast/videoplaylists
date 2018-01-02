@@ -72,7 +72,7 @@ const StyledButtonSubmit = styled.a`
   }
 `;
 
-const AddToPlaylistPopup = ({ user, onLogin, video, videoTitle, onAddToPlaylist, open, onClose, myPlaylists }) => {
+const AddToPlaylistPopup = ({ user, onLogin, video, onAddToPlaylist, open, onClose, myPlaylists }) => {
 
   if (!open) {
     return null;
@@ -114,6 +114,8 @@ const AddToPlaylistPopup = ({ user, onLogin, video, videoTitle, onAddToPlaylist,
       </li>
     )
   });
+
+  const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
 
   return(
     <StyledPopup>
