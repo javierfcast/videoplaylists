@@ -245,25 +245,28 @@ class Playlist extends Component {
 
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps, prevState) {
     if (!this.state.playlist){
       return null;
     }
-    //Get videos inside playlist
-    let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');    
 
-    videosRef = videosRef.orderBy(this.state.orderBy, this.state.orderDirection);
+    //Get videos and reorder them if order changed.
+    if (this.state.orderDirection !== prevState.orderDirection) {
+      let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');    
 
-    videosRef.onSnapshot(querySnapshot => {
-      const playlistVideos = [];
-      querySnapshot.forEach(function (doc) {
-        playlistVideos.push(doc.data());
+      videosRef = videosRef.orderBy(this.state.orderBy, this.state.orderDirection);
+
+      videosRef.onSnapshot(querySnapshot => {
+        const playlistVideos = [];
+        querySnapshot.forEach(function (doc) {
+          playlistVideos.push(doc.data());
+        });
+        this.setState({
+          playlistVideos: playlistVideos,
+        });
       });
-      this.setState({
-        playlistVideos: playlistVideos,
-      });
-    });
-  }
+    };
+  };
 
   //Playlists Methods
   togglePlaylistsOptions = () => {
@@ -448,7 +451,7 @@ class Playlist extends Component {
           <StyledPlaylistName>{playlistName}</StyledPlaylistName>
           <StyledHeaderActions>
             <StyledPlaylistInfo>
-              <StyledLabel>{batchSize} Videos in this playlist</StyledLabel>
+              <StyledLabel>{playlist.videoCount} Videos in this playlist</StyledLabel>
             </StyledPlaylistInfo>
             <StyledPlaylistActions>
               {followButton}

@@ -281,6 +281,8 @@ class App extends Component {
       document.getElementById("input-playlist-popup").focus();
     }
 
+    console.log(this.state.playingFromSearch)
+
   };
 
 
@@ -473,10 +475,6 @@ class App extends Component {
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
 
-    //Set the current video being played.
-    let currentVideoNumber = playlistVideos.indexOf(video);
-    console.log(`The current video number is ${currentVideoNumber} out of ${playlistVideos.length}`);
-
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
@@ -496,6 +494,9 @@ class App extends Component {
         player.on('stateChange', (event) => {
           
           if (event.data === 0) {
+
+            //Set the current video being played.
+            let currentVideoNumber = playlistVideos.indexOf(video);
 
             currentVideoNumber = currentVideoNumber !== playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
 
@@ -533,10 +534,6 @@ class App extends Component {
     const videoTitle = video.snippet.title;
     const videoChannel = video.snippet.channelTitle;
 
-    //Set the current video being played.
-    let currentVideoNumber = this.state.searchResults.indexOf(video);
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
-
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
@@ -555,6 +552,9 @@ class App extends Component {
         player.on('stateChange', (event) => {
 
           if (event.data === 0) {
+
+            //Set the current video being played.
+            let currentVideoNumber = this.state.searchResults.indexOf(video);
 
             currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
 
@@ -696,6 +696,9 @@ class App extends Component {
   };
 
   onAddToPlaylist = (video, item) => {
+
+    console.log('adding song');
+
     const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
@@ -703,6 +706,8 @@ class App extends Component {
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
 
     const user = this.state.user;
+
+    //Add song to playlist
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
     docRef.set({
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -712,22 +717,6 @@ class App extends Component {
       videoChannel: videoChannel,
       datePublished: datePublished,
       order: item.videoCount + 1
-    }, {
-      merge: true
-    }).then(() => {
-      
-      //Increment video count in the public playlist
-      const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
-      userPlaylistRef.update({
-        videoCount: item.videoCount + 1,
-      })
-
-      //Increment video count in the user playlist
-      const publicPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
-      publicPlaylistRef.update({
-        videoCount: item.videoCount + 1,
-      })
-
     })
     .then(() => {
       console.log(`${videoTitle} added to ${item.playlistName}`);
@@ -735,6 +724,31 @@ class App extends Component {
     .catch(function (error) {
       console.log('Got an error:', error);
     })
+
+    //Increment video count in the user playlist
+    const userPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
+    userPlaylistRef.update({
+      videoCount: item.videoCount + 1,
+    })
+    .then(() => {
+      console.log(`User count Incremented`);
+    })
+    .catch(function (error) {
+      console.log('Got an error:', error);
+    })
+
+    //Increment video count in the public playlist
+    const publicPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
+    publicPlaylistRef.update({
+      videoCount: item.videoCount + 1,
+    })
+    .then(() => {
+      console.log(`Public count Incremented`);
+    })
+    .catch(function (error) {
+      console.log('Got an error:', error);
+    })
+
     this.setState({
       playlistPopupIsOpen: !this.state.playlistPopupIsOpen
     });

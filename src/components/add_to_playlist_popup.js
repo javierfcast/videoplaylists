@@ -15,6 +15,9 @@ const StyledContent = styled.div`
   padding: 40px;
   margin: 0 auto;
   background: rgba(0,0,0,0.9);
+  p{
+    margin-bottom: 40px;
+  }
 `;
 const StyledLink = styled.a`
   padding: 10px 0;
@@ -52,7 +55,6 @@ const StyledButton = styled.a`
 const StyledButtonSubmit = styled.a`
   text-align: center;
   width: 100%;
-  margin-top: 40px;
   margin-bottom: 10px;
   height: 40px;
   line-height: 40px;
@@ -96,9 +98,8 @@ const AddToPlaylistPopup = ({ user, onLogin, video, onAddToPlaylist, open, onClo
         <StyledContent>
           <StyledTitle>Login</StyledTitle>
           <p>You need to create an account in order to create playlists and add videos to them.</p>
-          <StyledButtonSubmit onClick={onLogin}>
-            Login with Google
-          </StyledButtonSubmit>
+          <StyledButtonSubmit onClick={() => onLogin('google')}>Login with Google</StyledButtonSubmit>
+          <StyledButtonSubmit onClick={() => onLogin('facebook')}>Login with Facebook</StyledButtonSubmit>
           <StyledButton onClick={onClose}>
             Cancel
           </StyledButton>
