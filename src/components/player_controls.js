@@ -99,16 +99,21 @@ const Label = styled.span`
   margin-right: 20px;
 `;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, video, videoTitle, videoChannel}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, currentPlaylist, video, videoTitle, videoChannel}) => {
 
   let button = null;
   let previousButton = null;
   let nextButton = null;
+  let videoSource = null;
 
   if (playerIsPlaying === true) {
     button = <MaterialIcon icon="pause" color='#fff' />;
   } else {
     button = <MaterialIcon icon="play_arrow" color='#fff' />;
+  }
+
+  if (currentPlaylist) {
+    videoSource = <Label>{currentPlaylist.playlistName}</Label>
   }
 
   if (playingFromSearch === true) {
@@ -120,6 +125,8 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
       <StyledButton onClick={() => playNextSearchVideo(video)}>
         <MaterialIcon icon="skip_next" color='#fff' />
       </StyledButton>
+    videoSource = <Label>Search Results</Label>
+
   } else {
     previousButton =
       <StyledButton onClick={() => playPreviousVideo(video)}>
@@ -131,11 +138,14 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
       </StyledButton>
   }
 
+  
+
   return(
     <StyledPlayerContainer>
       <StyledSongInfo>
         {videoTitle &&
           <StyledSongInfoContainer>
+            {videoSource}
             <VideoTitle>{videoTitle}</VideoTitle>
             <Label>{videoChannel}</Label>
           </StyledSongInfoContainer>

@@ -138,13 +138,13 @@ class App extends Component {
       //Sidenav
       myPlaylists: [],
       followingPlaylists: [],
-      //Modal States
-      modalIsOpen: false,
       //Player States
       playerIsOpen: false,
       playerIsPlaying: false,
       playingFromSearch: false,
       player: null,
+      currentPlaylist: null,
+      currentVideoNumber: null,
       //current Video States
       video: null,
       videoEtag: null,
@@ -281,7 +281,11 @@ class App extends Component {
       document.getElementById("input-playlist-popup").focus();
     }
 
-    console.log(this.state.playingFromSearch)
+    console.log(`Playing from search results? ${this.state.playingFromSearch}`)
+
+    if(this.state.currentPlaylist){
+      console.log(`Current Playlist: ${this.state.currentPlaylist.playlistName}`)
+    }
 
   };
 
@@ -468,7 +472,7 @@ class App extends Component {
 
   //Play controls for playlists and search results Methods
 
-  togglePlayer = (video, playlistVideos) => {
+  togglePlayer = (video, playlist, playlistVideos) => {
 
     //Play Selected Video from the playlist
     const videoId = video.videoID;
@@ -480,56 +484,48 @@ class App extends Component {
       playerIsPlaying: true,
       playingFromSearch: false,
       playlistVideos: playlistVideos,
+      currentPlaylist: playlist,
+      currentVideoNumber: playlistVideos.indexOf(video),
       video,
       videoId,
       videoTitle,
       videoChannel,
     });
 
+    console.log(playlist);
+
     const player = this.state.player;
 
-    if (this.state.playingFromSearch === false) {
-      if ('looping' === 'looping') {
+    console.log(`Currently playing: ${videoTitle} - from Playlist Player`);
+
+    if (playlist !== null) {
       
-        player.on('stateChange', (event) => {
-          
-          if (event.data === 0) {
+      player.on('stateChange', (event) => {
+        
+        if (event.data === 0) {
 
-            //Set the current video being played.
-            let currentVideoNumber = playlistVideos.indexOf(video);
+          this.playNextVideo(video);
 
-            currentVideoNumber = currentVideoNumber !== playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
+          console.log(`Currently playing from the Playlist Listener`);
 
-            console.log(`The current video number is ${currentVideoNumber} out of ${playlistVideos.length}`);
+        };
 
-            let nextVideo = playlistVideos[currentVideoNumber];
-            
-            this.setState({
-              video: nextVideo,
-              videoId: nextVideo.videoID,
-              videoTitle: nextVideo.videoTitle,
-              videoChannel: nextVideo.videoChannel,
-            })
+      });
 
-          };
-
-        });
-
-      } else {
-        player.on('stateChange', (event) => {
-          if (event.data === 0) {
-            this.setState({
-              playerIsPlaying: !this.state.playerIsPlaying
-            })
-          };
-        });
-      }
+    } else {
+      player.on('stateChange', (event) => {
+        if (event.data === 0) {
+          this.setState({
+            playerIsPlaying: !this.state.playerIsPlaying
+          })
+          console.log(`Stopped player from the Playlist`);
+        };
+      });
     }
   };
 
   toggleSearchPlayer = (video) => {
-    console.log('playing search results');
-    //Play Selected Video from the playlist
+    //Play Selected Video from the search results
     const videoId = video.id.videoId;
     const videoTitle = video.snippet.title;
     const videoChannel = video.snippet.channelTitle;
@@ -538,6 +534,7 @@ class App extends Component {
       playerIsOpen: true,
       playerIsPlaying: true,
       playingFromSearch: true,
+      playlist: null,
       video,
       videoId,
       videoTitle,
@@ -546,54 +543,52 @@ class App extends Component {
 
     const player = this.state.player;
 
+    console.log(`Currently playing: ${videoTitle} - from Search Results Player`);
+
     if (this.state.playingFromSearch === true) {
-      if ('looping' === 'looping') {
 
-        player.on('stateChange', (event) => {
+      player.on('stateChange', (event) => {
 
-          if (event.data === 0) {
+        if (event.data === 0) {
 
-            //Set the current video being played.
-            let currentVideoNumber = this.state.searchResults.indexOf(video);
+          
 
-            currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
+          // //Set the current video being played.
+          // let currentVideoNumber = this.state.searchResults.indexOf(video);
 
-            console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+          // currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
 
-            let nextVideo = this.state.searchResults[currentVideoNumber];
+          // let nextVideo = this.state.searchResults[currentVideoNumber];
 
-            this.setState({
-              video: nextVideo,
-              videoId: nextVideo.id.videoId,
-              videoTitle: nextVideo.snippet.title,
-              videoChannel: nextVideo.snippet.channelTitle,
-            })
+          // this.setState({
+          //   video: nextVideo,
+          //   videoId: nextVideo.id.videoId,
+          //   videoTitle: nextVideo.snippet.title,
+          //   videoChannel: nextVideo.snippet.channelTitle,
+          // })
 
-          };
+          // console.log(`Currently playing: ${nextVideo.videoTitle} - ${currentVideoNumber}, from Search Results Listener`);
+          
+          this.playNextSearchVideo(video);
 
-        });
-      } else {
-        player.on('stateChange', (event) => {
-          if (event.data === 0) {
-            this.setState({
-              playerIsPlaying: !this.state.playerIsPlaying
-            })
-          };
-        });
-      }
-    }
-  }
+          console.log(`Currently playing from Search Results Listener`);
 
-  togglePlay = () => {
-    if (this.state.playerIsPlaying === true)  {
-      this.state.player.pauseVideo();  
+        };
+
+      });
+
     } else {
-      this.state.player.playVideo();
+      player.on('stateChange', (event) => {
+        if (event.data === 0) {
+          this.setState({
+            playerIsPlaying: !this.state.playerIsPlaying
+          })
+          console.log(`Stopped player from Search Results`);
+        };
+      });
     }
-    this.setState({
-      playerIsPlaying: !this.state.playerIsPlaying
-    })
-  };
+    
+  }
 
   playNextVideo = (video) => {
 
@@ -601,23 +596,22 @@ class App extends Component {
       return null;
     }
 
-    let currentVideoNumber = this.state.playlistVideos.indexOf(video);
+    //Update the current video to the next in list.
+    let nextVideoNumber = this.state.currentVideoNumber !== this.state.playlistVideos.length - 1 ? this.state.currentVideoNumber + 1 : 0;
 
-    currentVideoNumber = currentVideoNumber !== this.state.playlistVideos.length - 1 ? currentVideoNumber + 1 : 0;
+    //Define next video in array
+    let nextVideo = this.state.playlistVideos[nextVideoNumber];
 
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
-
-    let nextVideo = this.state.playlistVideos[currentVideoNumber];
-
+    //Update states
     this.setState({
+      currentVideoNumber: nextVideoNumber,
       video: nextVideo,
       videoId: nextVideo.videoID,
       videoTitle: nextVideo.videoTitle,
       videoChannel: nextVideo.videoChannel,
     })
 
-    // console.log(`[Play Next] Currently Playing: ${this.state.videoTitle}`)
-    // console.log(`[Play Next] Comming Up Next: ${this.state.nextVideoTitle}`)
+    console.log(`The current video number is ${this.state.currentVideoNumber} out of ${this.state.playlistVideos.length}`);
 
   };
 
@@ -650,10 +644,9 @@ class App extends Component {
 
     currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
 
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
-
+    
     let nextVideo = this.state.searchResults[currentVideoNumber];
-
+    
     this.setState({
       video: nextVideo,
       videoId: nextVideo.id.videoId,
@@ -661,6 +654,8 @@ class App extends Component {
       videoChannel: nextVideo.snippet.channelTitle,
     })
 
+    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
+    
   };
 
   playPreviousSearchVideo = (video) => {
@@ -680,6 +675,17 @@ class App extends Component {
       videoChannel: previousVideo.snippet.channelTitle,
     })
 
+  };
+
+  togglePlay = () => {
+    if (this.state.playerIsPlaying === true) {
+      this.state.player.pauseVideo();
+    } else {
+      this.state.player.playVideo();
+    }
+    this.setState({
+      playerIsPlaying: !this.state.playerIsPlaying
+    })
   };
   
   toggleClosePlaylistPopup = () => {
@@ -1051,6 +1057,7 @@ class App extends Component {
             playNextSearchVideo={this.playNextSearchVideo}
             playerIsPlaying={this.state.playerIsPlaying}
             playingFromSearch={this.state.playingFromSearch}
+            currentPlaylist={this.state.currentPlaylist}
             video={this.state.video}
             videoTitle={this.state.videoTitle}
             videoChannel={this.state.videoChannel}

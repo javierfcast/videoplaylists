@@ -77,7 +77,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
       </StyledVideoInfo>
   } else {
     videoTrigger = 
-      <StyledVideoInfo onClick={() => togglePlayer(video, playlistVideos)}>
+      <StyledVideoInfo onClick={() => togglePlayer(video, playlist, playlistVideos)}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoMeta>Published: {datePublished}</VideoMeta>

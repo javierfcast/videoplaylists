@@ -68,7 +68,7 @@ const StyledUserItem = styled(Link)`
 `;
 const StyledUserImage = styled.img`
   border-radius: 50%;
-  max-width: 60%;
+  max-width: 100px;
   margin-bottom: 20px;
 `;
 

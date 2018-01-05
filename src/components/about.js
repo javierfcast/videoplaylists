@@ -52,7 +52,7 @@ const About = (props) => {
       <h1>About</h1>
       <h3>VideoPlaylists.tv is a platform where everyone can create, share and discover great video playlists. For free. Enjoy!</h3>
       <p>Powered by <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">Youtube.</a></p>
-      <p>Designed and Developed by <a href="https://javierfcast.com" rel="noopener noreferrer">Javier Castillo</a> in Guatemala.</p>
+      <p>Designed and Developed by <a href="https://javierfcast.com" target="_blank" rel="noopener noreferrer">Javier Castillo</a> in Guatemala.</p>
       
     </StyledContainer>
   )
