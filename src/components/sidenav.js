@@ -70,7 +70,6 @@ const StyledUserName = styled.h4`
   font-weight: 100;
   margin-bottom: 20px;
 `;
-
 const StyledLandingHeading = styled.div`
   display: flex;
   align-items: center;

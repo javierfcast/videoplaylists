@@ -171,8 +171,7 @@ class App extends Component {
       featuredPlaylists: []
     }
 
-    this.onLogin = this.onLogin.bind(this);
-    this.onLogout = this.onLogout.bind(this);
+    this.player = null;
 
   };
 
@@ -242,7 +241,6 @@ class App extends Component {
       this.setState({ popularPlaylists })
     });
 
-
     //Browse Featured Playlists Rutes
     let featuredRef = firebase.firestore().collection('playlists');
 
@@ -259,8 +257,34 @@ class App extends Component {
     });
   };
 
+  changeVideo = (isNext=true) => {
+
+    this.setState((prevState) => {
+
+      let nextVideoNumber;
+      if (isNext) {
+        nextVideoNumber = prevState.currentVideoNumber !== prevState.playlistVideos.length - 1 ? prevState.currentVideoNumber + 1 : 0;
+      } else {
+        nextVideoNumber = prevState.currentVideoNumber !== 0 ? prevState.currentVideoNumber - 1 : prevState.playlistVideos.length - 1;
+      }
+      const nextVideo = prevState.playlistVideos[nextVideoNumber];
+      
+      console.log('MyStateChange', nextVideo);
+
+      this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
+      return {
+        ...prevState,
+        currentVideoNumber: nextVideoNumber,
+        video: nextVideo,
+        videoId: nextVideo.videoID || nextVideo.id.videoId,
+        videoTitle: nextVideo.videoTitle || nextVideo.snippet.title,
+        videoChannel: nextVideo.videoChannel || nextVideo.snippet.channelTitle,
+      }
+    });
+  }
+
   componentDidMount(){
-    const player = YouTubePlayer('video-player', {
+    this.player = YouTubePlayer('video-player', {
       videoId: null,
       playerVars: {
         controls: 0,
@@ -268,14 +292,24 @@ class App extends Component {
         rel: 0,
       }
     });
-    this.setState({ player }) 
+    this.player.on('stateChange', (event) => {
+      // console.log('MyStateChange', event);
+      //Update the current video to the next in list.
+      if (event.data !== 0) { 
+        return;
+      }
+      console.log('MyStateChange', event.data);
+
+      this.changeVideo(true);
+    });
+    // this.setState({ player }) 
   };
 
   componentDidUpdate(prevProps, prevState){
 
-    if(this.state.videoId !== prevState.videoId){
-      this.state.player.loadVideoById(this.state.videoId);
-    }
+    // if(this.state.videoId !== prevState.videoId){
+    //   this.state.player.loadVideoById(this.state.videoId);
+    // }
 
     if (document.getElementById("input-playlist-popup") !== null) {
       document.getElementById("input-playlist-popup").focus();
@@ -479,6 +513,7 @@ class App extends Component {
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
 
+    this.player.loadVideoById(videoId);
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
@@ -492,101 +527,99 @@ class App extends Component {
       videoChannel,
     });
 
-    console.log(playlist);
-
-    const player = this.state.player;
 
     console.log(`Currently playing: ${videoTitle} - from Playlist Player`);
 
-    if (playlist !== null) {
+    // if (playlist !== null) {
       
-      player.on('stateChange', (event) => {
+    //   player.on('stateChange', (event) => {
         
-        if (event.data === 0) {
+    //     if (event.data === 0) {
+    //       this.playNextVideo(video);
+    //       console.log(`Currently playing from the Playlist Listener`);
+    //     };
 
-          this.playNextVideo(video);
+    //   });
 
-          console.log(`Currently playing from the Playlist Listener`);
-
-        };
-
-      });
-
-    } else {
-      player.on('stateChange', (event) => {
-        if (event.data === 0) {
-          this.setState({
-            playerIsPlaying: !this.state.playerIsPlaying
-          })
-          console.log(`Stopped player from the Playlist`);
-        };
-      });
-    }
+    // } else {
+    //   player.on('stateChange', (event) => {
+    //     if (event.data === 0) {
+    //       this.setState({
+    //         playerIsPlaying: !this.state.playerIsPlaying
+    //       })
+    //       console.log(`Stopped player from the Playlist`);
+    //     };
+    //   });
+    // }
   };
 
   toggleSearchPlayer = (video) => {
+   
     //Play Selected Video from the search results
     const videoId = video.id.videoId;
     const videoTitle = video.snippet.title;
     const videoChannel = video.snippet.channelTitle;
 
-    this.setState({
-      playerIsOpen: true,
-      playerIsPlaying: true,
-      playingFromSearch: true,
-      playlist: null,
-      video,
-      videoId,
-      videoTitle,
-      videoChannel,
+    this.setState((prevState) => {
+      const index = prevState.searchResults.indexOf(video)
+      this.player.loadVideoById(videoId);
+      return {
+        playerIsOpen: true,
+        playerIsPlaying: true,
+        playingFromSearch: true,
+        playlist: null,
+        currentVideoNumber: (index > -1 ) ? index : 0,
+        playlistVideos: prevState.searchResults,
+        video,
+        videoId,
+        videoTitle,
+        videoChannel,
+      }
+      
     });
 
     const player = this.state.player;
 
-    console.log(`Currently playing: ${videoTitle} - from Search Results Player`);
+    console.log(`Currently playing: ${videoTitle} - out of ${this.state.searchResults.length} from Search Results Player`);
 
     if (this.state.playingFromSearch === true) {
-
-      player.on('stateChange', (event) => {
-
-        if (event.data === 0) {
-
-          
-
-          // //Set the current video being played.
-          // let currentVideoNumber = this.state.searchResults.indexOf(video);
-
-          // currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
-
-          // let nextVideo = this.state.searchResults[currentVideoNumber];
-
-          // this.setState({
-          //   video: nextVideo,
-          //   videoId: nextVideo.id.videoId,
-          //   videoTitle: nextVideo.snippet.title,
-          //   videoChannel: nextVideo.snippet.channelTitle,
-          // })
-
-          // console.log(`Currently playing: ${nextVideo.videoTitle} - ${currentVideoNumber}, from Search Results Listener`);
-          
-          this.playNextSearchVideo(video);
-
-          console.log(`Currently playing from Search Results Listener`);
-
-        };
-
-      });
-
-    } else {
-      player.on('stateChange', (event) => {
-        if (event.data === 0) {
-          this.setState({
-            playerIsPlaying: !this.state.playerIsPlaying
-          })
-          console.log(`Stopped player from Search Results`);
-        };
-      });
     }
+
+    //   player.on('stateChange', (event) => {
+
+    //     if (event.data === 0) {
+    //       //Set the current video being played.
+    //       let currentVideoNumber = this.state.searchResults.indexOf(video);
+
+    //       currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
+
+    //       let nextVideo = this.state.searchResults[currentVideoNumber];
+
+    //       this.setState({
+    //         video: nextVideo,
+    //         videoId: nextVideo.id.videoId,
+    //         videoTitle: nextVideo.snippet.title,
+    //         videoChannel: nextVideo.snippet.channelTitle,
+    //       })
+
+    //       console.log(`Currently playing: ${nextVideo.videoTitle} - ${currentVideoNumber}, from Search Results Listener`);
+          
+    //       //this.playNextSearchVideo(video);
+    //       console.log(`Currently playing from Search Results Listener`);
+    //     };
+
+    //   });
+
+    // } else {
+    //   player.on('stateChange', (event) => {
+    //     if (event.data === 0) {
+    //       this.setState({
+    //         playerIsPlaying: !this.state.playerIsPlaying
+    //       })
+    //       console.log(`Stopped player from Search Results`);
+    //     };
+    //   });
+    // }
     
   }
 
@@ -596,23 +629,20 @@ class App extends Component {
       return null;
     }
 
-    //Update the current video to the next in list.
-    let nextVideoNumber = this.state.currentVideoNumber !== this.state.playlistVideos.length - 1 ? this.state.currentVideoNumber + 1 : 0;
-
-    //Define next video in array
-    let nextVideo = this.state.playlistVideos[nextVideoNumber];
-
-    //Update states
-    this.setState({
-      currentVideoNumber: nextVideoNumber,
-      video: nextVideo,
-      videoId: nextVideo.videoID,
-      videoTitle: nextVideo.videoTitle,
-      videoChannel: nextVideo.videoChannel,
-    })
-
+    this.changeVideo(true);
     console.log(`The current video number is ${this.state.currentVideoNumber} out of ${this.state.playlistVideos.length}`);
 
+  };
+
+  playNextSearchVideo = (video) => {
+
+    if (!video) {
+      return null;
+    }
+    this.changeVideo(true);
+
+    console.log(`The current video number is ${this.state.currentVideoNumber} out of ${this.state.searchResults.length}`);
+    
   };
 
   playPreviousVideo = (video) => {
@@ -621,60 +651,12 @@ class App extends Component {
       return null;
     }
 
-    let currentVideoNumber = this.state.playlistVideos.indexOf(video);
+    this.changeVideo(false);
 
-    currentVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : this.state.playlistVideos.length - 1;
-
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.playlistVideos.length}`);
-
-    let previousVideo = this.state.playlistVideos[currentVideoNumber];
-
-    this.setState({
-      video: previousVideo,
-      videoId: previousVideo.videoID,
-      videoTitle: previousVideo.videoTitle,
-      videoChannel: previousVideo.videoChannel,
-    })
-
-  };
-
-  playNextSearchVideo = (video) => {
-
-    let currentVideoNumber = this.state.searchResults.indexOf(video);
-
-    currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
-
-    
-    let nextVideo = this.state.searchResults[currentVideoNumber];
-    
-    this.setState({
-      video: nextVideo,
-      videoId: nextVideo.id.videoId,
-      videoTitle: nextVideo.snippet.title,
-      videoChannel: nextVideo.snippet.channelTitle,
-    })
-
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
-    
   };
 
   playPreviousSearchVideo = (video) => {
-
-    let currentVideoNumber = this.state.searchResults.indexOf(video);
-
-    currentVideoNumber = currentVideoNumber !== 0 ? currentVideoNumber - 1 : this.state.searchResults.length - 1;
-
-    console.log(`The current video number is ${currentVideoNumber} out of ${this.state.searchResults.length}`);
-
-    let previousVideo = this.state.searchResults[currentVideoNumber];
-
-    this.setState({
-      video: previousVideo,
-      videoId: previousVideo.id.videoId,
-      videoTitle: previousVideo.snippet.title,
-      videoChannel: previousVideo.snippet.channelTitle,
-    })
-
+    this.changeVideo(false);
   };
 
   togglePlay = () => {
