@@ -221,7 +221,7 @@ class Playlist extends Component {
         })
         console.log("No such document!");
       }
-    });
+    });    
 
     //Get playlist public Information (followers)
     let publicRef = firebase.firestore().collection('playlists').doc(this.state.playlistId);
@@ -275,8 +275,8 @@ class Playlist extends Component {
     };
 
     //get recommended videos 
-    if (this.state.playlistVideos.length > 0 && this.state.playlistVideos !== prevState.playlistVideos) {
-      this.getRecommended(this.state.playlistVideos);
+    if (this.state.playlistVideos !== prevState.playlistVideos) {
+      this.getRecommended(this.state.playlistVideos, this.state.playlist.playlistName);
     }
   };
 
@@ -322,29 +322,55 @@ class Playlist extends Component {
 
   }
 
-  getRecommended = (playlistVideos) => {
-    const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
+  getRecommended = (playlistVideos, playlistTitle) => {
 
-    YTSearch(
-      { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', relatedToVideoId: lastVideoID },
-      (searchResults) => {
+    if (playlistVideos.length > 0) {
+    
+      const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
 
-        const video = searchResults.map((result) => {
-          return {
-            datePublished: result.snippet.publishedAt,
-            order: 0,
-            videoChannel: result.snippet.channelTitle,
-            videoEtag: result.etag,
-            videoID: result.id.videoId,
-            videoTitle: result.snippet.title
-          }
-        });
-        console.log(video);
-        this.setState({
-          recommendedVideos: video
-        })
-      }
-    );
+      YTSearch(
+        { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', relatedToVideoId: lastVideoID, maxResults: 5 },
+        (searchResults) => {
+
+          const video = searchResults.map((result) => {
+            return {
+              datePublished: result.snippet.publishedAt,
+              order: 0,
+              videoChannel: result.snippet.channelTitle,
+              videoEtag: result.etag,
+              videoID: result.id.videoId,
+              videoTitle: result.snippet.title
+            }
+          });
+          console.log(video);
+          this.setState({
+            recommendedVideos: video
+          })
+        }
+      );
+    }
+    
+    else {
+      YTSearch(
+        { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', term: playlistTitle, maxResults: 5 },
+        (searchResults) => {
+
+          const video = searchResults.map((result) => {
+            return {
+              datePublished: result.snippet.publishedAt,
+              order: 0,
+              videoChannel: result.snippet.channelTitle,
+              videoEtag: result.etag,
+              videoID: result.id.videoId,
+              videoTitle: result.snippet.title
+            }
+          });
+          this.setState({
+            recommendedVideos: video
+          })
+        }
+      );
+    }
   };
 
   render() {    
@@ -463,6 +489,8 @@ class Playlist extends Component {
 
     //Set Follow for playlists
     let followButton = null;
+    let recommendedSection = null;
+    let recommendeSectionVideos = null;
 
     if (this.props.user !== null ) {
       if (this.props.user.uid !== playlist.AuthorId) {
@@ -474,6 +502,8 @@ class Playlist extends Component {
 
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
+
+        recommendedSection = <div><StyledRecommendedHeader> Recommended videos </StyledRecommendedHeader>{recommendedVideoItems}</div>
       }
 
     } else {
@@ -515,7 +545,6 @@ class Playlist extends Component {
 
       }
     }
-      
 
     return(
       <PlaylistContainer>
@@ -535,8 +564,7 @@ class Playlist extends Component {
         </StyledHeader>
         <VideoListContainer>
           {videoItems}
-          <StyledRecommendedHeader>Recommended videos</StyledRecommendedHeader>
-          {recommendedVideoItems}
+          {recommendedSection}
         </VideoListContainer>
       </PlaylistContainer>
     )
