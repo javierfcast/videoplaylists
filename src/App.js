@@ -6,7 +6,7 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
-import YTSearch from 'youtube-api-search';
+import YTSearch from './temp/youtube-api-search-reloaded.js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
 
@@ -320,7 +320,6 @@ class App extends Component {
     if(this.state.currentPlaylist){
       console.log(`Current Playlist: ${this.state.currentPlaylist.playlistName}`)
     }
-
   };
 
 
@@ -342,7 +341,7 @@ class App extends Component {
       return null;
     }
     YTSearch(
-      { key: YT_API_KEY, term: searchTerm },
+      { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video' },
       (searchResults) => {
         this.setState({
           searchResults: searchResults
@@ -1023,6 +1022,7 @@ class App extends Component {
                     onDeletePlaylist={this.onDeletePlaylist}
                     onPlaylistFollow={this.onPlaylistFollow}
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
+                    YT_API_KEY={YT_API_KEY}
                   />}
                 />
                 <Route exact path='/about' component={About} />

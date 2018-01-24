@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
+import YTSearch from '../temp/youtube-api-search-reloaded.js';
 
 const sizes = {
   small: 360,
@@ -41,6 +42,11 @@ const VideoListContainer = styled.ul`
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 10px;
+`;
+const StyledRecommendedHeader = styled.h2`
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-top: 20px;
   padding-bottom: 10px;
 `;
 const StyledPlaylistName = styled.h1`
@@ -189,6 +195,7 @@ class Playlist extends Component {
       playlist: null,
       playlistPublicInfo: null,
       playlistVideos: [],
+      recommendedVideos: [],
       playlistOptionsIsOpen: false,
       orderBy: null,
       orderDirection: null,
@@ -266,6 +273,11 @@ class Playlist extends Component {
         });
       });
     };
+
+    //get recommended videos 
+    if (this.state.playlistVideos.length > 0 && this.state.playlistVideos !== prevState.playlistVideos) {
+      this.getRecommended(this.state.playlistVideos);
+    }
   };
 
   //Playlists Methods
@@ -309,6 +321,31 @@ class Playlist extends Component {
     }
 
   }
+
+  getRecommended = (playlistVideos) => {
+    const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
+
+    YTSearch(
+      { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', relatedToVideoId: lastVideoID },
+      (searchResults) => {
+
+        const video = searchResults.map((result) => {
+          return {
+            datePublished: result.snippet.publishedAt,
+            order: 0,
+            videoChannel: result.snippet.channelTitle,
+            videoEtag: result.etag,
+            videoID: result.id.videoId,
+            videoTitle: result.snippet.title
+          }
+        });
+        console.log(video);
+        this.setState({
+          recommendedVideos: video
+        })
+      }
+    );
+  };
 
   render() {    
 
@@ -365,7 +402,43 @@ class Playlist extends Component {
       if (month < 10) {
         month = '0' + month;
       }
-      
+
+      return (
+        <VideoItem
+          user={this.props.user}
+          playlist={this.state.playlist}
+          playlistVideos={this.state.playlistVideos}
+          currentVideoId = {this.props.videoId}
+          inSearchResults={false}
+          key={video.videoEtag}
+          video={video}
+          videoEtag={video.videoEtag}
+          videoTitle={video.videoTitle}
+          videoId={video.videoID}
+          videoChannel={video.videoChannel}
+          datePublished={year + '-' + month + '-' + dt}
+          togglePlayer={this.props.togglePlayer}
+          togglePlaylistPopup={this.props.togglePlaylistPopup}
+          onAddToPlaylist={this.props.onAddToPlaylist}
+          onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+        />
+      )
+    });
+
+    //Map recommended videos
+    const recommendedVideoItems = this.state.recommendedVideos.map((video) => { 
+      let date = new Date(video.datePublished);
+      let year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      let dt = date.getDate();
+
+      if (dt < 10) {
+        dt = '0' + dt;
+      }
+      if (month < 10) {
+        month = '0' + month;
+      }
+
       return (
         <VideoItem
           user={this.props.user}
@@ -462,6 +535,8 @@ class Playlist extends Component {
         </StyledHeader>
         <VideoListContainer>
           {videoItems}
+          <StyledRecommendedHeader>Recommended videos</StyledRecommendedHeader>
+          {recommendedVideoItems}
         </VideoListContainer>
       </PlaylistContainer>
     )
