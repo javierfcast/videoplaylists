@@ -7,6 +7,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
 import YTSearch from './temp/youtube-api-search-reloaded.js';
+import Spotify from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
 
@@ -955,6 +956,20 @@ class App extends Component {
     }
   };
 
+  importFromSpotify = (playlistUrl) => {
+    playlistUrl = 'https://open.spotify.com/user/spotify/playlist/37i9dQZF1DXde9tuMHuIsj';
+
+    const userId = playlistUrl.match(/user.([^\/]+)/);
+    const playlistId = playlistUrl.match(/playlist.([^\/]+)/);;
+    
+    var spotifyApi = new Spotify();
+    spotifyApi.getPlaylistTracks(userId[1], playlistId[1])
+    .then(function(data) {
+      console.log(data);
+    }, function(err) {
+      console.error(err);
+    })
+  }
 
 //Render
 
@@ -973,6 +988,7 @@ class App extends Component {
               myPlaylists={this.state.myPlaylists}
               followingPlaylists={this.state.followingPlaylists}
               toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
+              importFromSpotify={this.importFromSpotify}
             />
           </StyledAside>
           <StyledMain>

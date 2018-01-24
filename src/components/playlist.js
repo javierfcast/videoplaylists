@@ -342,7 +342,6 @@ class Playlist extends Component {
               videoTitle: result.snippet.title
             }
           });
-          console.log(video);
           this.setState({
             recommendedVideos: video
           })
