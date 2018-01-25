@@ -15,6 +15,7 @@
     "react-scripts": "1.0.14",
     "react-tabs": "^2.1.1",
     "spotify-web-api-js": "^0.23.0",
+    "spotify-web-api-node": "^2.5.0",
     "styled-components": "^2.2.2",
     "youtube-api-search": "0.0.5",
     "youtube-api-search-reloaded": "^1.1.0",

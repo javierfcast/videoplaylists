@@ -121,7 +121,7 @@ const StyledButtonSubmit = styled.a`
   //   this.slugify = this.slugify.bind(this);
 // }
 
-const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onAddPlaylist, onEditPlaylist, playlistName, playlistSlug, selectedPlaylist, addingNewPlaylist}) => {
+const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist}) => {
 
   if (!open) {
     return null;
@@ -129,6 +129,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
   let modalTitle = null;
   let callToAction = null;
+  let secondInput = null;
   if(addingNewPlaylist === true){
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>
     callToAction = <StyledButtonSubmit onClick={onAddPlaylist}>Create</StyledButtonSubmit>
@@ -136,7 +137,19 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
     modalTitle = <StyledTitle>Edit playlist</StyledTitle>
     callToAction = <StyledButtonSubmit onClick={onEditPlaylist}>Update</StyledButtonSubmit>
   }
-
+  if (importingNewPlaylist) {
+    secondInput = <StyledInput
+      id="input-import-playlist-popup"
+      placeholder="Public Playlist Url"
+      type="text"
+      value={playlistUrl}
+      onChange={onImportPlaylistInputChange}
+      min="1"
+      required
+    />
+    modalTitle = <StyledTitle>Import a playlist from Spotify</StyledTitle>
+    callToAction = <StyledButtonSubmit onClick={onImportPlaylist}>Import</StyledButtonSubmit>
+  }
     // console.log(this.props.user);
     // console.log(this.props.selectedPlaylist);
 
@@ -153,6 +166,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
           min="1"
           required
         />
+        {secondInput}
         <StyledActions>
           <StyledButton onClick={onClose}>
             Cancel

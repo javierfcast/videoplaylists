@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
 import YTSearch from './temp/youtube-api-search-reloaded.js';
-import Spotify from 'spotify-web-api-js';
+import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
 
@@ -169,7 +169,10 @@ class App extends Component {
       //Browse
       browsePlaylists: [],
       popularPlaylists: [],
-      featuredPlaylists: []
+      featuredPlaylists: [],
+      //Import Playlists from Spotify
+      playlistUrl: [],
+      importingNewPlaylist: false,
     }
 
     this.player = null;
@@ -193,7 +196,7 @@ class App extends Component {
           querySnapshot.forEach(function (doc) {
             myPlaylists.push(doc.data());
           });
-          this.setState({ myPlaylists })
+          this.setState({ myPlaylists })        
         });
 
         //Load Following Playlists for Sidenav
@@ -312,7 +315,7 @@ class App extends Component {
     //   this.state.player.loadVideoById(this.state.videoId);
     // }
 
-    if (document.getElementById("input-playlist-popup") !== null) {
+    if (document.getElementById("input-playlist-popup") !== null && document.getElementById("input-import-playlist-popup") === null) {
       document.getElementById("input-playlist-popup").focus();
     }
 
@@ -787,6 +790,12 @@ class App extends Component {
     });
   }
 
+  onImportPlaylistInputChange = (event) => {
+    this.setState({
+      playlistUrl: event.target.value
+    });
+  }
+
   toggleAddPlaylistPopup = () => {
     this.setState({
       addingNewPlaylist: true,
@@ -798,12 +807,26 @@ class App extends Component {
     });
   };
 
+  toggleImportPlaylistPopup = () => {
+    this.setState({
+      addingNewPlaylist: false,
+      importingNewPlaylist: true,
+      previousPlaylistName: '',
+      previousPlaylistSlug: '',
+      playlistName: '',
+      playlistSlug: '',
+      playlistUrl: '',
+      editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+    });
+  };
+
   onAddPlaylist = () => {
     const user = this.state.user;
     console.log(`User id: ${user.uid}`);
     console.log(`playlist name: ${this.state.playlistName}`);
     console.log(`playlist slug: ${this.state.playlistSlug}`);
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
+    const importFunction = this.state.importingNewPlaylist? this.importFromSpotify : null;
     docRef.add({
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: this.state.playlistName,
@@ -832,6 +855,7 @@ class App extends Component {
         followers: 0,
         featured: false
       }).then(function(){
+        importFunction(docRef.id);
         console.log(`Playlist saved globally with Id: ${docRef.id}`);
       }).catch(function (error){
         console.log('Got an error:', error);
@@ -847,7 +871,9 @@ class App extends Component {
       playlistName: playlist.playlistName,
       playlistSlug: playlist.playlistSlugName,
       playlistId: playlist.playlistId,
+      playlistUrl: playlist.playlistUrl,
       addingNewPlaylist: false,
+      importingNewPlaylist: false,
       editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
     });
   };
@@ -883,6 +909,10 @@ class App extends Component {
     })
 
     this.toggleClosePlaylistPopup();
+  }
+
+  onImportPlaylist = () => {
+    this.onAddPlaylist();
   }
 
   onDeletePlaylist = (playlist, batchSize) => {
@@ -956,16 +986,31 @@ class App extends Component {
     }
   };
 
-  importFromSpotify = (playlistUrl) => {
-    playlistUrl = 'https://open.spotify.com/user/spotify/playlist/37i9dQZF1DXde9tuMHuIsj';
+  importFromSpotify = (newPlaylistId) => {
+    const plyalistItem = this.state.myPlaylists.find(plyalistItem => plyalistItem.playlistId === newPlaylistId);
 
-    const userId = playlistUrl.match(/user.([^\/]+)/);
-    const playlistId = playlistUrl.match(/playlist.([^\/]+)/);;
+    var spotifyApi = new SpotifyWebApi();
+    spotifyApi.setAccessToken('BQDldJhwNkBgmuIX9eofT7JL_07x9_s7IYDnYX5pq0905Qmuv0eJKlI9zdfAe8PVUnkDhr2ZWnCazpWxqUE');
+
+    const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
+    const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
     
-    var spotifyApi = new Spotify();
+    const addToPlaylist = this.onAddToPlaylist;
+
     spotifyApi.getPlaylistTracks(userId[1], playlistId[1])
     .then(function(data) {
-      console.log(data);
+      const playlistTracks = data.items;
+      
+      for (let i in playlistTracks) {
+        let searchTerm = playlistTracks[i].track.name + " " + playlistTracks[i].track.artists[0].name;
+        
+        YTSearch(
+          { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
+          (searchResults) => {
+            addToPlaylist(searchResults[0], plyalistItem);
+          }
+        );
+      }
     }, function(err) {
       console.error(err);
     })
@@ -988,6 +1033,7 @@ class App extends Component {
               myPlaylists={this.state.myPlaylists}
               followingPlaylists={this.state.followingPlaylists}
               toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
+              toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
               importFromSpotify={this.importFromSpotify}
             />
           </StyledAside>
@@ -1078,10 +1124,14 @@ class App extends Component {
           onEditPlaylistInputChange={this.onEditPlaylistInputChange}
           onAddPlaylist={this.onAddPlaylist}
           onEditPlaylist={this.onEditPlaylist}
+          onImportPlaylist={this.onImportPlaylist}
           playlistName={this.state.playlistName}
           playlistSlug={this.state.playlistSlug}
           selectedPlaylist={this.state.selectedPlaylist}
           addingNewPlaylist={this.state.addingNewPlaylist}
+          importingNewPlaylist={this.state.importingNewPlaylist}
+          playlistUrl={this.state.playlistUrl}
+          onImportPlaylistInputChange={this.onImportPlaylistInputChange}
         />
         <LoginPopup
           user={this.state.user}
