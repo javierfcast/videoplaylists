@@ -44,7 +44,7 @@ const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 10px;
 `;
-const StyledRecommendedHeader = styled.h2`
+const StyledRelatedHeader = styled.h2`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-top: 20px;
   padding-bottom: 10px;
@@ -195,7 +195,7 @@ class Playlist extends Component {
       playlist: null,
       playlistPublicInfo: null,
       playlistVideos: [],
-      recommendedVideos: [],
+      relatedVideos: [],
       playlistOptionsIsOpen: false,
       orderBy: null,
       orderDirection: null,
@@ -274,9 +274,9 @@ class Playlist extends Component {
       });
     };
 
-    //get recommended videos 
+    //get related videos 
     if (this.state.playlistVideos !== prevState.playlistVideos) {
-      this.getRecommended(this.state.playlistVideos, this.state.playlist.playlistName);
+      this.getRelated(this.state.playlistVideos, this.state.playlist.playlistName);
     }
   };
 
@@ -322,7 +322,7 @@ class Playlist extends Component {
 
   }
 
-  getRecommended = (playlistVideos, playlistTitle) => {
+  getRelated = (playlistVideos, playlistTitle) => {
 
     if (playlistVideos.length > 0) {
     
@@ -343,7 +343,7 @@ class Playlist extends Component {
             }
           });
           this.setState({
-            recommendedVideos: video
+            relatedVideos: video
           })
         }
       );
@@ -365,7 +365,7 @@ class Playlist extends Component {
             }
           });
           this.setState({
-            recommendedVideos: video
+            relatedVideos: video
           })
         }
       );
@@ -450,8 +450,8 @@ class Playlist extends Component {
       )
     });
 
-    //Map recommended videos
-    const recommendedVideoItems = this.state.recommendedVideos.map((video) => { 
+    //Map related videos
+    const relatedVideoItems = this.state.relatedVideos.map((video) => { 
       let date = new Date(video.datePublished);
       let year = date.getFullYear();
       let month = date.getMonth() + 1;
@@ -488,7 +488,7 @@ class Playlist extends Component {
 
     //Set Follow for playlists
     let followButton = null;
-    let recommendedSection = null;
+    let relatedSection = null;
     let recommendeSectionVideos = null;
 
     if (this.props.user !== null ) {
@@ -502,7 +502,7 @@ class Playlist extends Component {
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
 
-        recommendedSection = <div><StyledRecommendedHeader> Recommended videos </StyledRecommendedHeader>{recommendedVideoItems}</div>
+        relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>{relatedVideoItems}</div>
       }
 
     } else {
@@ -563,7 +563,7 @@ class Playlist extends Component {
         </StyledHeader>
         <VideoListContainer>
           {videoItems}
-          {recommendedSection}
+          {relatedSection}
         </VideoListContainer>
       </PlaylistContainer>
     )
