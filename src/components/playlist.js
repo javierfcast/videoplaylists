@@ -113,6 +113,16 @@ const StyledPlaylistActions = styled.div`
     justify-content: flex-end;
   `}
 `
+const StyledPlaylistTags = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding-top: 10px;
+  margin: 10px 0;
+  ${media.xmedium`
+    padding-top: 0;
+  `}
+`;
 const PlaylistActions = styled.a`
   position: relative;
   display: inline-block;
@@ -184,6 +194,56 @@ const StyledButtonPopup = StyledButton.extend`
   font-size: 10px;
   letter-spacing: 2px;
 `;
+const StyledButtonTagMore = styled.a`
+  opacity: 0.8;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .3s ease;
+  display: block;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  &:hover{
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+`;
+const StyledDivTag = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .8;
+  cursor: pointer;
+  transition: all .3s ease;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  margin-right: 10px;
+  height: 35px;
+  padding: 0 6px;
+  &:hover{
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+`;
+const StyledButtonTagRemove = styled.a`
+  cursor: pointer;
+  transition: all .3s ease;
+  margin-top: 1px;
+  padding: 9px 0 9px 4px;
+  opacity: 0.4;
+  &:hover{
+    opacity: 1;
+  }
+`;
+const StyledButtonTagName = styled.a`
+  cursor: pointer;
+  transition: all .3s ease;
+  font-size: 14px;
+  padding: 12px 8px;
+`;
 
 class Playlist extends Component {
 
@@ -199,6 +259,7 @@ class Playlist extends Component {
       playlistOptionsIsOpen: false,
       orderBy: null,
       orderDirection: null,
+      tags: []
     };
   };
 
@@ -232,6 +293,17 @@ class Playlist extends Component {
         });
       }
     }); 
+
+    //Get tags of the playlist
+    let playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
+    
+    playlistRef.onSnapshot(doc => {
+      if (doc.exists) {
+        this.setState({
+          tags: doc.data().tags
+        });
+      }
+    });
 
     //Get videos inside playlist
     if (!this.state.playlist){
@@ -485,7 +557,33 @@ class Playlist extends Component {
         />
       )
     });
+    
+    let tagRemove = null;
 
+    //Map tags
+    const tagItems = this.state.tags? this.state.tags.map((tag) => {
+      tagRemove = this.props.user !== null && this.props.user.uid === playlist.AuthorId ?
+      <StyledButtonTagRemove onClick={() => console.log("Remove " + tag)}>
+        <MaterialIcon icon="clear" color='#fff' size="18px" />
+      </StyledButtonTagRemove> : null;
+      return (
+        <StyledDivTag>
+          {tagRemove}
+          <StyledButtonTagName onClick={() => console.log(tag)}>{tag}</StyledButtonTagName>
+        </StyledDivTag>)
+    }) : null;
+
+    //add more tags if playlist is own
+    const addTags = this.props.user !== null && this.props.user.uid === playlist.AuthorId ? 
+    <StyledButtonTagMore onClick={() => this.props.toggleAddTagPopup(this.state.playlist)}>
+      <MaterialIcon icon="add" color='#fff' size="14px" /> Add tags
+    </StyledButtonTagMore> : null;
+
+    const playlistTags = this.props.user !== null && this.props.user.uid === playlist.AuthorId? <StyledPlaylistTags>
+      {tagItems}
+      {addTags}
+    </StyledPlaylistTags> : null;
+    
     //Set Follow for playlists
     let followButton = null;
     let relatedSection = null;
@@ -550,6 +648,7 @@ class Playlist extends Component {
         <StyledHeader>
           <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
           <StyledPlaylistName>{playlistName}</StyledPlaylistName>
+          {playlistTags}
           <StyledHeaderActions>
             <StyledPlaylistInfo>
               <StyledLabel>{playlist.videoCount} Videos in this playlist</StyledLabel>
@@ -558,7 +657,7 @@ class Playlist extends Component {
               {followButton}
               <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               {playlistOptionsPopup}
-            </StyledPlaylistActions>  
+            </StyledPlaylistActions>
           </StyledHeaderActions>
         </StyledHeader>
         <VideoListContainer>

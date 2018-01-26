@@ -20,6 +20,7 @@ import PlayerControls from './components/player_controls';
 import VideoPlayer from './components/video_player';
 import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
+import AddTagsPopup from './components/add_tags_popup.js';
 import Playlist from './components/playlist';
 import Browse from './components/browse';
 import Users from './components/users';
@@ -170,6 +171,7 @@ class App extends Component {
       selectedPlaylistPublicInfo: null,
       currentPlaylistName: null,
       playlistVideos: [],
+      playlistTags: [],
       //Browse
       browsePlaylists: [],
       popularPlaylists: [],
@@ -177,6 +179,11 @@ class App extends Component {
       //Import Playlists from Spotify
       playlistUrl: [],
       importingNewPlaylist: false,
+      //Add Tag Popup
+      addTagPopupIsOpen: false,
+      newTag: null,
+      playlistToAddTag: null
+      //searchTag
     }
 
     this.player = null;
@@ -689,6 +696,12 @@ class App extends Component {
     });
     this.setState({ videoToBeAdded })
   };
+  toggleAddTagPopup = (playlistToAddTag) => {
+    this.setState({
+      addTagPopupIsOpen: !this.state.addTagPopupIsOpen
+    });
+    this.setState({ playlistToAddTag })
+  };
 
   onAddToPlaylist = (video, item) => {
 
@@ -1027,7 +1040,7 @@ class App extends Component {
         YTSearch(
           { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
           (searchResults) => {
-            addToPlaylist(searchResults[0], plyalistItem);
+            if(searchResults.length > 0) addToPlaylist(searchResults[0], plyalistItem);
           }
         );
       }
@@ -1037,6 +1050,61 @@ class App extends Component {
     
     this.setState({importingNewPlaylist: false, playlistUrl: ''});
   }
+
+  onAddTagInputChange = (event) => {
+    this.setState({
+      newTag: event.target.value
+    });
+  }
+
+  onAddTag = () => {
+    const user = this.state.user;
+    const playlistToAddTagId = this.state.playlistToAddTag;
+    
+    
+    const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(this.state.playlistToAddTag.playlistId);
+    const playlistRef = firebase.firestore().collection('playlists').doc(this.state.playlistToAddTag.playlistId);
+
+    //Update User Playlist
+    docRef.get().then(
+      (doc) => {
+        if (doc.exists) {
+          let currentTags = doc.data().tags;
+          if (currentTags) currentTags.push(this.state.newTag);
+          else currentTags = [this.state.newTag];            
+
+          docRef.update({
+            tags: currentTags
+          }).then(() => {
+            console.log('Playlist updated!');
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }
+    );
+
+    //Update Public Playlists
+    playlistRef.get().then(
+      (doc) => {
+        if (doc.exists) {
+          let currentTags = doc.data().tags;
+          if (currentTags) currentTags.push(this.state.newTag);
+          else currentTags = [this.state.newTag];            
+
+          playlistRef.update({
+            tags: currentTags
+          }).then(() => {
+            console.log('Playlist updated!');
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }
+    );
+
+    this.toggleAddTagPopup();
+  };
 
 //Render
 
@@ -1106,6 +1174,7 @@ class App extends Component {
                     onDeletePlaylist={this.onDeletePlaylist}
                     onPlaylistFollow={this.onPlaylistFollow}
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
+                    toggleAddTagPopup={this.toggleAddTagPopup}
                     YT_API_KEY={YT_API_KEY}
                   />}
                 />
@@ -1155,6 +1224,12 @@ class App extends Component {
           playlistUrl={this.state.playlistUrl}
           onImportPlaylistInputChange={this.onImportPlaylistInputChange}
         />
+        <AddTagsPopup 
+        open={this.state.addTagPopupIsOpen}
+        onClose={this.toggleAddTagPopup}
+        newTag={this.newTag}
+        onAddTagInputChange={this.onAddTagInputChange}
+        onAddTag={this.onAddTag} />
         <LoginPopup
           user={this.state.user}
           onLogin={this.onLogin}
