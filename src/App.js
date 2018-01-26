@@ -6,7 +6,8 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
-import YTSearch from './temp/youtube-api-search-reloaded.js';
+import YTSearch from './temp/youtube-api-search-reloaded';
+import SpotifyToken from './temp/spotify-token'
 import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
@@ -34,6 +35,9 @@ import './style/style.css';
 
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
+
+//Spotify Web Api Token
+let Spotify_Token = SpotifyToken((token) => Spotify_Token = token);
 
 const sizes = {
   small: 360,
@@ -315,7 +319,7 @@ class App extends Component {
     //   this.state.player.loadVideoById(this.state.videoId);
     // }
 
-    if (document.getElementById("input-playlist-popup") !== null && document.getElementById("input-import-playlist-popup") === null) {
+    if (document.getElementById("input-playlist-popup") !== null) {
       document.getElementById("input-playlist-popup").focus();
     }
 
@@ -911,8 +915,24 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   }
 
-  onImportPlaylist = () => {
-    this.onAddPlaylist();
+  onImportPlaylist = () => {    
+    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
+
+    const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
+    const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
+    const self = this;
+    var spotifyApi = new SpotifyWebApi();
+    spotifyApi.setAccessToken(Spotify_Token);
+
+    spotifyApi.getPlaylist(userId[1], playlistId[1])
+    .then(function(data) {
+      self.setState({
+        playlistName: data.name,
+        playlistSlug: self.slugify(data.name)
+      },() => self.onAddPlaylist());
+    }, function(err) {
+      console.error(err);
+    })
   }
 
   onDeletePlaylist = (playlist, batchSize) => {
@@ -987,15 +1007,15 @@ class App extends Component {
   };
 
   importFromSpotify = (newPlaylistId) => {
+    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
+
     const plyalistItem = this.state.myPlaylists.find(plyalistItem => plyalistItem.playlistId === newPlaylistId);
-
-    var spotifyApi = new SpotifyWebApi();
-    spotifyApi.setAccessToken('BQDldJhwNkBgmuIX9eofT7JL_07x9_s7IYDnYX5pq0905Qmuv0eJKlI9zdfAe8PVUnkDhr2ZWnCazpWxqUE');
-
     const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
     const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
-    
     const addToPlaylist = this.onAddToPlaylist;
+
+    var spotifyApi = new SpotifyWebApi();
+    spotifyApi.setAccessToken(Spotify_Token);
 
     spotifyApi.getPlaylistTracks(userId[1], playlistId[1])
     .then(function(data) {
@@ -1014,6 +1034,8 @@ class App extends Component {
     }, function(err) {
       console.error(err);
     })
+    
+    this.setState({importingNewPlaylist: false, playlistUrl: ''});
   }
 
 //Render

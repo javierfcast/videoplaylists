@@ -129,27 +129,35 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
   let modalTitle = null;
   let callToAction = null;
-  let secondInput = null;
   if(addingNewPlaylist === true){
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>
     callToAction = <StyledButtonSubmit onClick={onAddPlaylist}>Create</StyledButtonSubmit>
+  } else if (importingNewPlaylist === true){
+    modalTitle = <StyledTitle>Import a playlist from Spotify</StyledTitle>
+    callToAction = <StyledButtonSubmit onClick={onImportPlaylist}>Import</StyledButtonSubmit>
   } else {
     modalTitle = <StyledTitle>Edit playlist</StyledTitle>
     callToAction = <StyledButtonSubmit onClick={onEditPlaylist}>Update</StyledButtonSubmit>
   }
-  if (importingNewPlaylist) {
-    secondInput = <StyledInput
-      id="input-import-playlist-popup"
-      placeholder="Public Playlist Url"
-      type="text"
-      value={playlistUrl}
-      onChange={onImportPlaylistInputChange}
-      min="1"
-      required
-    />
-    modalTitle = <StyledTitle>Import a playlist from Spotify</StyledTitle>
-    callToAction = <StyledButtonSubmit onClick={onImportPlaylist}>Import</StyledButtonSubmit>
-  }
+
+  const editInput = importingNewPlaylist? <StyledInput
+    id="input-playlist-popup"
+    placeholder="Public Playlist Url"
+    type="text"
+    value={playlistUrl}
+    onChange={onImportPlaylistInputChange}
+    min="1"
+    required
+  /> : <StyledInput
+    id="input-playlist-popup"
+    placeholder="Playlist Name"
+    type="text"
+    value={playlistName}
+    onChange={onEditPlaylistInputChange}
+    min="1"
+    required
+      
+  />;
     // console.log(this.props.user);
     // console.log(this.props.selectedPlaylist);
 
@@ -157,16 +165,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
     <StyledPopup>
       <StyledContent>
         {modalTitle}
-        <StyledInput
-          id="input-playlist-popup"
-          placeholder="Playlist Name"
-          type="text"
-          value={playlistName}
-          onChange={onEditPlaylistInputChange}
-          min="1"
-          required
-        />
-        {secondInput}
+        {editInput}
         <StyledActions>
           <StyledButton onClick={onClose}>
             Cancel
