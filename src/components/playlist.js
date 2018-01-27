@@ -297,7 +297,7 @@ class Playlist extends Component {
     let playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
     
     playlistRef.onSnapshot(doc => {
-      if (doc.exists) {
+      if (doc.exists) {       
         this.setState({
           tags: doc.data().tags
         });
@@ -562,6 +562,23 @@ class Playlist extends Component {
     //Set tags
     let addTags = null;
     let playlistTags = null;
+
+    //Map tags
+    const tagItems = this.state.tags? this.state.tags.map((tag, i) => { //if tags exist
+      const newTags = this.state.tags.map((t)=>{return t});
+      newTags.splice(i, 1);
+
+      //add remove button if user is logged in and owns the playlist      
+      const tagRemove = this.props.user !== null && this.props.user.uid === playlist.AuthorId ?
+      <StyledButtonTagRemove onClick={() => this.props.onRemoveTag(newTags, this.state.playlist)}>
+        <MaterialIcon icon="clear" color='#fff' size="18px" />
+      </StyledButtonTagRemove> : null;
+      return (
+        <StyledDivTag key= {i}>
+          {tagRemove}
+          <StyledButtonTagName onClick={() => console.log(tag)}>{tag}</StyledButtonTagName>
+        </StyledDivTag>)
+    }) : null;
     
     //if user is logged in and owns the playlist
     if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
@@ -575,20 +592,6 @@ class Playlist extends Component {
         {addTags}
       </StyledPlaylistTags>
     }
-
-    //Map tags
-    const tagItems = this.state.tags? this.state.tags.map((tag, i) => { //if tags exist
-      //add remove button if user is logged in and owns the playlist
-      const tagRemove = this.props.user !== null && this.props.user.uid === playlist.AuthorId ?
-      <StyledButtonTagRemove onClick={() => this.props.onRemoveTag(this.state.tags.splice(i,1), this.state.playlist)}>
-        <MaterialIcon icon="clear" color='#fff' size="18px" />
-      </StyledButtonTagRemove> : null;
-      return (
-        <StyledDivTag key= {i}>
-          {tagRemove}
-          <StyledButtonTagName onClick={() => console.log(tag)}>{tag}</StyledButtonTagName>
-        </StyledDivTag>)
-    }) : null;
     
     //Set Follow for playlists
     let followButton = null;
