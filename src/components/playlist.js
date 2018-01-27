@@ -591,6 +591,12 @@ class Playlist extends Component {
         {tagItems}
         {addTags}
       </StyledPlaylistTags>
+    } 
+    //if user doesn't owns the playlist but it has tags
+    else if (tagItems) {
+      playlistTags = <StyledPlaylistTags>
+        {tagItems}
+      </StyledPlaylistTags>
     }
     
     //Set Follow for playlists
