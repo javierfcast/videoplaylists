@@ -7,7 +7,6 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
 import YTSearch from './temp/youtube-api-search-reloaded';
-import SpotifyToken from './temp/spotify-token'
 import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
@@ -37,8 +36,18 @@ import './style/style.css';
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
 
-//Spotify Web Api Token
-let Spotify_Token = SpotifyToken((token) => Spotify_Token = token);
+//Fetch Spotify Web Api token with Google Apps Script
+//Using Google Apps Script to not expose client_secret
+let Spotify_Token = fetch('https://script.google.com/macros/s/AKfycbyP2Bj6CatiqmAVm02e2iEizeLM6-hNrKv6sLeaRfvBGPFwD5Wd/exec', {
+      method: 'GET',
+      mode: 'cors'
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((json) => {
+    Spotify_Token = json.access_token;
+  });
 
 const sizes = {
   small: 360,
@@ -813,6 +822,14 @@ class App extends Component {
     });
   }
 
+  onImportPlaylistDrop = (event) => {
+    event.preventDefault();
+    this.toggleImportPlaylistPopup();
+    this.setState({
+      playlistUrl: event.dataTransfer.getData("URL")
+    });
+  }
+
   toggleAddPlaylistPopup = () => {
     this.setState({
       addingNewPlaylist: true,
@@ -1059,8 +1076,6 @@ class App extends Component {
 
   onAddTag = () => {
     const user = this.state.user;
-    const playlistToAddTagId = this.state.playlistToAddTag;
-    
     
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(this.state.playlistToAddTag.playlistId);
     const playlistRef = firebase.firestore().collection('playlists').doc(this.state.playlistToAddTag.playlistId);
@@ -1106,6 +1121,43 @@ class App extends Component {
     this.toggleAddTagPopup();
   };
 
+  onRemoveTag = (newTags, playlistItem) => {
+    const user = this.state.user;
+    
+    const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(playlistItem.playlistId);
+    const playlistRef = firebase.firestore().collection('playlists').doc(playlistItem.playlistId);
+
+    //Update User Playlist
+    docRef.get().then(
+      (doc) => {
+        if (doc.exists) {          
+          docRef.update({
+            tags: newTags
+          }).then(() => {
+            console.log('Playlist updated!');
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }
+    );
+
+    //Update Public Playlists
+    playlistRef.get().then(
+      (doc) => {
+        if (doc.exists) {
+          playlistRef.update({
+            tags: newTags
+          }).then(() => {
+            console.log('Playlist updated!');
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }
+    );
+  }
+
 //Render
 
   render() {
@@ -1125,6 +1177,7 @@ class App extends Component {
               toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
               toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
               importFromSpotify={this.importFromSpotify}
+              onImportPlaylistDrop={this.onImportPlaylistDrop}
             />
           </StyledAside>
           <StyledMain>
@@ -1175,6 +1228,7 @@ class App extends Component {
                     onPlaylistFollow={this.onPlaylistFollow}
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
                     toggleAddTagPopup={this.toggleAddTagPopup}
+                    onRemoveTag={this.onRemoveTag}
                     YT_API_KEY={YT_API_KEY}
                   />}
                 />

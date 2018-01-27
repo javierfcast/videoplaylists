@@ -198,7 +198,7 @@ const StyledSocialLink = styled.a`
   margin-right: 10px;
 `;
 
-const Sidenav = ({ toggleAddPlaylistPopup, toggleImportPlaylistPopup, importFromSpotify, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
+const Sidenav = ({ toggleAddPlaylistPopup, toggleImportPlaylistPopup, importFromSpotify, onImportPlaylistDrop, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
 
   const MyPlaylists = myPlaylists.map((playlist) => {
     return (
@@ -236,7 +236,9 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleImportPlaylistPopup, importFrom
                 <MaterialIcon icon="add" color='#fff' />
                 Add new Playlist
               </StyledButton>
-              <SecondStyledButton onClick={toggleImportPlaylistPopup}>
+              <SecondStyledButton onClick={toggleImportPlaylistPopup} 
+                onDrop={(event) => {onImportPlaylistDrop(event)}}
+                onDragOver={(e) => e.preventDefault()}>
                 <MaterialIcon icon="add" color='#fff' />
                 Import from Spotify
               </SecondStyledButton>

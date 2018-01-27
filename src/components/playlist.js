@@ -34,10 +34,10 @@ const PlaylistContainer = styled.div`
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 354px);
+  height: calc(100vh - 420px);
   overflow-y: auto;
   ${media.xmedium`
-    height: calc(100vh - 258px);
+    height: calc(100vh - 318px);
   `}
 `;
 const StyledHeader = styled.div`
@@ -195,16 +195,15 @@ const StyledButtonPopup = StyledButton.extend`
   letter-spacing: 2px;
 `;
 const StyledButtonTagMore = styled.a`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.8;
-  font-size: 14px;
   cursor: pointer;
   transition: all .3s ease;
-  display: block;
   padding: 10px;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px;
-  align-items: center;
-  justify-content: center;
   margin-right: 10px;
   &:hover{
     opacity: 1;
@@ -411,7 +410,8 @@ class Playlist extends Component {
               videoChannel: result.snippet.channelTitle,
               videoEtag: result.etag,
               videoID: result.id.videoId,
-              videoTitle: result.snippet.title
+              videoTitle: result.snippet.title,
+              key: result.id.videoId
             }
           });
           this.setState({
@@ -433,7 +433,8 @@ class Playlist extends Component {
               videoChannel: result.snippet.channelTitle,
               videoEtag: result.etag,
               videoID: result.id.videoId,
-              videoTitle: result.snippet.title
+              videoTitle: result.snippet.title,
+              key: result.id.videoId
             }
           });
           this.setState({
@@ -557,32 +558,37 @@ class Playlist extends Component {
         />
       )
     });
+
+    //Set tags
+    let addTags = null;
+    let playlistTags = null;
     
-    let tagRemove = null;
+    //if user is logged in and owns the playlist
+    if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
+      //add button to add tags
+      addTags = <StyledButtonTagMore onClick={() => this.props.toggleAddTagPopup(this.state.playlist)}>
+        <MaterialIcon icon="add" color='#fff' size="14px" />Add tags
+      </StyledButtonTagMore>
+
+      playlistTags = <StyledPlaylistTags>
+        {tagItems}
+        {addTags}
+      </StyledPlaylistTags>
+    }
 
     //Map tags
-    const tagItems = this.state.tags? this.state.tags.map((tag) => {
-      tagRemove = this.props.user !== null && this.props.user.uid === playlist.AuthorId ?
-      <StyledButtonTagRemove onClick={() => console.log("Remove " + tag)}>
+    const tagItems = this.state.tags? this.state.tags.map((tag, i) => { //if tags exist
+      //add remove button if user is logged in and owns the playlist
+      const tagRemove = this.props.user !== null && this.props.user.uid === playlist.AuthorId ?
+      <StyledButtonTagRemove onClick={() => this.props.onRemoveTag(this.state.tags.splice(i,1), this.state.playlist)}>
         <MaterialIcon icon="clear" color='#fff' size="18px" />
       </StyledButtonTagRemove> : null;
       return (
-        <StyledDivTag>
+        <StyledDivTag key= {i}>
           {tagRemove}
           <StyledButtonTagName onClick={() => console.log(tag)}>{tag}</StyledButtonTagName>
         </StyledDivTag>)
     }) : null;
-
-    //add more tags if playlist is own
-    const addTags = this.props.user !== null && this.props.user.uid === playlist.AuthorId ? 
-    <StyledButtonTagMore onClick={() => this.props.toggleAddTagPopup(this.state.playlist)}>
-      <MaterialIcon icon="add" color='#fff' size="14px" /> Add tags
-    </StyledButtonTagMore> : null;
-
-    const playlistTags = this.props.user !== null && this.props.user.uid === playlist.AuthorId? <StyledPlaylistTags>
-      {tagItems}
-      {addTags}
-    </StyledPlaylistTags> : null;
     
     //Set Follow for playlists
     let followButton = null;
