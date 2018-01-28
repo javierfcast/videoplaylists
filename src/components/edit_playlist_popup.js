@@ -87,39 +87,6 @@ const StyledButtonSubmit = styled.a`
     border: 1px solid rgba(255,255,255,1);
   }
 `;
-// constructor(props) {
-  //   super(props);
-  //   const playlistName = this.props.selectedPlaylist !== null ? this.props.selectedPlaylist.playlistName : '';
-  //   const playlistSlug = this.props.selectedPlaylist !== null ? this.props.selectedPlaylist.playlistSlug : '';
-  //   this.state = {
-  //     playlistName,
-  //     playlistSlug,
-  //   };
-
-  //   // this.setState({
-  //   //   playlistName: this.props.selectedPlaylist.playlistName,
-  //   //   playlistSlug: this.props.selectedPlaylist.playlistSlug
-  //   // });
-
-  //   // if (!this.props.open) {
-  //   //   return null;
-  //   // }
-
-  //   // if (this.props.addingNewPlaylist === true) {
-      
-  //   // } else {
-  //   //   this.state = {
-  //   //     playlistName: this.props.selectedPlaylist.playlistName,
-  //   //     playlistSlug: this.props.selectedPlaylist.playlistSlug
-  //   //   }
-  //   // }
-
-  //   // console.log(this.props.selectedPlaylist.playlistName)
-
-  //   this.onInputChange = this.onInputChange.bind(this);
-  //   this.onAddPlaylist = this.onAddPlaylist.bind(this);
-  //   this.slugify = this.slugify.bind(this);
-// }
 
 const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist}) => {
 

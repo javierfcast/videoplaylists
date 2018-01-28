@@ -22,6 +22,7 @@ import EditPlaylistPopup from './components/edit_playlist_popup.js';
 import AddToPlaylistPopup from './components/add_to_playlist_popup.js';
 import AddTagsPopup from './components/add_tags_popup.js';
 import Playlist from './components/playlist';
+import Library from './components/library';
 import Browse from './components/browse';
 import Users from './components/users';
 import User from './components/user';
@@ -72,6 +73,9 @@ const StyledContainer = styled.div`
   overflow: hidden;
   ${props => props.playerIsOpen && `
     opacity: 0;
+  `}
+  ${props => props.interfaceAlwaysOn && `
+    opacity: 1 !important;
   `}
   &:hover{
     opacity: 1;
@@ -139,6 +143,8 @@ class App extends Component {
       user: null,
       //Responsive
       navIsOpen: false,
+      //Toggle Interface
+      interfaceAlwaysOn: false,
       //Login Popup States
       loginPopupIsOpen: false,
       //Sidenav
@@ -182,7 +188,7 @@ class App extends Component {
       //Add Tag Popup
       addTagPopupIsOpen: false,
       newTag: null,
-      playlistToAddTag: null
+      playlistToAddTag: null,
       //searchTag
     }
 
@@ -317,7 +323,28 @@ class App extends Component {
 
       this.changeVideo(true);
     });
-    // this.setState({ player }) 
+    
+    //Hide inteface after 5 seconds of mouse inactivity
+
+    // document.onmousemove = () => {
+
+    //   if (this.state.playerIsOpen !== false ){
+
+    //     document.getElementById("interface").classList.remove('hidden');
+
+    //     let mouseTimeout;
+
+    //     clearTimeout(mouseTimeout);
+
+    //     mouseTimeout = setTimeout( () => {
+    //       document.getElementById("interface").classList.add('hidden');
+    //       console.log('hidding interface after 10 seconds of mouse inactivity');
+    //     }, 10000);
+
+    //   }
+
+    // }
+
   };
 
   componentDidUpdate(prevProps, prevState){
@@ -340,12 +367,20 @@ class App extends Component {
 
 //Methods
 
+
+  toggleInterface = () => {
+    this.setState({
+      interfaceAlwaysOn: !this.state.interfaceAlwaysOn
+    })
+    console.log(`Interface Always On?: ${this.state.interfaceAlwaysOn}`)
+  };
+
   toggleNav = () => {
     console.log(`nav is open: ${this.state.navIsOpen}`);
     this.setState({
       navIsOpen: !this.state.navIsOpen
     });
-  }
+  };
 
   onVideoSearch = (searchTerm) => {
     if (searchTerm === ''){
@@ -384,17 +419,40 @@ class App extends Component {
       
       const userRef = firebase.firestore().doc(`users/${user.uid}`);
 
-      userRef.set({
-        joinedOn: user.metadata.creationTime,
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        uid: user.uid
-      }).then(() => {
-        console.log(`User created succesfully`);
+      userRef.get().then(function (doc) {
+        if (doc.exists) {
+          userRef.set({
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            uid: user.uid,
+            libraryVideoCount: 0,
+            libraryOrderBy: 'timestamp',
+            libraryOrderDirection: 'asc',
+          }).then(() => {
+            console.log(`User updated succesfully`);
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        } else {
+          userRef.set({
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            uid: user.uid,
+            joinedOn: user.metadata.creationTime,
+            libraryVideoCount: 0,
+            libraryOrderBy: 'timestamp',
+            libraryOrderDirection: 'asc',
+          }).then(() => {
+            console.log(`User created succesfully`);
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
       }).catch(function (error) {
-        console.log('Got an error:', error);
-      })
+        console.log("Error getting document:", error);
+      });
 
       console.log(`${user.email} ha iniciado sesion`);
 
@@ -515,8 +573,7 @@ class App extends Component {
     }).catch(function (error) {
       console.log("Error getting document:", error);
     });
-  }
-
+  };
 
   //Play controls for playlists and search results Methods
 
@@ -541,30 +598,8 @@ class App extends Component {
       videoChannel,
     });
 
-
     console.log(`Currently playing: ${videoTitle} - from Playlist Player`);
 
-    // if (playlist !== null) {
-      
-    //   player.on('stateChange', (event) => {
-        
-    //     if (event.data === 0) {
-    //       this.playNextVideo(video);
-    //       console.log(`Currently playing from the Playlist Listener`);
-    //     };
-
-    //   });
-
-    // } else {
-    //   player.on('stateChange', (event) => {
-    //     if (event.data === 0) {
-    //       this.setState({
-    //         playerIsPlaying: !this.state.playerIsPlaying
-    //       })
-    //       console.log(`Stopped player from the Playlist`);
-    //     };
-    //   });
-    // }
   };
 
   toggleSearchPlayer = (video) => {
@@ -595,47 +630,8 @@ class App extends Component {
     const player = this.state.player;
 
     console.log(`Currently playing: ${videoTitle} - out of ${this.state.searchResults.length} from Search Results Player`);
-
-    if (this.state.playingFromSearch === true) {
-    }
-
-    //   player.on('stateChange', (event) => {
-
-    //     if (event.data === 0) {
-    //       //Set the current video being played.
-    //       let currentVideoNumber = this.state.searchResults.indexOf(video);
-
-    //       currentVideoNumber = currentVideoNumber !== this.state.searchResults.length - 1 ? currentVideoNumber + 1 : 0;
-
-    //       let nextVideo = this.state.searchResults[currentVideoNumber];
-
-    //       this.setState({
-    //         video: nextVideo,
-    //         videoId: nextVideo.id.videoId,
-    //         videoTitle: nextVideo.snippet.title,
-    //         videoChannel: nextVideo.snippet.channelTitle,
-    //       })
-
-    //       console.log(`Currently playing: ${nextVideo.videoTitle} - ${currentVideoNumber}, from Search Results Listener`);
-          
-    //       //this.playNextSearchVideo(video);
-    //       console.log(`Currently playing from Search Results Listener`);
-    //     };
-
-    //   });
-
-    // } else {
-    //   player.on('stateChange', (event) => {
-    //     if (event.data === 0) {
-    //       this.setState({
-    //         playerIsPlaying: !this.state.playerIsPlaying
-    //       })
-    //       console.log(`Stopped player from Search Results`);
-    //     };
-    //   });
-    // }
     
-  }
+  };
 
   playNextVideo = (video) => {
 
@@ -675,9 +671,9 @@ class App extends Component {
 
   togglePlay = () => {
     if (this.state.playerIsPlaying === true) {
-      this.state.player.pauseVideo();
+      this.player.pauseVideo();
     } else {
-      this.state.player.playVideo();
+      this.player.playVideo();
     }
     this.setState({
       playerIsPlaying: !this.state.playerIsPlaying
@@ -696,6 +692,7 @@ class App extends Component {
     });
     this.setState({ videoToBeAdded })
   };
+
   toggleAddTagPopup = (playlistToAddTag) => {
     this.setState({
       addTagPopupIsOpen: !this.state.addTagPopupIsOpen
@@ -762,6 +759,53 @@ class App extends Component {
     });
   };
 
+  onAddToLibrary = (video) => {
+
+    console.log('adding song');
+
+    const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+    const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
+    const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
+    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+    const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
+
+    const user = this.state.user;
+
+    //Add song to playlist
+    const docRef = firebase.firestore().doc(`users/${user.uid}/library/${videoId}`);
+    docRef.set({
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      videoEtag: videoEtag,
+      videoID: videoId,
+      videoTitle: videoTitle,
+      videoChannel: videoChannel,
+      datePublished: datePublished,
+      order: user.libraryVideoCount + 1
+    })
+      .then(() => {
+        console.log(`${videoTitle} added to Library`);
+      })
+      .catch(function (error) {
+        console.log('Got an error:', error);
+      })
+
+    //Increment video count in the user library
+    const userRef = firebase.firestore().doc(`users/${user.uid}`);
+    userRef.update({
+      libraryVideoCount: user.libraryVideoCount + 1,
+    })
+      .then(() => {
+        console.log(`User library count Incremented`);
+      })
+      .catch(function (error) {
+        console.log('Got an error:', error);
+      })
+
+    this.setState({
+      playlistPopupIsOpen: !this.state.playlistPopupIsOpen
+    });
+  };
+
   onRemoveFromPlaylist = (videoId, item) => {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
     const user = this.state.user;
@@ -798,20 +842,20 @@ class App extends Component {
       .replace(/\-\-+/g, '-')         // Replace multiple - with single -
       .replace(/^-+/, '')             // Trim - from start of text
       .replace(/-+$/, '');            // Trim - from end of text
-  }
+  };
 
   onEditPlaylistInputChange = (event) => {
     this.setState({
       playlistName: event.target.value,
       playlistSlug: this.slugify(event.target.value)
     });
-  }
+  };
 
   onImportPlaylistInputChange = (event) => {
     this.setState({
       playlistUrl: event.target.value
     });
-  }
+  };
 
   toggleAddPlaylistPopup = () => {
     this.setState({
@@ -926,7 +970,7 @@ class App extends Component {
     })
 
     this.toggleClosePlaylistPopup();
-  }
+  };
 
   onImportPlaylist = () => {    
     if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
@@ -946,7 +990,7 @@ class App extends Component {
     }, function(err) {
       console.error(err);
     })
-  }
+  };
 
   onDeletePlaylist = (playlist, batchSize) => {
     const user = this.state.user;
@@ -1049,13 +1093,13 @@ class App extends Component {
     })
     
     this.setState({importingNewPlaylist: false, playlistUrl: ''});
-  }
+  };
 
   onAddTagInputChange = (event) => {
     this.setState({
       newTag: event.target.value
     });
-  }
+  };
 
   onAddTag = () => {
     const user = this.state.user;
@@ -1114,7 +1158,11 @@ class App extends Component {
 
     return (
       <div>
-        <StyledContainer playerIsOpen={this.state.playerIsOpen}>
+        <StyledContainer id="interface"
+          playerIsOpen={this.state.playerIsOpen}
+          interfaceAlwaysOn={this.state.interfaceAlwaysOn}
+          interfaceOff={this.state.interfaceOff}
+        >
           <StyledAside visible={this.state.navIsOpen} onClick={() => this.toggleNav()}>
             <Sidenav
               onLogin={this.onLogin}
@@ -1125,6 +1173,7 @@ class App extends Component {
               toggleAddPlaylistPopup={this.toggleAddPlaylistPopup}
               toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
               importFromSpotify={this.importFromSpotify}
+              toggleInterface={this.toggleInterface}
             />
           </StyledAside>
           <StyledMain>
@@ -1159,6 +1208,16 @@ class App extends Component {
                     match={match}
                     user={this.state.user}
                   /> } 
+                />
+                <Route exact path='/users/:profileId/library' render={({ match }) =>
+                  <Library
+                    match={match}
+                    user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
+                    popularPlaylists={this.state.popularPlaylists}
+                    featuredPlaylists={this.state.featuredPlaylists}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                  /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
                   <Playlist
@@ -1204,6 +1263,7 @@ class App extends Component {
           video={this.state.videoToBeAdded}
           open={this.state.playlistPopupIsOpen}
           onAddToPlaylist={this.onAddToPlaylist}
+          onAddToLibrary={this.onAddToLibrary}
           onClose={this.togglePlaylistPopup}
           myPlaylists={this.state.myPlaylists}
         />
@@ -1225,11 +1285,12 @@ class App extends Component {
           onImportPlaylistInputChange={this.onImportPlaylistInputChange}
         />
         <AddTagsPopup 
-        open={this.state.addTagPopupIsOpen}
-        onClose={this.toggleAddTagPopup}
-        newTag={this.newTag}
-        onAddTagInputChange={this.onAddTagInputChange}
-        onAddTag={this.onAddTag} />
+          open={this.state.addTagPopupIsOpen}
+          onClose={this.toggleAddTagPopup}
+          newTag={this.newTag}
+          onAddTagInputChange={this.onAddTagInputChange}
+          onAddTag={this.onAddTag} 
+        />
         <LoginPopup
           user={this.state.user}
           onLogin={this.onLogin}
