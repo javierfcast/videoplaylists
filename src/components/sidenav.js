@@ -251,7 +251,7 @@ const StyledInterfaceSwitch = styled.label`
   }
 `;
 
-const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, toggleImportPlaylistPopup, importFromSpotify, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
+const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, toggleImportPlaylistPopup, importFromSpotify, onImportPlaylistDrop, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
 
   const MyPlaylists = myPlaylists.map((playlist) => {
     return (
@@ -297,7 +297,9 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, toggleImportPlaylist
                 <MaterialIcon icon="add" color='#fff' />
                 Add new Playlist
               </StyledButton>
-              <SecondStyledButton onClick={toggleImportPlaylistPopup}>
+              <SecondStyledButton onClick={toggleImportPlaylistPopup} 
+                onDrop={(event) => {onImportPlaylistDrop(event)}}
+                onDragOver={(e) => e.preventDefault()}>
                 <MaterialIcon icon="add" color='#fff' />
                 Import from Spotify
               </SecondStyledButton>

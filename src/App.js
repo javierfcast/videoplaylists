@@ -7,7 +7,6 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
 import YTSearch from './temp/youtube-api-search-reloaded';
-import SpotifyToken from './temp/spotify-token'
 import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
@@ -38,8 +37,18 @@ import './style/style.css';
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
 
-//Spotify Web Api Token
-let Spotify_Token = SpotifyToken((token) => Spotify_Token = token);
+//Fetch Spotify Web Api token with Google Apps Script
+//Using Google Apps Script to not expose client_secret
+let Spotify_Token = fetch('https://script.google.com/macros/s/AKfycbyP2Bj6CatiqmAVm02e2iEizeLM6-hNrKv6sLeaRfvBGPFwD5Wd/exec', {
+      method: 'GET',
+      mode: 'cors'
+  })
+  .then((response) => {
+    return response.json();
+  })
+  .then((json) => {
+    Spotify_Token = json.access_token;
+  });
 
 const sizes = {
   small: 360,
@@ -857,6 +866,14 @@ class App extends Component {
     });
   };
 
+  onImportPlaylistDrop = (event) => {
+    event.preventDefault();
+    this.toggleImportPlaylistPopup();
+    this.setState({
+      playlistUrl: event.dataTransfer.getData("URL")
+    });
+  }
+
   toggleAddPlaylistPopup = () => {
     this.setState({
       addingNewPlaylist: true,
@@ -887,7 +904,6 @@ class App extends Component {
     console.log(`playlist name: ${this.state.playlistName}`);
     console.log(`playlist slug: ${this.state.playlistSlug}`);
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
-    const importFunction = this.state.importingNewPlaylist? this.importFromSpotify : null;
     docRef.add({
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: this.state.playlistName,
@@ -916,7 +932,6 @@ class App extends Component {
         followers: 0,
         featured: false
       }).then(function(){
-        importFunction(docRef.id);
         console.log(`Playlist saved globally with Id: ${docRef.id}`);
       }).catch(function (error){
         console.log('Got an error:', error);
@@ -972,25 +987,130 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   };
 
-  onImportPlaylist = () => {    
+  onImportPlaylist = () => {
     if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
 
     const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
     const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
     const self = this;
+    const user = this.state.user;
+
     var spotifyApi = new SpotifyWebApi();
     spotifyApi.setAccessToken(Spotify_Token);
 
+    function YTPromise(searchTerm) {
+      return new Promise((resolve,reject) => {
+        YTSearch(
+          { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
+          (searchResults) => {
+            if (searchResults.length <= 0) resolve();
+            resolve(searchResults[0]);
+          }
+        );
+      })
+    };
+
+    function batchAdd(playlistIdRef, items) {
+      const db = firebase.firestore();
+      const batch = db.batch();
+      var count = 0;
+      
+      items.map((video, index)=> {
+        if (video){
+          const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+          const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
+          const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
+          const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+          const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
+
+          const docRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef).collection('videos').doc(videoId);
+          batch.set(docRef, {
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            videoEtag: videoEtag,
+            videoID: videoId,
+            videoTitle: videoTitle,
+            videoChannel: videoChannel,
+            datePublished: datePublished,
+            order: index
+          })
+          count++
+        }
+      })
+
+      const userPlaylistRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef);
+      const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
+
+      batch.update(userPlaylistRef, {
+        videoCount: count
+      });
+
+      batch.update(publicPlaylistRef, {
+        videoCount: count
+      });
+
+      batch.commit().then(function () {
+        console.log('batch commited');
+      });
+    }
+
     spotifyApi.getPlaylist(userId[1], playlistId[1])
-    .then(function(data) {
-      self.setState({
-        playlistName: data.name,
-        playlistSlug: self.slugify(data.name)
-      },() => self.onAddPlaylist());
+    .then((data) => {
+      const spotifyPlaylistName = data.name;
+      const spotifyPlaylistSlug = self.slugify(data.name);
+
+      const promises = [];
+      data.tracks.items.map((trackObj) => {
+        const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
+        promises.push(YTPromise(searchTerm));
+      });
+      Promise.all(promises)
+      .then((results)=> {
+        const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
+
+        docRef.add({
+          createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+          playlistName: spotifyPlaylistName,
+          playlistSlugName: spotifyPlaylistSlug,
+          Author: user.displayName,
+          AuthorId: user.uid,
+          videoCount: 0,
+          followers: 0,
+          featured: false,
+          orderBy: 'timestamp',
+          orderDirection: 'asc',
+        }).then((docRef) => {
+          console.log(`Playlist saved with Id: ${docRef.id}`);
+          docRef.update({
+            playlistId: docRef.id
+          })
+          const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
+          playlistsRef.set({
+            createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+            playlistName: spotifyPlaylistName,
+            playlistSlugName: spotifyPlaylistSlug,
+            playlistId: docRef.id,
+            Author: user.displayName,
+            AuthorId: user.uid,
+            videoCount: 0,
+            followers: 0,
+            featured: false
+          }).then(function(){
+            batchAdd(docRef.id, results);
+            console.log(`Playlist saved globally with Id: ${docRef.id}`);
+          }).catch(function (error){
+            console.log('Got an error:', error);
+          });
+        }).catch(function (error) {
+          console.log('Got an error:', error);
+        })
+      }).catch(function (error) {
+        console.log('Got an error:', error);
+      })
     }, function(err) {
       console.error(err);
     })
-  };
+    this.toggleImportPlaylistPopup();
+  }
 
   onDeletePlaylist = (playlist, batchSize) => {
     const user = this.state.user;
@@ -1063,37 +1183,37 @@ class App extends Component {
     }
   };
 
-  importFromSpotify = (newPlaylistId) => {
-    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
+  // importFromSpotify = (newPlaylistId) => {
+  //   if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
 
-    const plyalistItem = this.state.myPlaylists.find(plyalistItem => plyalistItem.playlistId === newPlaylistId);
-    const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
-    const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
-    const addToPlaylist = this.onAddToPlaylist;
+  //   const plyalistItem = this.state.myPlaylists.find(plyalistItem => plyalistItem.playlistId === newPlaylistId);
+  //   const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
+  //   const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
+  //   const addToPlaylist = this.onAddToPlaylist;
 
-    var spotifyApi = new SpotifyWebApi();
-    spotifyApi.setAccessToken(Spotify_Token);
+  //   var spotifyApi = new SpotifyWebApi();
+  //   spotifyApi.setAccessToken(Spotify_Token);
 
-    spotifyApi.getPlaylistTracks(userId[1], playlistId[1])
-    .then(function(data) {
-      const playlistTracks = data.items;
+  //   spotifyApi.getPlaylistTracks(userId[1], playlistId[1])
+  //   .then(function(data) {
+  //     const playlistTracks = data.items;
       
-      for (let i in playlistTracks) {
-        let searchTerm = playlistTracks[i].track.name + " " + playlistTracks[i].track.artists[0].name;
+  //     for (let i in playlistTracks) {
+  //       let searchTerm = playlistTracks[i].track.name + " " + playlistTracks[i].track.artists[0].name;
         
-        YTSearch(
-          { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
-          (searchResults) => {
-            if(searchResults.length > 0) addToPlaylist(searchResults[0], plyalistItem);
-          }
-        );
-      }
-    }, function(err) {
-      console.error(err);
-    })
+  //       YTSearch(
+  //         { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
+  //         (searchResults) => {
+  //           if(searchResults.length > 0) addToPlaylist(searchResults[0], plyalistItem);
+  //         }
+  //       );
+  //     }
+  //   }, function(err) {
+  //     console.error(err);
+  //   })
     
-    this.setState({importingNewPlaylist: false, playlistUrl: ''});
-  };
+  //   this.setState({importingNewPlaylist: false, playlistUrl: ''});
+  // };
 
   onAddTagInputChange = (event) => {
     this.setState({
@@ -1103,8 +1223,6 @@ class App extends Component {
 
   onAddTag = () => {
     const user = this.state.user;
-    const playlistToAddTagId = this.state.playlistToAddTag;
-    
     
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(this.state.playlistToAddTag.playlistId);
     const playlistRef = firebase.firestore().collection('playlists').doc(this.state.playlistToAddTag.playlistId);
@@ -1150,6 +1268,43 @@ class App extends Component {
     this.toggleAddTagPopup();
   };
 
+  onRemoveTag = (newTags, playlistItem) => {
+    const user = this.state.user;
+    
+    const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(playlistItem.playlistId);
+    const playlistRef = firebase.firestore().collection('playlists').doc(playlistItem.playlistId);
+
+    //Update User Playlist
+    docRef.get().then(
+      (doc) => {
+        if (doc.exists) {          
+          docRef.update({
+            tags: newTags
+          }).then(() => {
+            console.log('Playlist updated!');
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }
+    );
+
+    //Update Public Playlists
+    playlistRef.get().then(
+      (doc) => {
+        if (doc.exists) {
+          playlistRef.update({
+            tags: newTags
+          }).then(() => {
+            console.log('Playlist updated!');
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }
+    );
+  }
+
 //Render
 
   render() {
@@ -1174,6 +1329,7 @@ class App extends Component {
               toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
               importFromSpotify={this.importFromSpotify}
               toggleInterface={this.toggleInterface}
+              onImportPlaylistDrop={this.onImportPlaylistDrop}
             />
           </StyledAside>
           <StyledMain>
@@ -1234,6 +1390,7 @@ class App extends Component {
                     onPlaylistFollow={this.onPlaylistFollow}
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
                     toggleAddTagPopup={this.toggleAddTagPopup}
+                    onRemoveTag={this.onRemoveTag}
                     YT_API_KEY={YT_API_KEY}
                   />}
                 />
