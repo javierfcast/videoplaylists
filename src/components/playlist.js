@@ -117,8 +117,9 @@ const StyledPlaylistTags = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-  padding-top: 10px;
   margin: 10px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   ${media.xmedium`
     padding-top: 0;
   `}
@@ -198,13 +199,14 @@ const StyledButtonTagMore = styled.a`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.8;
+  opacity: .8;
   cursor: pointer;
   transition: all .3s ease;
   padding: 10px;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px;
   margin-right: 10px;
+  white-space: nowrap;
   &:hover{
     opacity: 1;
     background-color: rgba(255, 255, 255, 0.1);

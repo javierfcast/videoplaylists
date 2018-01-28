@@ -969,7 +969,8 @@ class App extends Component {
     function batchAdd(playlistIdRef, items) {
       const db = firebase.firestore();
       const batch = db.batch();
-      var count = 0;
+      let seen = [];
+      let count = 0;
       
       items.map((video, index)=> {
         if (video){
@@ -979,6 +980,10 @@ class App extends Component {
           const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
           const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
 
+          //dont set if video is duplicated
+          if (seen.some((id) => id === videoId)) return;
+          seen.push(videoId);
+          
           const docRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef).collection('videos').doc(videoId);
           batch.set(docRef, {
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -1006,6 +1011,8 @@ class App extends Component {
 
       batch.commit().then(function () {
         console.log('batch commited');
+      }).catch((error) => {
+        console.log(error);        
       });
     }
 
