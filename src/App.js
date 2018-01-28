@@ -860,7 +860,6 @@ class App extends Component {
     console.log(`playlist name: ${this.state.playlistName}`);
     console.log(`playlist slug: ${this.state.playlistSlug}`);
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
-    const importFunction = this.state.importingNewPlaylist? this.importFromSpotify : null;
     docRef.add({
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: this.state.playlistName,
@@ -889,7 +888,6 @@ class App extends Component {
         followers: 0,
         featured: false
       }).then(function(){
-        importFunction(docRef.id);
         console.log(`Playlist saved globally with Id: ${docRef.id}`);
       }).catch(function (error){
         console.log('Got an error:', error);
@@ -945,24 +943,129 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   }
 
-  onImportPlaylist = () => {    
+  onImportPlaylist = () => {
     if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
 
     const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
     const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
     const self = this;
+    const user = this.state.user;
+
     var spotifyApi = new SpotifyWebApi();
     spotifyApi.setAccessToken(Spotify_Token);
 
+    function YTPromise(searchTerm) {
+      return new Promise((resolve,reject) => {
+        YTSearch(
+          { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
+          (searchResults) => {
+            if (searchResults.length <= 0) resolve();
+            resolve(searchResults[0]);
+          }
+        );
+      })
+    };
+
+    function batchAdd(playlistIdRef, items) {
+      const db = firebase.firestore();
+      const batch = db.batch();
+      var count = 0;
+      
+      items.map((video, index)=> {
+        if (video){
+          const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+          const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
+          const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
+          const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+          const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
+
+          const docRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef).collection('videos').doc(videoId);
+          batch.set(docRef, {
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            videoEtag: videoEtag,
+            videoID: videoId,
+            videoTitle: videoTitle,
+            videoChannel: videoChannel,
+            datePublished: datePublished,
+            order: index
+          })
+          count++
+        }
+      })
+
+      const userPlaylistRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef);
+      const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
+
+      batch.update(userPlaylistRef, {
+        videoCount: count
+      });
+
+      batch.update(publicPlaylistRef, {
+        videoCount: count
+      });
+
+      batch.commit().then(function () {
+        console.log('batch commited');
+      });
+    }
+
     spotifyApi.getPlaylist(userId[1], playlistId[1])
-    .then(function(data) {
-      self.setState({
-        playlistName: data.name,
-        playlistSlug: self.slugify(data.name)
-      },() => self.onAddPlaylist());
+    .then((data) => {
+      const spotifyPlaylistName = data.name;
+      const spotifyPlaylistSlug = self.slugify(data.name);
+
+      const promises = [];
+      data.tracks.items.map((trackObj) => {
+        const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
+        promises.push(YTPromise(searchTerm));
+      });
+      Promise.all(promises)
+      .then((results)=> {
+        const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
+
+        docRef.add({
+          createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+          playlistName: spotifyPlaylistName,
+          playlistSlugName: spotifyPlaylistSlug,
+          Author: user.displayName,
+          AuthorId: user.uid,
+          videoCount: 0,
+          followers: 0,
+          featured: false,
+          orderBy: 'timestamp',
+          orderDirection: 'asc',
+        }).then((docRef) => {
+          console.log(`Playlist saved with Id: ${docRef.id}`);
+          docRef.update({
+            playlistId: docRef.id
+          })
+          const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
+          playlistsRef.set({
+            createdOn: firebase.firestore.FieldValue.serverTimestamp(),
+            playlistName: spotifyPlaylistName,
+            playlistSlugName: spotifyPlaylistSlug,
+            playlistId: docRef.id,
+            Author: user.displayName,
+            AuthorId: user.uid,
+            videoCount: 0,
+            followers: 0,
+            featured: false
+          }).then(function(){
+            batchAdd(docRef.id, results);
+            console.log(`Playlist saved globally with Id: ${docRef.id}`);
+          }).catch(function (error){
+            console.log('Got an error:', error);
+          });
+        }).catch(function (error) {
+          console.log('Got an error:', error);
+        })
+      }).catch(function (error) {
+        console.log('Got an error:', error);
+      })
     }, function(err) {
       console.error(err);
     })
+    this.toggleImportPlaylistPopup();
   }
 
   onDeletePlaylist = (playlist, batchSize) => {
@@ -1035,38 +1138,6 @@ class App extends Component {
       });
     }
   };
-
-  importFromSpotify = (newPlaylistId) => {
-    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
-
-    const plyalistItem = this.state.myPlaylists.find(plyalistItem => plyalistItem.playlistId === newPlaylistId);
-    const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
-    const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
-    const addToPlaylist = this.onAddToPlaylist;
-
-    var spotifyApi = new SpotifyWebApi();
-    spotifyApi.setAccessToken(Spotify_Token);
-
-    spotifyApi.getPlaylistTracks(userId[1], playlistId[1])
-    .then(function(data) {
-      const playlistTracks = data.items;
-      
-      for (let i in playlistTracks) {
-        let searchTerm = playlistTracks[i].track.name + " " + playlistTracks[i].track.artists[0].name;
-        
-        YTSearch(
-          { part: 'snippet', key: YT_API_KEY, term: searchTerm, type: 'video', maxResults: 1 },
-          (searchResults) => {
-            if(searchResults.length > 0) addToPlaylist(searchResults[0], plyalistItem);
-          }
-        );
-      }
-    }, function(err) {
-      console.error(err);
-    })
-    
-    this.setState({importingNewPlaylist: false, playlistUrl: ''});
-  }
 
   onAddTagInputChange = (event) => {
     this.setState({
