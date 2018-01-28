@@ -74,7 +74,7 @@ const StyledButtonSubmit = styled.a`
   }
 `;
 
-const AddToPlaylistPopup = ({ user, onLogin, video, onAddToPlaylist, open, onClose, myPlaylists }) => {
+const AddToPlaylistPopup = ({ user, onLogin, video, onAddToPlaylist, onAddToLibrary, open, onClose, myPlaylists }) => {
 
   if (!open) {
     return null;
@@ -122,6 +122,7 @@ const AddToPlaylistPopup = ({ user, onLogin, video, onAddToPlaylist, open, onClo
     <StyledPopup>
       <StyledContent>
         <StyledTitle>Add: {videoTitle} to a playlist</StyledTitle>
+        <StyledLink style={{ marginBottom: 20 + 'px' }} onClick={() => onAddToLibrary(video)}>Add to library</StyledLink>
         <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
         <ul>
           {PlaylistItem}

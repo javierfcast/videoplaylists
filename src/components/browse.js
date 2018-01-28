@@ -109,11 +109,22 @@ const StyledFeatured = styled(Link)`
   text-decoration: none;
   color: #fff;
   border: 1px solid rgba(255,255,255,0.1);
-  transition: all .3s ease;
+  transition: all .5s cubic-bezier(0.19, 1, 0.22, 1);
   display: block;
   width: 100%;
+  overflow: hidden;
+  max-height: 420px;
   &:hover{
     border: 1px solid rgba(255,255,255,255.1);
+    img{
+      opacity: .9;
+      -webkit-filter: blur(5px);
+      -moz-filter: blur(5px);
+      -o-filter: blur(5px);
+      -ms-filter: blur(5px);
+      filter: blur(5px);
+      transform: scale(1.2);
+    }
   }
   &.col-33{
     ${media.xmedium`
@@ -129,6 +140,7 @@ const StyledFeatured = styled(Link)`
     height: 100%;
     object-fit: cover;
     opacity: .5;
+    transition: all .3s ease;
   }
 `;
 const StyledFeaturedContent = styled.div`
@@ -264,7 +276,7 @@ class Browse extends Component {
           <TabPanel>
             <StyledFeaturedContainer>
               <StyledFeaturedHero>
-                <StyledFeatured to="/users">
+                <StyledFeatured to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2">
                   <img src={imgCardi} alt="Cardi" />
                   <StyledFeaturedContent>
                     <h2>Pitchfork's best 100 songs of 2017</h2>
@@ -273,21 +285,21 @@ class Browse extends Component {
                 </StyledFeatured>
               </StyledFeaturedHero>
               <StyledFeaturedGrid>
-                <StyledFeatured className="col-33" to="/users">
+                <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/6ix5h503yWLpliMrLRXN">
                   <img src={imgQuavo} alt="Quavo" />
                   <StyledFeaturedContent>
                     <h2>Rap Caviar</h2>
                     <span>By Video Playlist</span>
                   </StyledFeaturedContent>
                 </StyledFeatured>
-                <StyledFeatured className="col-33" to="/users">
+                <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/oH5YlSYbpBTsZAf67mFa">
                   <img src={imgOzuna} alt="Ozuna" />
                   <StyledFeaturedContent>
                     <h2>Fiesta Latina</h2>
                     <span>By Video Playlist</span>
                   </StyledFeaturedContent>
                 </StyledFeatured>
-                <StyledFeatured className="col-33" to="/users">
+                <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/a5lPRHrVGWVCW5zEocVF">
                   <img src={imgArcadeFire} alt="Arcade Fire" />
                   <StyledFeaturedContent>
                     <h2>Indie Mornings</h2>
