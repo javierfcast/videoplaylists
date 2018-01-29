@@ -209,11 +209,12 @@ const StyledButtonTagMore = styled.a`
   white-space: nowrap;
   &:hover{
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,1);
   }
 `;
 const StyledDivTag = styled.div`
   display: flex;
+  white-space: nowrap;
   align-items: center;
   justify-content: center;
   opacity: .8;
@@ -239,11 +240,13 @@ const StyledButtonTagRemove = styled.a`
     opacity: 1;
   }
 `;
-const StyledButtonTagName = styled.a`
+const StyledButtonTagName = styled(Link)`
   cursor: pointer;
   transition: all .3s ease;
   font-size: 14px;
   padding: 12px 8px;
+  text-decoration: none;
+  color: #fff;
 `;
 
 class Playlist extends Component {
@@ -578,7 +581,10 @@ class Playlist extends Component {
       return (
         <StyledDivTag key= {i}>
           {tagRemove}
-          <StyledButtonTagName onClick={() => console.log(tag)}>{tag}</StyledButtonTagName>
+          <StyledButtonTagName to="/search"
+           onClick={() => this.props.onTagClick([tag])}>
+           {tag}
+          </StyledButtonTagName>
         </StyledDivTag>)
     }) : null;
     
