@@ -414,8 +414,7 @@ class Playlist extends Component {
             videoID: result.id.videoId,
             videoTitle: result.snippet.title,
             key: result.id.videoId,
-            duration: result.contentDetails.duration,
-            likeCount: result.statistics.likeCount
+            duration: result.contentDetails.duration
           }
         });
         this.setState({
@@ -436,8 +435,7 @@ class Playlist extends Component {
             videoID: result.id.videoId,
             videoTitle: result.snippet.title,
             key: result.id.videoId,
-            duration: result.contentDetails.duration,
-            likeCount: result.statistics.likeCount
+            duration: result.contentDetails.duration
           }
         });
         this.setState({
@@ -516,6 +514,7 @@ class Playlist extends Component {
           videoTitle={video.videoTitle}
           videoId={video.videoID}
           videoChannel={video.videoChannel}
+          duration={video.duration}
           datePublished={year + '-' + month + '-' + dt}
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}
@@ -552,6 +551,7 @@ class Playlist extends Component {
           videoTitle={video.videoTitle}
           videoId={video.videoID}
           videoChannel={video.videoChannel}
+          duration={video.duration}
           datePublished={year + '-' + month + '-' + dt}
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}

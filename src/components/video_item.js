@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import MaterialIcon from 'material-icons-react';
+import Moment from 'moment';
 
 
 const StyledVideoItem = styled.li`
@@ -56,10 +57,14 @@ const StyledActionButton = styled.a`
 
 
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
+  
+  let durationFormated = Moment.duration(duration).asMilliseconds();
+  durationFormated = Moment.utc(durationFormated).format("mm:ss");
   
   const AuthorId = typeof playlist !== 'undefined' ? playlist.AuthorId : null;
-
+  const extraMeta = duration ? " · Duration: " + durationFormated : null; 
+    
   let deleteButton = null;
 
   let addButton = <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
@@ -73,14 +78,14 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
       <StyledVideoInfo onClick={() => toggleSearchPlayer(video)}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
-        <VideoMeta>Published: {datePublished}</VideoMeta>
+        <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>
       </StyledVideoInfo>
   } else {
     videoTrigger = 
       <StyledVideoInfo onClick={() => togglePlayer(video, playlist, playlistVideos)}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
-        <VideoMeta>Published: {datePublished}</VideoMeta>
+        <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>
       </StyledVideoInfo>
   }
 

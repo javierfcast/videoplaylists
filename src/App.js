@@ -11,7 +11,6 @@ import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
 import axios from 'axios';
-import moment from 'moment';
 
 //Import app components
 import SearchBar from './components/search_bar';
@@ -40,6 +39,8 @@ import playlist from './components/playlist';
 
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
+let progTimeout;
+let progressTimerId;
 
 const sizes = {
   small: 360,
@@ -192,7 +193,10 @@ class App extends Component {
       //Tags search
       isTagSearch: false,
       tagsToSearch: [],
-      tagsSearchResults: []
+      tagsSearchResults: [],
+      //Progress bar
+      progressMax: 0,
+      progress: 0
     }
 
     this.player = null;
@@ -316,15 +320,32 @@ class App extends Component {
         rel: 0,
       }
     });
-    this.player.on('stateChange', (event) => {
-      // console.log('MyStateChange', event);
+    
+    
+    this.player.on('stateChange', (event) => { 
       //Update the current video to the next in list.
-      if (event.data !== 0) { 
-        return;
-      }
-      console.log('MyStateChange', event.data);
+      if (event.data === 0) { 
+        console.log('MyStateChange', event.data);
 
-      this.changeVideo(true);
+        this.changeVideo(true);
+      }
+      //video playling
+      else if (event.data === 1) {
+        const self = this;
+        this.player.getDuration().then(playerTotalTime => {
+          this.setState({progressMax: playerTotalTime});
+          clearInterval(progressTimerId);
+          progressTimerId = setInterval(function() {
+            self.player.getCurrentTime().then(playerCurrentTime=> {
+              self.setState({progress: playerCurrentTime});             
+            });
+          }, 1000);    
+        });
+      }
+      //video paused
+      else if (event.data === 2) {               
+        clearInterval(progressTimerId);
+      }
     });
     
     //Hide inteface after 5 seconds of mouse inactivity
@@ -749,7 +770,6 @@ class App extends Component {
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
     const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
-    const likeCount = typeof video.statistics !== 'undefined' ? video.statistics.likeCount : video.likeCount ? video.likeCount : null;
 
     const user = this.state.user;
 
@@ -763,7 +783,6 @@ class App extends Component {
       videoChannel: videoChannel,
       datePublished: datePublished,
       duration: duration,
-      likeCount: likeCount,
       order: item.videoCount + 1
     })
     .then(() => {
@@ -1047,7 +1066,6 @@ class App extends Component {
           const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
           const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
           const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
-          const likeCount = typeof video.statistics !== 'undefined' ? video.statistics.likeCount : video.likeCount ? video.likeCount : null;
 
           //dont set if video is duplicated
           if (seen.some((id) => id === videoId)) return;
@@ -1062,7 +1080,6 @@ class App extends Component {
             videoChannel: videoChannel,
             datePublished: datePublished,
             duration: duration,
-            likeCount: likeCount,
             order: index
           })
           count++
@@ -1285,6 +1302,13 @@ class App extends Component {
     );
   }
 
+  onProgressChange = (time) => {
+    const self = this;
+    this.setState({progress: time});
+    if (progTimeout) clearTimeout(progTimeout); 
+    progTimeout = setTimeout(() => {self.player.seekTo(time)}, 100);
+  }
+
 //Render
 
   render() {
@@ -1403,6 +1427,9 @@ class App extends Component {
             video={this.state.video}
             videoTitle={this.state.videoTitle}
             videoChannel={this.state.videoChannel}
+            progressMax={this.state.progressMax}
+            progress={this.state.progress}
+            onProgressChange={this.onProgressChange}
           />
         </StyledContainer>
         <AddToPlaylistPopup 
