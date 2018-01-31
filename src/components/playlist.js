@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import YTSearch from '../temp/youtube-api-search-reloaded.js';
+import YTSearch from './yt_search'
 
 const sizes = {
   small: 360,
@@ -403,50 +403,47 @@ class Playlist extends Component {
     if (playlistVideos.length > 0) {
     
       const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
-
-      YTSearch(
-        { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', relatedToVideoId: lastVideoID, maxResults: 5 },
-        (searchResults) => {
-
-          const video = searchResults.map((result) => {
-            return {
-              datePublished: result.snippet.publishedAt,
-              order: 0,
-              videoChannel: result.snippet.channelTitle,
-              videoEtag: result.etag,
-              videoID: result.id.videoId,
-              videoTitle: result.snippet.title,
-              key: result.id.videoId
-            }
-          });
-          this.setState({
-            relatedVideos: video
-          })
-        }
-      );
+      YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
+      .then((searchResults)=> {    
+        const video = searchResults.map((result, index) => {
+          return {
+            datePublished: result.snippet.publishedAt,
+            order: index,
+            videoChannel: result.snippet.channelTitle,
+            videoEtag: result.etag,
+            videoID: result.id.videoId,
+            videoTitle: result.snippet.title,
+            key: result.id.videoId,
+            duration: result.contentDetails.duration,
+            likeCount: result.statistics.likeCount
+          }
+        });
+        this.setState({
+          relatedVideos: video
+        })
+      });
     }
     
     else {
-      YTSearch(
-        { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', term: playlistTitle, maxResults: 5 },
-        (searchResults) => {
-
-          const video = searchResults.map((result) => {
-            return {
-              datePublished: result.snippet.publishedAt,
-              order: 0,
-              videoChannel: result.snippet.channelTitle,
-              videoEtag: result.etag,
-              videoID: result.id.videoId,
-              videoTitle: result.snippet.title,
-              key: result.id.videoId
-            }
-          });
-          this.setState({
-            relatedVideos: video
-          })
-        }
-      );
+      YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
+      .then((searchResults)=> {    
+        const video = searchResults.map((result, index) => {
+          return {
+            datePublished: result.snippet.publishedAt,
+            order: index,
+            videoChannel: result.snippet.channelTitle,
+            videoEtag: result.etag,
+            videoID: result.id.videoId,
+            videoTitle: result.snippet.title,
+            key: result.id.videoId,
+            duration: result.contentDetails.duration,
+            likeCount: result.statistics.likeCount
+          }
+        });
+        this.setState({
+          relatedVideos: video
+        })
+      });
     }
   };
 
@@ -492,7 +489,7 @@ class Playlist extends Component {
     const batchSize = this.state.playlistVideos.length;
     
     //Map videos inside playlist
-    const videoItems = this.state.playlistVideos.map((video) => { 
+    const videoItems = this.state.playlistVideos.map((video) => {     
       
       let date = new Date(video.datePublished);
       let year = date.getFullYear();
