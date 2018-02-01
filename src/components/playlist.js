@@ -401,14 +401,13 @@ class Playlist extends Component {
   getRelated = (playlistVideos, playlistTitle) => {
 
     if (playlistVideos.length > 0) {
-    
       const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
       YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
       .then((searchResults)=> {    
         const video = searchResults.map((result, index) => {
           return {
             datePublished: result.snippet.publishedAt,
-            order: index,
+            order: playlistVideos.length + 1,
             videoChannel: result.snippet.channelTitle,
             videoEtag: result.etag,
             videoID: result.id.videoId,
@@ -429,7 +428,7 @@ class Playlist extends Component {
         const video = searchResults.map((result, index) => {
           return {
             datePublished: result.snippet.publishedAt,
-            order: index,
+            order: 1,
             videoChannel: result.snippet.channelTitle,
             videoEtag: result.etag,
             videoID: result.id.videoId,
@@ -446,7 +445,6 @@ class Playlist extends Component {
   };
 
   render() {    
-
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
       return null;
     }
@@ -557,6 +555,7 @@ class Playlist extends Component {
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          autoAdd={true}
         />
       )
     });
@@ -620,7 +619,9 @@ class Playlist extends Component {
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
 
-        relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>{relatedVideoItems}</div>
+        relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>
+          {relatedVideoItems}
+        </div>
       }
 
     } else {
