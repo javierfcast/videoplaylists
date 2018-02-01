@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import YTSearch from '../temp/youtube-api-search-reloaded.js';
+import YTSearch from './yt_search';
 
 const sizes = {
   small: 360,

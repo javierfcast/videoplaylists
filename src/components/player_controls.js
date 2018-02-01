@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
+import SeekSlider from 'react-video-seek-slider';
+import '../style/slider.css';
 
 const sizes = {
   small: 360,
@@ -19,7 +21,17 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 
   return acc
 }, {})
-
+const StyledControlsContainer = styled.div`
+  width: 100%;
+  height: 120px;
+  position: relative;
+  z-index: 900;
+`;
+const StyledSeekSliderContainer = styled.div`
+  position: absolute;
+  width: 100%;
+  top: -10px;
+`;
 const StyledPlayerContainer = styled.div`
   height: 120px;
   width: 100%;
@@ -99,12 +111,13 @@ const Label = styled.span`
   margin-right: 20px;
 `;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, currentPlaylist, video, videoTitle, videoChannel}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange}) => {
 
   let button = null;
   let previousButton = null;
   let nextButton = null;
   let videoSource = null;
+  let seekSlider = null;
 
   if (playerIsPlaying === true) {
     button = <MaterialIcon icon="pause" color='#fff' />;
@@ -136,33 +149,46 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
       <StyledButton onClick={() => playNextVideo(video)}>
         <MaterialIcon icon="skip_next" color='#fff' />
       </StyledButton>
+  } 
+
+  if (progressMax > 0) {
+    seekSlider = <SeekSlider
+      max={progressMax}
+      currentTime={progress}
+      progress={0}
+      onChange={(time)=> onProgressChange(time)}
+      offset={0}
+    />
   }
 
-  
-
   return(
-    <StyledPlayerContainer>
-      <StyledSongInfo>
-        {videoTitle &&
-          <StyledSongInfoContainer>
-            {videoSource}
-            <VideoTitle>{videoTitle}</VideoTitle>
-            <Label>{videoChannel}</Label>
-          </StyledSongInfoContainer>
-        }
-      </StyledSongInfo>
-      <StyledPlayerControls>
-        {previousButton}
-        <StyledButton onClick={() => videoTitle !== null && togglePlay()}>
-          {button}
-        </StyledButton>
-        {nextButton}
-      </StyledPlayerControls>
-      <StyledAditionalOptions>
-        {/* <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton>
-        <StyledButton><MaterialIcon icon="add" color='#fff' /></StyledButton> */}
-      </StyledAditionalOptions>
-    </StyledPlayerContainer>
+    <StyledControlsContainer>
+      <StyledSeekSliderContainer>
+      {seekSlider}
+      </StyledSeekSliderContainer>
+      <StyledPlayerContainer>
+        <StyledSongInfo>
+          {videoTitle &&
+            <StyledSongInfoContainer>
+              {videoSource}
+              <VideoTitle>{videoTitle}</VideoTitle>
+              <Label>{videoChannel}</Label>
+            </StyledSongInfoContainer>
+          }
+        </StyledSongInfo>
+        <StyledPlayerControls>
+          {previousButton}
+          <StyledButton onClick={() => videoTitle !== null && togglePlay()}>
+            {button}
+          </StyledButton>
+          {nextButton}
+        </StyledPlayerControls>
+        <StyledAditionalOptions>
+          {/* <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton>
+          <StyledButton><MaterialIcon icon="add" color='#fff' /></StyledButton> */}
+        </StyledAditionalOptions>
+      </StyledPlayerContainer>
+    </StyledControlsContainer>
   );
 };
 

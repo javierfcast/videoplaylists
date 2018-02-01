@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import YTSearch from '../temp/youtube-api-search-reloaded.js';
+import YTSearch from './yt_search'
 
 const sizes = {
   small: 360,
@@ -117,8 +117,9 @@ const StyledPlaylistTags = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-  padding-top: 10px;
   margin: 10px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   ${media.xmedium`
     padding-top: 0;
   `}
@@ -198,20 +199,22 @@ const StyledButtonTagMore = styled.a`
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.8;
+  opacity: .8;
   cursor: pointer;
   transition: all .3s ease;
   padding: 10px;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px;
   margin-right: 10px;
+  white-space: nowrap;
   &:hover{
     opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,1);
   }
 `;
 const StyledDivTag = styled.div`
   display: flex;
+  white-space: nowrap;
   align-items: center;
   justify-content: center;
   opacity: .8;
@@ -237,11 +240,13 @@ const StyledButtonTagRemove = styled.a`
     opacity: 1;
   }
 `;
-const StyledButtonTagName = styled.a`
+const StyledButtonTagName = styled(Link)`
   cursor: pointer;
   transition: all .3s ease;
   font-size: 14px;
   padding: 12px 8px;
+  text-decoration: none;
+  color: #fff;
 `;
 
 class Playlist extends Component {
@@ -398,50 +403,45 @@ class Playlist extends Component {
     if (playlistVideos.length > 0) {
     
       const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
-
-      YTSearch(
-        { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', relatedToVideoId: lastVideoID, maxResults: 5 },
-        (searchResults) => {
-
-          const video = searchResults.map((result) => {
-            return {
-              datePublished: result.snippet.publishedAt,
-              order: 0,
-              videoChannel: result.snippet.channelTitle,
-              videoEtag: result.etag,
-              videoID: result.id.videoId,
-              videoTitle: result.snippet.title,
-              key: result.id.videoId
-            }
-          });
-          this.setState({
-            relatedVideos: video
-          })
-        }
-      );
+      YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
+      .then((searchResults)=> {    
+        const video = searchResults.map((result, index) => {
+          return {
+            datePublished: result.snippet.publishedAt,
+            order: index,
+            videoChannel: result.snippet.channelTitle,
+            videoEtag: result.etag,
+            videoID: result.id.videoId,
+            videoTitle: result.snippet.title,
+            key: result.id.videoId,
+            duration: result.contentDetails.duration
+          }
+        });
+        this.setState({
+          relatedVideos: video
+        })
+      });
     }
     
     else {
-      YTSearch(
-        { part: 'snippet', key: this.props.YT_API_KEY, type: 'video', term: playlistTitle, maxResults: 5 },
-        (searchResults) => {
-
-          const video = searchResults.map((result) => {
-            return {
-              datePublished: result.snippet.publishedAt,
-              order: 0,
-              videoChannel: result.snippet.channelTitle,
-              videoEtag: result.etag,
-              videoID: result.id.videoId,
-              videoTitle: result.snippet.title,
-              key: result.id.videoId
-            }
-          });
-          this.setState({
-            relatedVideos: video
-          })
-        }
-      );
+      YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
+      .then((searchResults)=> {    
+        const video = searchResults.map((result, index) => {
+          return {
+            datePublished: result.snippet.publishedAt,
+            order: index,
+            videoChannel: result.snippet.channelTitle,
+            videoEtag: result.etag,
+            videoID: result.id.videoId,
+            videoTitle: result.snippet.title,
+            key: result.id.videoId,
+            duration: result.contentDetails.duration
+          }
+        });
+        this.setState({
+          relatedVideos: video
+        })
+      });
     }
   };
 
@@ -487,7 +487,7 @@ class Playlist extends Component {
     const batchSize = this.state.playlistVideos.length;
     
     //Map videos inside playlist
-    const videoItems = this.state.playlistVideos.map((video) => { 
+    const videoItems = this.state.playlistVideos.map((video) => {     
       
       let date = new Date(video.datePublished);
       let year = date.getFullYear();
@@ -514,6 +514,7 @@ class Playlist extends Component {
           videoTitle={video.videoTitle}
           videoId={video.videoID}
           videoChannel={video.videoChannel}
+          duration={video.duration}
           datePublished={year + '-' + month + '-' + dt}
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}
@@ -550,6 +551,7 @@ class Playlist extends Component {
           videoTitle={video.videoTitle}
           videoId={video.videoID}
           videoChannel={video.videoChannel}
+          duration={video.duration}
           datePublished={year + '-' + month + '-' + dt}
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}
@@ -576,7 +578,10 @@ class Playlist extends Component {
       return (
         <StyledDivTag key= {i}>
           {tagRemove}
-          <StyledButtonTagName onClick={() => console.log(tag)}>{tag}</StyledButtonTagName>
+          <StyledButtonTagName to="/search"
+           onClick={() => this.props.onTagClick([tag])}>
+           {tag}
+          </StyledButtonTagName>
         </StyledDivTag>)
     }) : null;
     

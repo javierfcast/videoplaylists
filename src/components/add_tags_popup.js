@@ -88,12 +88,12 @@ const StyledButtonSubmit = styled.a`
   }
 `;
 
-const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddTag}) => {
+const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddTag, isTagSearch, onAddTagSearch}) => {
 
   if (!open) {
     return null;
   }
-
+  const onSubmit = isTagSearch? onAddTagSearch: onAddTag;
   return (
     <StyledPopup>
       <StyledContent>
@@ -111,7 +111,7 @@ const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddT
           <StyledButton onClick={onClose}>
             Cancel
           </StyledButton>
-          <StyledButtonSubmit onClick={onAddTag}>Add</StyledButtonSubmit>
+          <StyledButtonSubmit onClick={onSubmit}>Add</StyledButtonSubmit>
         </StyledActions>
       </StyledContent>
     </StyledPopup>
