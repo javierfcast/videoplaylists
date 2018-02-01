@@ -276,10 +276,10 @@ class Browse extends Component {
           <TabPanel>
             <StyledFeaturedContainer>
               <StyledFeaturedHero>
-                <StyledFeatured to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2">
+                <StyledFeatured to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/ByIKvBLzGDm5ocQWQx37">
                   <img src={imgCardi} alt="Cardi" />
                   <StyledFeaturedContent>
-                    <h2>Pitchfork's best 100 songs of 2017</h2>
+                    <h2>Pitchfork's 100 best songs of 2017</h2>
                     <span>By Video Playlist</span>
                   </StyledFeaturedContent>
                 </StyledFeatured>

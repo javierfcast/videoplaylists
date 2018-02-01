@@ -1391,6 +1391,8 @@ class App extends Component {
                   <User
                     match={match}
                     user={this.state.user}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                    onPlaylistUnfollow={this.onPlaylistUnfollow}
                   /> } 
                 />
                 <Route exact path='/users/:profileId/library' render={({ match }) =>
