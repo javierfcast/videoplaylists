@@ -6,7 +6,8 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import YTSearch from './yt_search'
+import YTSearch from './yt_search';
+import SortableComponent from './sortable_component';
 
 const sizes = {
   small: 360,
@@ -263,7 +264,8 @@ class Playlist extends Component {
       playlistOptionsIsOpen: false,
       orderBy: null,
       orderDirection: null,
-      tags: []
+      tags: [],
+      customOrder: []
     };
   };
 
@@ -315,7 +317,7 @@ class Playlist extends Component {
     }
     let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
     videosRef = videosRef.orderBy(this.state.playlist.orderBy, this.state.playlist.orderDirection);
-
+    
     videosRef.onSnapshot(querySnapshot => {
       const playlistVideos = [];
       querySnapshot.forEach(function (doc) {
@@ -336,19 +338,24 @@ class Playlist extends Component {
     //Get videos and reorder them if order changed.
     if (this.state.orderDirection !== prevState.orderDirection) {
       let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');    
-
-      videosRef = videosRef.orderBy(this.state.orderBy, this.state.orderDirection);
-
-      videosRef.onSnapshot(querySnapshot => {
-        const playlistVideos = [];
-        querySnapshot.forEach(function (doc) {
-          playlistVideos.push(doc.data());
+      if (this.state.orderBy === 'custom') {
+        this.customOrder();
+      }
+      else {
+        
+        videosRef = videosRef.orderBy(this.state.orderBy, this.state.orderDirection);
+      
+        videosRef.onSnapshot(querySnapshot => {
+          const playlistVideos = [];
+          querySnapshot.forEach(function (doc) {
+            playlistVideos.push(doc.data());
+          });
+          this.setState({
+            playlistVideos: playlistVideos,
+          });
         });
-        this.setState({
-          playlistVideos: playlistVideos,
-        });
-      });
-    };
+      };
+    }
 
     //get related videos 
     if (this.state.playlistVideos !== prevState.playlistVideos) {
@@ -397,6 +404,104 @@ class Playlist extends Component {
     }
 
   }
+
+  customOrder = () => {
+    const self = this;
+    const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId); 
+    const videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
+
+    videosRef.onSnapshot(querySnapshot => {
+
+      const playlistVideos = [];
+
+      querySnapshot.forEach(function (doc) {
+        playlistVideos.push(doc.data());
+      });
+
+      //reorder videos
+
+      playlistRef.get().then(function(doc) {
+        //if custom order found
+        if (doc.exists && doc.data().customOrder) {
+          const newPlaylistVideos = [];
+          const newCustomOrder = [];
+
+          doc.data().customOrder.forEach((orderId) => {
+            playlistVideos.forEach((video)=> {
+              if (orderId === video.videoID) {
+                newPlaylistVideos.push(video);
+                newCustomOrder.push(orderId);
+              };
+            });
+          });
+
+          //WORK ARROUND FOR WHEN THE NUMBER OF VIDEOS WON'T MATCH STORED ORDER
+          //add videos that aren't in customOrder field to the end
+          if (playlistVideos.length > doc.data().customOrder.length) {
+            playlistVideos.map((video) => {
+              const matches = doc.data().customOrder.some((orderId) => {
+                return orderId === video.videoID
+              })
+              if (!matches) {
+                newPlaylistVideos.push(video);
+                newCustomOrder.push(video.videoID);
+              };
+            });
+          }
+
+          self.setState({
+            playlistVideos: newPlaylistVideos,
+            customOrder: doc.data().customOrder
+          });
+        } 
+        //set order if it doesn't have any
+        else {
+          const order = playlistVideos.map((video) => video.videoID);
+          playlistRef.update({customOrder: order}).then(() => {
+
+            console.log(`Order set succesfully`);
+
+            self.setState({
+              playlistVideos: playlistVideos,
+              customOrder: doc.data().customOrder
+            });
+            
+          }).catch(function (error) {
+            console.log('Got an error:', error);
+          })
+        }
+      }).catch(function(error) {
+          console.log("Error getting document:", error);
+      });
+
+    });
+  }
+
+  onSort = (items) => {
+    const self = this;
+    const newOrder = items.map(item => item.props.videoId);
+    
+    if (this.state.customOrder && newOrder.toString() === this.state.customOrder.toString()) return;
+
+    const newPlaylistVideos = [];
+    newOrder.forEach((orderId) => {
+      this.state.playlistVideos.forEach((video)=> {
+        if (orderId === video.videoID) newPlaylistVideos.push(video);
+      });
+    });
+
+    this.setState(({
+      playlistVideos: newPlaylistVideos,
+      customOrder: newOrder
+    }));
+
+    const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
+    playlistRef.update({customOrder: newOrder}).then(() => {
+      console.log('Custom order set');
+    }).catch(function (error) {
+      console.log('Got an error:', error);
+    });
+  };
 
   getRelated = (playlistVideos, playlistTitle) => {
 
@@ -602,11 +707,11 @@ class Playlist extends Component {
         {tagItems}
       </StyledPlaylistTags>
     }
-    
-    //Set Follow for playlists
+
+    //Set Follow for playlists, related videos and sortable list
     let followButton = null;
     let relatedSection = null;
-    let recommendeSectionVideos = null;
+    let videoContainerComponent = null;
 
     if (this.props.user !== null ) {
       if (this.props.user.uid !== playlist.AuthorId) {
@@ -616,16 +721,38 @@ class Playlist extends Component {
           {playlistFollowers} Followers
         </PlaylistActions>
 
+        videoContainerComponent = <VideoListContainer>
+          {videoItems}
+          {relatedSection}
+        </VideoListContainer>
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
 
         relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>
           {relatedVideoItems}
         </div>
+
+        if (this.state.orderBy === 'custom') {
+          videoContainerComponent = <SortableComponent
+            videoItems={videoItems}
+            relatedSection={relatedSection}
+            onSort={this.onSort}
+          />
+        } else {
+          videoContainerComponent = <VideoListContainer>
+            {videoItems}
+            {relatedSection}
+          </VideoListContainer>
+        }
+
       }
 
     } else {
       followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
+      videoContainerComponent = <VideoListContainer>
+        {videoItems}
+        {relatedSection}
+      </VideoListContainer>
     }
 
     //Set Playlist options popup
@@ -640,6 +767,9 @@ class Playlist extends Component {
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
+          <StyledButtonPopup onClick={() => this.orderBy('custom')}>
+            Custom Order
+          </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
             Recently Added
           </StyledButtonPopup>
@@ -681,10 +811,7 @@ class Playlist extends Component {
             </StyledPlaylistActions>
           </StyledHeaderActions>
         </StyledHeader>
-        <VideoListContainer>
-          {videoItems}
-          {relatedSection}
-        </VideoListContainer>
+        {videoContainerComponent}
       </PlaylistContainer>
     )
   };

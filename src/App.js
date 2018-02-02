@@ -30,7 +30,7 @@ import LoginPopup from './components/login_popup.js';
 import About from './components/about';
 import Terms from './components/terms';
 import Privacy from './components/privacy';
-import SearchTags from './components/searchTags'
+import SearchTags from './components/search_tags'
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -792,10 +792,17 @@ class App extends Component {
       console.log('Got an error:', error);
     })
 
+    //prevent duplicates
+    if (!item.customOrder.some(orderId => orderId === videoId)) {
+      //Add video id to custom order
+      item.customOrder = [...item.customOrder, ...[videoId]]
+    };
+
     //Increment video count in the user playlist
     const userPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
     userPlaylistRef.update({
       videoCount: item.videoCount + 1,
+      customOrder: item.customOrder
     })
     .then(() => {
       console.log(`User count Incremented`);
@@ -875,6 +882,9 @@ class App extends Component {
     const user = this.state.user;
     const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
 
+    //remove id from customOrder
+    const newOrder = item.customOrder.filter(i => i !== videoId);
+
     docRef.delete().then(() => {
       //Decrement video count in the public playlist
       const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
@@ -886,6 +896,7 @@ class App extends Component {
       const publicPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
       publicPlaylistRef.update({
         videoCount: item.videoCount - 1,
+        customOrder: newOrder
       })
     })
     .then(function() {
@@ -1060,6 +1071,7 @@ class App extends Component {
     function batchAdd(playlistIdRef, items) {
       const db = firebase.firestore();
       const batch = db.batch();
+      const customOrder = [];
       let seen = [];
       let count = 0;
       
@@ -1088,6 +1100,8 @@ class App extends Component {
             order: index
           })
           count++
+
+          customOrder.push(videoId);
         }
       })
 
@@ -1095,6 +1109,7 @@ class App extends Component {
       const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
 
       batch.update(userPlaylistRef, {
+        customOrder: customOrder,
         videoCount: count
       });
 

@@ -215,7 +215,7 @@ class searchTags extends Component {
 
     //basic info
     let title;
-    let resultCount = searchResults.length > 0? searchResults.length : 0;
+    let resultCount = searchResults.length > 0 ? searchResults.length : 0;
     
     if (toSearch.length > 1) {
 
@@ -281,11 +281,18 @@ class searchTags extends Component {
     else {
       playlistItem = <NotFoundItem>
           <StyledNotFoundContent>
-            <h1>Add a tag to start searching</h1>
+            <h1>No playlists found.</h1>
           </StyledNotFoundContent>
         </NotFoundItem>
     }
     
+    if (toSearch.length === 0) {
+      playlistItem = <NotFoundItem>
+          <StyledNotFoundContent>
+            <h1>Add a tag to start searching.</h1>
+          </StyledNotFoundContent>
+        </NotFoundItem>
+    }
 
     return (
 
