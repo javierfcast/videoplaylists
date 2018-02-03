@@ -57,7 +57,7 @@ const StyledActionButton = styled.a`
 
 
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onRemoveFromPlaylist, inSearchResults, currentVideoId}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd}) => {
   
   let durationFormated = Moment.duration(duration).asMilliseconds();
   durationFormated = Moment.utc(durationFormated).format("mm:ss");
@@ -68,6 +68,9 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   let deleteButton = null;
 
   let addButton = <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
+    <MaterialIcon icon="add" color='#fff' />
+  </StyledActionButton>
+  if (autoAdd) addButton = <StyledActionButton onClick={() => onAddToPlaylist(video, playlist, autoAdd)}>
     <MaterialIcon icon="add" color='#fff' />
   </StyledActionButton>
 
