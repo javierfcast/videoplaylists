@@ -35,7 +35,6 @@ import SearchTags from './components/search_tags'
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
 import './style/style.css';
-import playlist from './components/playlist';
 
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
@@ -1059,11 +1058,11 @@ class App extends Component {
   };
 
   onImportPlaylist = () => {
-    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
+    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) return;
 
     const self = this;
-    const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
-    const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
+    const userId = this.state.playlistUrl.match(/user.([^/]+)/);
+    const playlistId = this.state.playlistUrl.match(/playlist.([^/|?]+)/);
     const user = this.state.user;
     const playlistUrl = this.state.playlistUrl;
     let allTracks = [];
@@ -1075,7 +1074,7 @@ class App extends Component {
       let seen = [];
       let count = 0;
       
-      items.map((video, index)=> {
+      items.forEach((video, index)=> {
         if (video){
           const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
           const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
@@ -1147,7 +1146,7 @@ class App extends Component {
         else {
           const promises = [];
 
-          allTracks.map((trackObj) => {
+          allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
             promises.push(YTSearch({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
           });

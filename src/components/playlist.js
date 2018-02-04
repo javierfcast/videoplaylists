@@ -438,7 +438,7 @@ class Playlist extends Component {
           //WORK ARROUND FOR WHEN THE NUMBER OF VIDEOS WON'T MATCH STORED ORDER
           //add videos that aren't in customOrder field to the end
           if (playlistVideos.length > doc.data().customOrder.length) {
-            playlistVideos.map((video) => {
+            playlistVideos.forEach((video) => {
               const matches = doc.data().customOrder.some((orderId) => {
                 return orderId === video.videoID
               })
@@ -478,7 +478,6 @@ class Playlist extends Component {
   }
 
   onSort = (items) => {
-    const self = this;
     const newOrder = items.map(item => item.props.videoId);
     
     if (this.state.customOrder && newOrder.toString() === this.state.customOrder.toString()) return;
