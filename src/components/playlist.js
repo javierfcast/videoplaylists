@@ -692,7 +692,7 @@ class Playlist extends Component {
     if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
       //add button to add tags
       addTags = <StyledButtonTagMore onClick={() => this.props.toggleAddTagPopup(this.state.playlist)}>
-        <MaterialIcon icon="add" color='#fff' size="14px" />Add tags
+        <MaterialIcon icon="add" color='#fff' size="14px" />Add Tag
       </StyledButtonTagMore>
 
       playlistTags = <StyledPlaylistTags>

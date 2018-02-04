@@ -303,7 +303,7 @@ class searchTags extends Component {
               <StyledButtonTagAdd>
                 <MaterialIcon icon="add" color='#fff' size="21px" />
               </StyledButtonTagAdd>
-              <StyledTagName> Add tags </StyledTagName>
+              <StyledTagName> Add tag </StyledTagName>
             </StyledTagNameContainerMore>
           </StyledRow>
           <StyledTagInfo>
