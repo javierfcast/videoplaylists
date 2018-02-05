@@ -310,7 +310,7 @@ class Playlist extends Component {
         });
       }
     });
-
+    
     //Get videos inside playlist
     if (!this.state.playlist){
       return null;
@@ -327,7 +327,6 @@ class Playlist extends Component {
         playlistVideos: playlistVideos,
       });
     });
-
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -435,9 +434,8 @@ class Playlist extends Component {
             });
           });
 
-          //WORK ARROUND FOR WHEN THE NUMBER OF VIDEOS WON'T MATCH STORED ORDER
-          //add videos that aren't in customOrder field to the end
-          if (playlistVideos.length > doc.data().customOrder.length) {
+          //if there are videos with no match
+          if (playlistVideos.length !== newPlaylistVideos.length) {
             playlistVideos.forEach((video) => {
               const matches = doc.data().customOrder.some((orderId) => {
                 return orderId === video.videoID
@@ -579,7 +577,6 @@ class Playlist extends Component {
       }
     }
 
-
     //Basic constants
 
     const playlist = this.state.playlist;
@@ -603,6 +600,11 @@ class Playlist extends Component {
         month = '0' + month;
       }
 
+      //check if video it's in library
+      const itsOnLibrary = this.props.libraryVideos.some((element) => {
+        return element.videoID === video.videoID
+      });
+
       return (
         <VideoItem
           user={this.props.user}
@@ -622,7 +624,10 @@ class Playlist extends Component {
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          onAddToLibrary={this.props.onAddToLibrary}
+          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
           orderBy={this.state.orderBy}
+          itsOnLibrary={itsOnLibrary}
         />
       )
     });
@@ -712,6 +717,7 @@ class Playlist extends Component {
     let followButton = null;
     let relatedSection = null;
     let videoContainerComponent = null;
+    let updatePlaylist = null;
 
     if (this.props.user !== null ) {
       if (this.props.user.uid !== playlist.AuthorId) {
@@ -727,7 +733,7 @@ class Playlist extends Component {
         </VideoListContainer>
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
-
+        
         relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>
           {relatedVideoItems}
         </div>
@@ -746,6 +752,12 @@ class Playlist extends Component {
           </VideoListContainer>
         }
 
+        if (playlist.spotifyUrl) {
+          updatePlaylist = 
+          <StyledButtonPopup onClick={() => {this.props.onUpdatePlaylist(playlist, batchSize); this.togglePlaylistsOptions()}}>
+            Update Playlist <MaterialIcon icon="cached" color='#fff' />
+          </StyledButtonPopup>
+        }       
       }
 
     } else {
@@ -787,6 +799,7 @@ class Playlist extends Component {
           <StyledButtonPopup onClick={() => this.props.toggleEditPlaylistPopup(playlist)}>
             Edit Playlist's Name <MaterialIcon icon="edit" color='#fff' />
           </StyledButtonPopup>
+          {updatePlaylist}
           <StyledButtonPopup onClick={() => this.props.onDeletePlaylist(playlist, batchSize)}>
             Delete Playlist <MaterialIcon icon="delete_forever" color='#fff' />
           </StyledButtonPopup>

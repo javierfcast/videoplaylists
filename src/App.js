@@ -195,7 +195,9 @@ class App extends Component {
       tagsSearchResults: [],
       //Progress bar
       progressMax: 0,
-      progress: 0
+      progress: 0,
+      //Library
+      libraryVideos: []
     }
 
     this.player = null;
@@ -235,6 +237,14 @@ class App extends Component {
           this.setState({ followingPlaylists })
         });
 
+        const libraryRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('library');
+        libraryRef.onSnapshot(querySnapshot => {
+          const libraryVideos = [];
+          querySnapshot.forEach(function (doc) {
+            libraryVideos.push(doc.data());
+          });
+          this.setState({libraryVideos});
+        });
       };
     });
 
@@ -759,21 +769,30 @@ class App extends Component {
 
     const user = this.state.user;
 
-    //Increment video count in the user playlist and the public playlist
     const userPlaylistRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId);
     const publicPlaylistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos').doc(videoId);
+    const collectionRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
 
     firebase.firestore().runTransaction((transaction) => {
+
       //get doc reference to check if video already exists
         return transaction.get(docRef).then(function(dDoc) {
-          if (dDoc.exists) {console.log("Song already on playlist"); return};
+          if (dDoc.exists) throw "Song already on playlist";
+
         }).then(()=> {
+
+          //get the amount of videos in the collection
+          return collectionRef.get().then(function (querySnapshot) {
+            return querySnapshot.size
+          });
+
+        }).then((newVideoCount)=> {
           return transaction.get(userPlaylistRef).then(function(tDoc) {
-            if (!tDoc.exists) {console.log("Document does not exist!"); return};
+            if (!tDoc.exists) throw "Document does not exist!";
             
             //Increment count
-            const newVideoCount = tDoc.data().videoCount + 1;
+            newVideoCount++;
 
             //Add id to custom order array
             const newCustomOrder = [...tDoc.data().customOrder, ...[videoId]]
@@ -787,7 +806,7 @@ class App extends Component {
               videoChannel: videoChannel,
               datePublished: datePublished,
               duration: duration,
-              order: item.videoCount + 1
+              order: newVideoCount
             });
             
             transaction.update(userPlaylistRef, {
@@ -813,7 +832,7 @@ class App extends Component {
     });
   };
 
-  onAddToLibrary = (video) => {
+  onAddToLibrary = (video, autoAdd) => {
 
     console.log('adding song');
 
@@ -824,41 +843,94 @@ class App extends Component {
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
 
     const user = this.state.user;
+    const self = this;
 
     //Add song to playlist
     const docRef = firebase.firestore().doc(`users/${user.uid}/library/${videoId}`);
-    docRef.set({
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      videoEtag: videoEtag,
-      videoID: videoId,
-      videoTitle: videoTitle,
-      videoChannel: videoChannel,
-      datePublished: datePublished,
-      order: user.libraryVideoCount + 1
-    })
-      .then(() => {
-        console.log(`${videoTitle} added to Library`);
-      })
-      .catch(function (error) {
-        console.log('Got an error:', error);
-      })
-
-    //Increment video count in the user library
     const userRef = firebase.firestore().doc(`users/${user.uid}`);
-    userRef.update({
-      libraryVideoCount: user.libraryVideoCount + 1,
-    })
-      .then(() => {
-        console.log(`User library count Incremented`);
-      })
-      .catch(function (error) {
-        console.log('Got an error:', error);
-      })
+    const collectionRef = firebase.firestore().collection(`users/${user.uid}/library`);
+
+    firebase.firestore().runTransaction((transaction) => {
+
+      //get doc reference to check if video already exists
+      return collectionRef.get().then(function (querySnapshot) {
+        return querySnapshot.size
+
+      }).then((newVideoCount)=> {
+        return transaction.get(docRef).then(function(tDoc) {
+          if (tDoc.exists) throw "Song already on playlist";
+
+          newVideoCount++;
+
+          transaction.update(userRef, {
+            libraryVideoCount: newVideoCount
+          });
+
+          return newVideoCount
+        })
+      }).then((newVideoCount)=> {
+        docRef.set({
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          videoEtag: videoEtag,
+          videoID: videoId,
+          videoTitle: videoTitle,
+          videoChannel: videoChannel,
+          datePublished: datePublished,
+          order: newVideoCount
+        })
+        .then(() => {
+          console.log(`${videoTitle} added to Library`);
+        })
+        .catch(function (error) {
+          console.log('Got an error:', error);
+        })
+      });
+    }).then(function() {
+        console.log("Song added to playlist");
+    }).catch(function(error) {
+        console.log("Transaction failed: ", error);
+    });
+
+    if (autoAdd) return
 
     this.setState({
       playlistPopupIsOpen: !this.state.playlistPopupIsOpen
     });
   };
+
+  onRemoveFromLibrary = (video) => {
+    console.log(`Removing: ${video.videoID}`)
+    const user = this.state.user;
+
+    const docRef = firebase.firestore().doc(`users/${user.uid}/library/${video.videoID}`);
+    const userRef = firebase.firestore().doc(`users/${user.uid}`);
+    const collectionRef = firebase.firestore().collection(`users/${user.uid}/library`);
+
+
+    firebase.firestore().runTransaction((transaction) => {
+        return collectionRef.get().then(function (querySnapshot) {
+          return querySnapshot.size;
+        }).then((newVideoCount)=> {
+          return transaction.get(docRef).then(function(tDoc) {
+              if (!tDoc.exists) throw "Document does not exist!";
+              
+              //Decrement count
+              newVideoCount--;
+
+              //Remove song from playlist
+              transaction.delete(docRef);
+              
+              transaction.update(userRef, {
+                libraryVideoCount: newVideoCount
+              });
+          });
+        });
+    }).then(function() {
+        console.log("Song removed from playlist");
+    }).catch(function(error) {
+        console.log("Transaction failed: ", error);
+    });  
+  }
 
   onRemoveFromPlaylist = (videoId, item) => {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
@@ -868,31 +940,36 @@ class App extends Component {
     const userPlaylistRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId);
     const publicPlaylistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos').doc(videoId);
+    const collectionRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
 
     firebase.firestore().runTransaction((transaction) => {
-        return transaction.get(userPlaylistRef).then(function(tDoc) {
-            if (!tDoc.exists) {console.log("Document does not exist!"); return};
-            
-            //Decrement count
-            const newVideoCount = tDoc.data().videoCount - 1;
+        return collectionRef.get().then(function (querySnapshot) {
+          return querySnapshot.size
+        }).then((newVideoCount)=> {
+          return transaction.get(userPlaylistRef).then(function(tDoc) {
+              if (!tDoc.exists) throw "Document does not exist!";
+              
+              //Decrement count
+              newVideoCount--;
 
-            //remove id from custom order array
-            const newCustomOrder = tDoc.data().customOrder.filter(i => i !== videoId);
+              //remove id from custom order array
+              const newCustomOrder = tDoc.data().customOrder.filter(i => i !== videoId);
 
-            //Remove song from playlist
-            transaction.delete(docRef);
-            
-            transaction.update(userPlaylistRef, {
-              videoCount: newVideoCount,
-              customOrder: newCustomOrder
-            });
+              //Remove song from playlist
+              transaction.delete(docRef);
+              
+              transaction.update(userPlaylistRef, {
+                videoCount: newVideoCount,
+                customOrder: newCustomOrder
+              });
 
-            transaction.update(publicPlaylistRef, {
-              videoCount: newVideoCount
-            });
+              transaction.update(publicPlaylistRef, {
+                videoCount: newVideoCount
+              });
+          });
         });
     }).then(function() {
-        console.log("Song removed to playlist");
+        console.log("Song removed from playlist");
     }).catch(function(error) {
         console.log("Transaction failed: ", error);
     });
@@ -1049,14 +1126,15 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   };
 
-  onImportPlaylist = () => {
-    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) return;
+  onImportPlaylist = (isUpdate, playlist) => {
+    const playlistUrl = isUpdate === true ? playlist.spotifyUrl : this.state.playlistUrl;
+    
+    if (!playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) return;
 
     const self = this;
-    const userId = this.state.playlistUrl.match(/user.([^/]+)/);
-    const playlistId = this.state.playlistUrl.match(/playlist.([^/|?]+)/);
+    const userId = playlistUrl.match(/user.([^/]+)/);
+    const playlistId = playlistUrl.match(/playlist.([^/|?]+)/);
     const user = this.state.user;
-    const playlistUrl = this.state.playlistUrl;
     let allTracks = [];
 
     function batchAdd(playlistIdRef, items) {
@@ -1074,7 +1152,6 @@ class App extends Component {
           const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
           const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
           const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
-
           //dont set if video is duplicated
           if (seen.some((id) => id === videoId)) return;
           seen.push(videoId);
@@ -1147,9 +1224,14 @@ class App extends Component {
           .then((results)=> {
             self.setState({playlistName: prevData.name, playlistSlug: self.slugify(prevData.name)}, ()=> {         
               results = results.map((result) => result[0]);
-              self.onAddPlaylist(playlistUrl, (docRefId) => {
-                batchAdd(docRefId, results);
-              });
+              if (isUpdate === true) {
+                batchAdd(playlist.playlistId, results);
+              }
+              else {
+                self.onAddPlaylist(playlistUrl, (docRefId) => {
+                  batchAdd(docRefId, results);
+                });
+              }
             })
           }).catch((error) => {
             console.log(error);        
@@ -1167,7 +1249,72 @@ class App extends Component {
     }).catch((error)=> {
       console.log(error);      
     });
+
+    if (isUpdate === true) return;
     this.toggleImportPlaylistPopup();
+  }
+
+  onUpdatePlaylist = (playlist, batchSize) => {
+    const user = this.state.user;
+    const db = firebase.firestore();
+    const docRef = db.doc(`users/${user.uid}/playlists/${playlist.playlistId}`);
+    const publicPlaylistRef = db.collection('playlists').doc(playlist.playlistId);
+    const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlist.playlistId).collection('videos');
+
+    let self = this;
+
+    if (batchSize !== 0) {
+
+      const query = collectionRef.orderBy('__name__').limit(batchSize);
+
+      return new Promise((resolve, reject) => {
+        deleteQueryBatch(db, query, batchSize, resolve, reject);
+      }).then((deleted)=> {
+        this.onImportPlaylist(true, playlist);
+      });
+    } else {
+      this.onImportPlaylist(true, playlist);
+    }
+
+    function deleteQueryBatch(db, query, batchSize, resolve, reject) {
+      query.get()
+        .then((snapshot) => {
+          // When there are no documents left, we are done
+          if (snapshot.size === 0) {
+            return 0;
+          }
+
+          // Delete documents in a batch
+          var batch = db.batch();
+          snapshot.docs.forEach(function (doc) {
+            batch.delete(doc.ref);
+          });
+
+          batch.update(docRef, {
+            customOrder: [],
+            videoCount: 0
+          });
+    
+          batch.update(publicPlaylistRef, {
+            videoCount: 0
+          });
+
+          return batch.commit().then(function () {
+            return snapshot.size;
+          });
+        }).then(function (numDeleted) {
+          if (numDeleted <= batchSize) {
+            resolve();
+            return;
+          }
+          // Recurse on the next process tick, to avoid
+          // exploding the stack.
+          process.nextTick(function () {
+            deleteQueryBatch(db, query, batchSize, resolve, reject);
+          });
+        })
+        .catch(reject);
+    }
   }
 
   onDeletePlaylist = (playlist, batchSize) => {
@@ -1418,6 +1565,7 @@ class App extends Component {
                     key={window.location.href}
                     user={this.state.user}
                     playlistVideos={this.state.playlistVideos}
+                    libraryVideos={this.state.libraryVideos}
                     videoId={this.state.videoId}
                     togglePlayer={this.togglePlayer}
                     togglePlaylistPopup={this.togglePlaylistPopup}
@@ -1427,6 +1575,9 @@ class App extends Component {
                     onPlaylistFollow={this.onPlaylistFollow}
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
                     onAddToPlaylist={this.onAddToPlaylist}
+                    onUpdatePlaylist={this.onUpdatePlaylist}
+                    onAddToLibrary={this.onAddToLibrary}
+                    onRemoveFromLibrary={this.onRemoveFromLibrary}
                     toggleAddTagPopup={this.toggleAddTagPopup}
                     onTagClick={this.onTagSearch}
                     onRemoveTag={this.onRemoveTag}
