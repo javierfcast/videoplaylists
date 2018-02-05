@@ -35,7 +35,7 @@ import SearchTags from './components/search_tags'
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
 import './style/style.css';
-import playlist from './components/playlist';
+// import playlist from './components/playlist';
 
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
@@ -380,9 +380,9 @@ class App extends Component {
     if (document.getElementById("input-playlist-popup") !== null) {
       document.getElementById("input-playlist-popup").focus();
     }
-
-    console.log(`Playing from search results? ${this.state.playingFromSearch}`)
-
+    if(this.state.playingFromSearch){
+      console.log(`Playing from search results.`)
+    }
     if(this.state.currentPlaylist){
       console.log(`Current Playlist: ${this.state.currentPlaylist.playlistName}`)
     }
@@ -635,7 +635,7 @@ class App extends Component {
 
   //Play controls for playlists and search results Methods
 
-  togglePlayer = (video, playlist, playlistVideos) => {
+  togglePlayer = (video, playlist, playlistVideos, source) => {
 
     //Play Selected Video from the playlist
     const videoId = video.videoID;
@@ -643,6 +643,7 @@ class App extends Component {
     const videoChannel = video.videoChannel;
 
     this.player.loadVideoById(videoId);
+
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
@@ -1418,6 +1419,7 @@ class App extends Component {
                     popularPlaylists={this.state.popularPlaylists}
                     featuredPlaylists={this.state.featuredPlaylists}
                     onPlaylistFollow={this.onPlaylistFollow}
+                    togglePlayer={this.togglePlayer}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
