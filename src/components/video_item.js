@@ -59,6 +59,13 @@ const StyledDragHandle = styled.span`
   cursor: grab;
   display: inline-block;
   margin-right: 20px;
+  opacity: 0;
+  ${StyledVideoItem}:hover & {
+    opacity: 1;
+  }
+  ${StyledVideoItem}.active & {
+    opacity: 1;
+  }
 `;
 
 const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy}) => {

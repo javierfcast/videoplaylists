@@ -105,7 +105,7 @@ class Users extends Component {
 
     const userItems = this.state.usersList.map((user) => {
       return (
-        <StyledUserItemContainer>
+        <StyledUserItemContainer key={user.uid}>
           <StyledUserItem to = {`/users/${user.uid}`} key={user.uid}> 
             <StyledUserImage src={user.photoURL} />
             <h4>{user.displayName}</h4>

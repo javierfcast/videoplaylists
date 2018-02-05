@@ -35,7 +35,6 @@ import SearchTags from './components/search_tags'
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
 import './style/style.css';
-// import playlist from './components/playlist';
 
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
@@ -551,68 +550,54 @@ class App extends Component {
 
     } else {
       
-      const user = this.state.user;    
-
+      const user = this.state.user;
+      
       //Route to User Following Playlist Collection
-      const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(playlist.playlistId);
-      followRef.get().then((doc) => {
-        
-        //Checking if the user is already following the playlist and if they do, Unfollow.
-        if (doc.exists) {
-          console.log(`Removing Playlist: ${playlist.playlistName}.`)
-          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${playlist.playlistId}`);
-          docRef.delete().then( () => {
-            
-            //Update count on public playlists collections
-            const playlistsRef = firebase.firestore().doc(`playlists/${playlist.playlistId}`);
-            playlistsRef.update({
-              followers: playlistFollowers - 1,
-            }).then(function () {
-              console.log(`Playlist followers updated`);
-            }).catch(function (error) {
-              console.log('Got an error:', error);
+      const followRef = firebase.firestore().collection('users').doc(user.uid).collection('following').doc(playlist.playlistId);
+      const publicPlaylistsRef = firebase.firestore().collection('playlists').doc(playlist.playlistId);
+      
+      firebase.firestore().runTransaction((transaction) => {
+          //get playlistsRef
+          return transaction.get(publicPlaylistsRef).then(function(playlistDoc) {
+            return playlistDoc
+          }).then((playlistDoc)=> {
+            return transaction.get(followRef).then(function(doc) {
+              //Checking if the user is already following the playlist and if they do, Unfollow.
+              if (doc.exists) {
+                //Unfollow
+                console.log(`Removing Playlist: ${playlist.playlistName}.`);
+                transaction.delete(followRef);
+
+                //Update count on public playlists collections
+                transaction.update(publicPlaylistsRef, {
+                  followers: playlistDoc.data().followers - 1
+                });
+              }
+
+              //If the user does not follow the playlist. Follow.
+              else {
+                transaction.set(followRef, {
+                  followedOn: firebase.firestore.FieldValue.serverTimestamp(),
+                  playlistId: playlist.playlistId,
+                  playlistName: playlist.playlistName,
+                  playlistSlug: playlist.playlistSlugName,
+                  Author: playlist.Author,
+                  AuthorId: playlist.AuthorId
+                });
+
+                //Update count on public playlists collections
+                transaction.update(publicPlaylistsRef, {
+                  followers: playlistDoc.data().followers + 1
+                });
+              }
             });
-
-          }).catch(function (error) {
-            console.error("Error removing document: ", error);
           });
-
-        //If the user does not follow the playlist. Follow.
-        } else {
-
-          console.log(`Following Playlist: ${playlist.playlistName}.`)
-
-          const docRef = firebase.firestore().doc(`users/${user.uid}/following/${playlist.playlistId}`);
-          docRef.set({
-            followedOn: firebase.firestore.FieldValue.serverTimestamp(),
-            playlistId: playlist.playlistId,
-            playlistName: playlist.playlistName,
-            playlistSlug: playlist.playlistSlugName,
-            Author: playlist.Author,
-            AuthorId: playlist.AuthorId,
-          }, {
-              merge: true
-            }).then(() => {
-
-              //Update count on public playlists collections
-              const playlistsRef = firebase.firestore().doc(`playlists/${playlist.playlistId}`);
-              playlistsRef.update({
-                followers: playlistFollowers + 1,
-              }).then(function () {
-                console.log(`Playlist followers updated`);
-              }).catch(function (error) {
-                console.log('Got an error:', error);
-              });
-
-            }).catch(function (error) {
-              console.log('Got an error:', error);
-            })
-        }
-      }).catch(function (error) {
-        console.log("Error getting document:", error);
+      }).then(function() {
+          console.log("Transaction successful");
+      }).catch(function(error) {
+          console.log("Transaction failed: ", error);
       });
     }
-    
   };
 
   onPlaylistUnfollow = (playlistId) => {
@@ -774,55 +759,52 @@ class App extends Component {
 
     const user = this.state.user;
 
-    //Add song to playlist
-    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
-    docRef.set({
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      videoEtag: videoEtag,
-      videoID: videoId,
-      videoTitle: videoTitle,
-      videoChannel: videoChannel,
-      datePublished: datePublished,
-      duration: duration,
-      order: item.videoCount + 1
-    })
-    .then(() => {
-      console.log(`${videoTitle} added to ${item.playlistName}`);
-    })
-    .catch(function (error) {
-      console.log('Got an error:', error);
-    })
+    //Increment video count in the user playlist and the public playlist
+    const userPlaylistRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId);
+    const publicPlaylistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
+    const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos').doc(videoId);
 
-    //prevent duplicates
-    if (!item.customOrder.some(orderId => orderId === videoId)) {
-      //Add video id to custom order
-      item.customOrder = [...item.customOrder, ...[videoId]]
-    };
+    firebase.firestore().runTransaction((transaction) => {
+      //get doc reference to check if video already exists
+        return transaction.get(docRef).then(function(dDoc) {
+          if (dDoc.exists) {console.log("Song already on playlist"); return};
+        }).then(()=> {
+          return transaction.get(userPlaylistRef).then(function(tDoc) {
+            if (!tDoc.exists) {console.log("Document does not exist!"); return};
+            
+            //Increment count
+            const newVideoCount = tDoc.data().videoCount + 1;
 
-    //Increment video count in the user playlist
-    const userPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
-    userPlaylistRef.update({
-      videoCount: item.videoCount + 1,
-      customOrder: item.customOrder
-    })
-    .then(() => {
-      console.log(`User count Incremented`);
-    })
-    .catch(function (error) {
-      console.log('Got an error:', error);
-    })
+            //Add id to custom order array
+            const newCustomOrder = [...tDoc.data().customOrder, ...[videoId]]
 
-    //Increment video count in the public playlist
-    const publicPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
-    publicPlaylistRef.update({
-      videoCount: item.videoCount + 1,
-    })
-    .then(() => {
-      console.log(`Public count Incremented`);
-    })
-    .catch(function (error) {
-      console.log('Got an error:', error);
-    })
+            //Add song to playlist
+            transaction.set(docRef, {
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+              videoEtag: videoEtag,
+              videoID: videoId,
+              videoTitle: videoTitle,
+              videoChannel: videoChannel,
+              datePublished: datePublished,
+              duration: duration,
+              order: item.videoCount + 1
+            });
+            
+            transaction.update(userPlaylistRef, {
+              videoCount: newVideoCount,
+              customOrder: newCustomOrder
+            });
+
+            transaction.update(publicPlaylistRef, {
+              videoCount: newVideoCount
+            });
+          });
+        });
+    }).then(function() {
+        console.log("Song added to playlist");
+    }).catch(function(error) {
+        console.log("Transaction failed: ", error);
+    });
 
     if (autoAdd) return
 
@@ -881,30 +863,38 @@ class App extends Component {
   onRemoveFromPlaylist = (videoId, item) => {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
     const user = this.state.user;
-    const docRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}/videos/${videoId}`);
 
-    //remove id from customOrder
-    const newOrder = item.customOrder.filter(i => i !== videoId);
+    //Increment video count in the user playlist and the public playlist
+    const userPlaylistRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId);
+    const publicPlaylistRef = firebase.firestore().collection('playlists').doc(item.playlistId);
+    const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos').doc(videoId);
 
-    docRef.delete().then(() => {
-      //Decrement video count in the public playlist
-      const userPlaylistRef = firebase.firestore().doc(`playlists/${item.playlistId}`);
-      userPlaylistRef.update({
-        videoCount: item.videoCount - 1,
-      })
+    firebase.firestore().runTransaction((transaction) => {
+        return transaction.get(userPlaylistRef).then(function(tDoc) {
+            if (!tDoc.exists) {console.log("Document does not exist!"); return};
+            
+            //Decrement count
+            const newVideoCount = tDoc.data().videoCount - 1;
 
-      //Decrement video count in the user playlist
-      const publicPlaylistRef = firebase.firestore().doc(`users/${user.uid}/playlists/${item.playlistId}`);
-      publicPlaylistRef.update({
-        videoCount: item.videoCount - 1,
-        customOrder: newOrder
-      })
-    })
-    .then(function() {
-      console.log("Document successfully deleted!");
-    })
-    .catch(function (error) {
-      console.error("Error removing document: ", error);
+            //remove id from custom order array
+            const newCustomOrder = tDoc.data().customOrder.filter(i => i !== videoId);
+
+            //Remove song from playlist
+            transaction.delete(docRef);
+            
+            transaction.update(userPlaylistRef, {
+              videoCount: newVideoCount,
+              customOrder: newCustomOrder
+            });
+
+            transaction.update(publicPlaylistRef, {
+              videoCount: newVideoCount
+            });
+        });
+    }).then(function() {
+        console.log("Song removed to playlist");
+    }).catch(function(error) {
+        console.log("Transaction failed: ", error);
     });
   };
 
@@ -982,7 +972,7 @@ class App extends Component {
       videoCount: 0,
       followers: 0,
       featured: false,
-      orderBy: 'timestamp',
+      orderBy: 'custom',
       orderDirection: 'asc',
       spotifyUrl: spotifyUrl
     }).then((docRef) => {
@@ -1060,11 +1050,11 @@ class App extends Component {
   };
 
   onImportPlaylist = () => {
-    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^\/|?]+/)) return;
+    if (!this.state.playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) return;
 
     const self = this;
-    const userId = this.state.playlistUrl.match(/user.([^\/]+)/);
-    const playlistId = this.state.playlistUrl.match(/playlist.([^\/|?]+)/);
+    const userId = this.state.playlistUrl.match(/user.([^/]+)/);
+    const playlistId = this.state.playlistUrl.match(/playlist.([^/|?]+)/);
     const user = this.state.user;
     const playlistUrl = this.state.playlistUrl;
     let allTracks = [];
@@ -1076,7 +1066,7 @@ class App extends Component {
       let seen = [];
       let count = 0;
       
-      items.map((video, index)=> {
+      items.forEach((video, index)=> {
         if (video){
           const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
           const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
@@ -1148,7 +1138,7 @@ class App extends Component {
         else {
           const promises = [];
 
-          allTracks.map((trackObj) => {
+          allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
             promises.push(YTSearch({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
           });

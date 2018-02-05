@@ -106,6 +106,7 @@ class User extends Component {
     this.state = {
       profile: null,
       profilePlaylists: [],
+      publicPlaylists: []
     };
   };
 
@@ -144,6 +145,17 @@ class User extends Component {
       this.setState({ profilePlaylists })
     });
 
+    //Browse Public Playlists Rutes
+    const publicPlaylistsRef = firebase.firestore().collection('playlists');
+
+    publicPlaylistsRef.onSnapshot(querySnapshot => {
+      const publicPlaylists = [];
+      querySnapshot.forEach(function (doc) {
+        publicPlaylists.push(doc.data());
+      });
+      this.setState({ publicPlaylists })
+    });
+
   };
 
   render() {
@@ -177,18 +189,26 @@ class User extends Component {
 
     const playlistItem = this.state.profilePlaylists.map((playlist) => {
 
+      let publicFollowers = this.state.publicPlaylists;
+      for (let i in publicFollowers) {
+        if (playlist.playlistId === publicFollowers[i].playlistId) {
+          publicFollowers = publicFollowers[i].followers;
+          break;
+        }
+      }
+
       const UserId = this.props.user !== null ? this.props.user.uid : null;
       let followButton = null;
       if (UserId !== playlist.AuthorId) {
 
         followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist)}>
-          {playlist.followers} Followers
+          {publicFollowers} Followers
         </PlaylistActions>
 
       } else {
 
         followButton = <PlaylistActionsNone>
-          {playlist.followers} Followers
+          {publicFollowers} Followers
         </PlaylistActionsNone>
 
       }

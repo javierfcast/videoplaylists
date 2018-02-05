@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import MaterialIcon from 'material-icons-react';
 
 import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
 
