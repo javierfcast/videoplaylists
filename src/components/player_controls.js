@@ -111,7 +111,7 @@ const Label = styled.span`
   margin-right: 20px;
 `;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange}) => {
 
   let button = null;
   let previousButton = null;
@@ -126,7 +126,7 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   }
 
   if (currentPlaylist) {
-    videoSource = <Label>{currentPlaylist.playlistName}</Label>
+    videoSource = <Label>{currentPlaylist.playlistName || `library`}</Label>
   }
 
   if (playingFromSearch === true) {
@@ -139,6 +139,9 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
         <MaterialIcon icon="skip_next" color='#fff' />
       </StyledButton>
     videoSource = <Label>Search Results</Label>
+
+  // } else if(playingFromLibrary === true) {
+  //   videoSource = <Label>Browse</Label>
 
   } else {
     previousButton =

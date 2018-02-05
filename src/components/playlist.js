@@ -622,6 +622,7 @@ class Playlist extends Component {
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          orderBy={this.state.orderBy}
         />
       )
     });
@@ -736,6 +737,7 @@ class Playlist extends Component {
             videoItems={videoItems}
             relatedSection={relatedSection}
             onSort={this.onSort}
+            orderBy={this.state.orderBy}
           />
         } else {
           videoContainerComponent = <VideoListContainer>

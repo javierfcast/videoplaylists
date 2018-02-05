@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 
-import {SortableContainer, SortableElement, SortableHandle, arrayMove} from 'react-sortable-hoc';
+import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
 
 const sizes = {
   small: 360,
@@ -38,21 +38,10 @@ const StyledSortableElement = styled.ul`
   display: flex;
   align-items: center;
 `;
-const StyledDragHandle = styled.span`
-  margin-right: 8px;
-  cursor: grab;
-`;
-
-const DragHandle = SortableHandle(() => 
-    <StyledDragHandle>
-      <MaterialIcon icon="drag_handle" color='#fff' size="18px" />
-    </StyledDragHandle>
-    );
 
 const SortableItem = SortableElement(({value}) => {
   return (
     <StyledSortableElement>
-      <DragHandle />
       {value}
     </StyledSortableElement>
   );

@@ -290,6 +290,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, toggleImportPlaylist
             <StyledPlaylistContainer>
               <StyledNavList>
                 <StyledNavItemLink to="/">Discover</StyledNavItemLink>
+                <StyledNavItemLink to="/search">Search By Tag</StyledNavItemLink>
                 <StyledNavItemLink to={`/users/${user.uid}/library`}>My Library</StyledNavItemLink>
                 <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
               </StyledNavList>

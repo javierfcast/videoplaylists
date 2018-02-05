@@ -1,15 +1,9 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import MaterialIcon from 'material-icons-react';
 
 const StyledSearchInputContainer = styled.div`
   padding: 20px;
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-  align-items: center;
 `;
 
 const Input = styled.input`
@@ -39,16 +33,6 @@ const Input = styled.input`
   }
 `;
 
-const StyledButton = styled(Link)`
-  margin-left: 15px; 
-  opacity: .6;
-  cursor: pointer;
-  transition: all .3s ease;
-  &:hover{
-    opacity: 1;
-  }
-`;
-
 class SearchBar extends Component {
 
   constructor(props) {
@@ -65,9 +49,6 @@ class SearchBar extends Component {
           value={this.state.searchTerm}
           onChange={event => this.onInputChange(event.target.value)}
         />
-        <StyledButton to="/search">
-          <MaterialIcon icon="local_offer" color='#fff' size="22px" />
-        </StyledButton>
       </StyledSearchInputContainer>
     )
   }
