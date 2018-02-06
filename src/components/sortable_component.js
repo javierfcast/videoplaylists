@@ -66,7 +66,7 @@ class SortableComponent extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({items: this.props.videoItems});
+    this.setState({items: nextProps.videoItems});
   }
   
   onSortEnd = ({oldIndex, newIndex}) => {
@@ -78,7 +78,7 @@ class SortableComponent extends Component {
   };
 
   render() {
-    const items = this.state.items;
+    const {items} = this.state;
     if (!items) return null
     
     return <SortableList

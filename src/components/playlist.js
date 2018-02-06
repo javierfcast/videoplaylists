@@ -720,7 +720,6 @@ class Playlist extends Component {
 
     if (this.props.user !== null ) {
       if (this.props.user.uid !== playlist.AuthorId) {
-
         followButton = 
         <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlistFollowers)}>
           {playlistFollowers} Followers
