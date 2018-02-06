@@ -385,7 +385,7 @@ class Playlist extends Component {
       playlistOptionsIsOpen: !this.state.playlistOptionsIsOpen
     })
 
-    if (this.props.user.uid === this.state.profileId) {
+    if (this.props.user !== null && this.props.user.uid === this.state.profileId) {
       const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
 
       playlistRef.update({
@@ -401,7 +401,6 @@ class Playlist extends Component {
       });
 
     }
-
   }
 
   customOrder = () => {
@@ -772,7 +771,7 @@ class Playlist extends Component {
     let playlistOptionsPopup = null;
 
     if (this.state.playlistOptionsIsOpen){
-      if (this.props.user.uid === playlist.AuthorId) {
+      if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
         
         playlistOptionsPopup = 
 
@@ -805,6 +804,26 @@ class Playlist extends Component {
           </StyledButtonPopup>
         </StyledOptionsPopup>
 
+      } else if (this.props.user !== null) {
+        playlistOptionsPopup = 
+
+        <StyledOptionsPopup>
+          <StyledOptionsLabel>
+            Order by <MaterialIcon icon="sort" color='#fff' />
+          </StyledOptionsLabel>
+          <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
+            Recently Added
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
+            Video Date
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
+            Video Title
+          </StyledButtonPopup>
+          <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
+            Channel
+          </StyledButtonPopup>
+        </StyledOptionsPopup>
       }
     }
 

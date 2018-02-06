@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
+import { Link } from 'react-router-dom';
 import MaterialIcon from 'material-icons-react';
 import SeekSlider from 'react-video-seek-slider';
 import '../style/slider.css';
@@ -110,6 +111,15 @@ const Label = styled.span`
   font-size: 10px;
   margin-right: 20px;
 `;
+const LabelLink = styled(Link)`
+  text-decoration: none;
+  color: #fff;
+  display: inline-block;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  margin-right: 20px;
+`;
 
 const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange}) => {
 
@@ -126,7 +136,7 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   }
 
   if (currentPlaylist) {
-    videoSource = <Label>{currentPlaylist.playlistName || `library`}</Label>
+    videoSource = <LabelLink to={`/users/${currentPlaylist.AuthorId}/${currentPlaylist.playlistId}`}>{currentPlaylist.playlistName || `library`}</LabelLink>
   }
 
   if (playingFromSearch === true) {

@@ -774,55 +774,57 @@ class App extends Component {
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos').doc(videoId);
     const collectionRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
 
-    firebase.firestore().runTransaction((transaction) => {
-
-      //get doc reference to check if video already exists
-        return transaction.get(docRef).then(function(dDoc) {
-          if (dDoc.exists) throw "Song already on playlist";
-
-        }).then(()=> {
-
-          //get the amount of videos in the collection
-          return collectionRef.get().then(function (querySnapshot) {
-            return querySnapshot.size
-          });
-
-        }).then((newVideoCount)=> {
-          return transaction.get(userPlaylistRef).then(function(tDoc) {
-            if (!tDoc.exists) throw "Document does not exist!";
+    docRef.get().then((dDoc) => {
+      //Check if song it's on playlist
+      if (dDoc.exists) throw "Song already on playlist";
+    })
+    .then(() => {
+      //Get the number of songs on the playlist
+      collectionRef.get().then((querySnapshot) => {
+        return querySnapshot.size
+      })
+      .then((newVideoCount)=> {
+        userPlaylistRef.get().then((tDoc)=> {
+         if (!tDoc.exists) throw "Document does not exist!";
             
-            //Increment count
-            newVideoCount++;
+          //Increment count
+          newVideoCount++;
 
-            //Add id to custom order array
-            const newCustomOrder = [...tDoc.data().customOrder, ...[videoId]]
+          //Add id to custom order array
+          const newCustomOrder = [...tDoc.data().customOrder, ...[videoId]]
 
-            //Add song to playlist
-            transaction.set(docRef, {
-              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-              videoEtag: videoEtag,
-              videoID: videoId,
-              videoTitle: videoTitle,
-              videoChannel: videoChannel,
-              datePublished: datePublished,
-              duration: duration,
-              order: newVideoCount
-            });
-            
-            transaction.update(userPlaylistRef, {
-              videoCount: newVideoCount,
-              customOrder: newCustomOrder
-            });
+          //Add song to playlist
+          docRef.set({
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            videoEtag: videoEtag,
+            videoID: videoId,
+            videoTitle: videoTitle,
+            videoChannel: videoChannel,
+            datePublished: datePublished,
+            duration: duration,
+            order: newVideoCount
+          })
+          .then(() => console.log("Song added to playlist"));
+          
+          userPlaylistRef.update({
+            videoCount: newVideoCount,
+            customOrder: newCustomOrder
+          })
+          .then(() => console.log("Custom order and user count updated"));
 
-            transaction.update(publicPlaylistRef, {
-              videoCount: newVideoCount
-            });
-          });
+          publicPlaylistRef.update({
+            videoCount: newVideoCount
+          })  
+          .then(() => console.log("Public count count updated"));
+  
+        }).catch(function(error) {
+            console.log("Got Error: ", error);
         });
-    }).then(function() {
-        console.log("Song added to playlist");
+      }).catch(function(error) {
+          console.log("Got Error: ", error);
+      });
     }).catch(function(error) {
-        console.log("Transaction failed: ", error);
+        console.log("Got Error: ", error);
     });
 
     if (autoAdd) return
@@ -843,32 +845,21 @@ class App extends Component {
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
 
     const user = this.state.user;
-    const self = this;
 
     //Add song to playlist
     const docRef = firebase.firestore().doc(`users/${user.uid}/library/${videoId}`);
     const userRef = firebase.firestore().doc(`users/${user.uid}`);
     const collectionRef = firebase.firestore().collection(`users/${user.uid}/library`);
 
-    firebase.firestore().runTransaction((transaction) => {
+    collectionRef.get().then((querySnapshot) => {
+      return querySnapshot.size
+    })
+    .then((newVideoCount)=> {
+      docRef.get().then((tDoc)=> {
+        if (tDoc.exists) throw "Song already on playlist";
 
-      //get doc reference to check if video already exists
-      return collectionRef.get().then(function (querySnapshot) {
-        return querySnapshot.size
+        newVideoCount++;
 
-      }).then((newVideoCount)=> {
-        return transaction.get(docRef).then(function(tDoc) {
-          if (tDoc.exists) throw "Song already on playlist";
-
-          newVideoCount++;
-
-          transaction.update(userRef, {
-            libraryVideoCount: newVideoCount
-          });
-
-          return newVideoCount
-        })
-      }).then((newVideoCount)=> {
         docRef.set({
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           videoEtag: videoEtag,
@@ -878,17 +869,18 @@ class App extends Component {
           datePublished: datePublished,
           order: newVideoCount
         })
-        .then(() => {
-          console.log(`${videoTitle} added to Library`);
+        .then(() => console.log("Song added to library"));
+
+        userRef.update({
+          libraryVideoCount: newVideoCount
         })
-        .catch(function (error) {
-          console.log('Got an error:', error);
-        })
+        .then(() => console.log("Library count updated"));
+
+      }).catch(function(error) {
+          console.log("Got Error: ", error);
       });
-    }).then(function() {
-        console.log("Song added to playlist");
     }).catch(function(error) {
-        console.log("Transaction failed: ", error);
+        console.log("Got Error: ", error);
     });
 
     if (autoAdd) return
@@ -906,30 +898,29 @@ class App extends Component {
     const userRef = firebase.firestore().doc(`users/${user.uid}`);
     const collectionRef = firebase.firestore().collection(`users/${user.uid}/library`);
 
+    collectionRef.get().then((querySnapshot) => {
+      return querySnapshot.size
+    })
+    .then((newVideoCount)=> {
+      docRef.get().then((tDoc)=> {
+        if (!tDoc.exists) throw "Document does not exist!";
 
-    firebase.firestore().runTransaction((transaction) => {
-        return collectionRef.get().then(function (querySnapshot) {
-          return querySnapshot.size;
-        }).then((newVideoCount)=> {
-          return transaction.get(docRef).then(function(tDoc) {
-              if (!tDoc.exists) throw "Document does not exist!";
-              
-              //Decrement count
-              newVideoCount--;
+        newVideoCount--;
 
-              //Remove song from playlist
-              transaction.delete(docRef);
-              
-              transaction.update(userRef, {
-                libraryVideoCount: newVideoCount
-              });
-          });
-        });
-    }).then(function() {
-        console.log("Song removed from playlist");
+        docRef.delete()
+        .then(() => console.log("Song removed from library"));
+
+        userRef.update({
+          libraryVideoCount: newVideoCount
+        })
+        .then(() => console.log("Library count updated"));
+
+      }).catch(function(error) {
+          console.log("Got Error: ", error);
+      });
     }).catch(function(error) {
-        console.log("Transaction failed: ", error);
-    });  
+        console.log("Got Error: ", error);
+    });
   }
 
   onRemoveFromPlaylist = (videoId, item) => {
@@ -942,36 +933,34 @@ class App extends Component {
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos').doc(videoId);
     const collectionRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId).collection('videos');
 
-    firebase.firestore().runTransaction((transaction) => {
-        return collectionRef.get().then(function (querySnapshot) {
-          return querySnapshot.size
-        }).then((newVideoCount)=> {
-          return transaction.get(userPlaylistRef).then(function(tDoc) {
-              if (!tDoc.exists) throw "Document does not exist!";
-              
-              //Decrement count
-              newVideoCount--;
+    collectionRef.get().then((querySnapshot) => {
+      //Get the number of songs on the playlist
+      return querySnapshot.size
+    })
+    .then((newVideoCount)=> {
+      userPlaylistRef.get().then((tDoc)=> {
+        if (!tDoc.exists) throw "Document does not exist!";
 
-              //remove id from custom order array
-              const newCustomOrder = tDoc.data().customOrder.filter(i => i !== videoId);
+        //Decrement count
+        newVideoCount--;
 
-              //Remove song from playlist
-              transaction.delete(docRef);
-              
-              transaction.update(userPlaylistRef, {
-                videoCount: newVideoCount,
-                customOrder: newCustomOrder
-              });
+        //remove id from custom order array
+        const newCustomOrder = tDoc.data().customOrder.filter(i => i !== videoId);
 
-              transaction.update(publicPlaylistRef, {
-                videoCount: newVideoCount
-              });
-          });
-        });
-    }).then(function() {
-        console.log("Song removed from playlist");
+        docRef.delete()
+        .then(() => console.log("Song removed from playlist"));
+
+        userPlaylistRef.update({
+          videoCount: newVideoCount,
+          customOrder: newCustomOrder
+        })
+        .then(() => console.log("Video count and custom order updated"));
+
+      }).catch(function(error) {
+          console.log("Got Error: ", error);
+      });
     }).catch(function(error) {
-        console.log("Transaction failed: ", error);
+        console.log("Got Error: ", error);
     });
   };
 
