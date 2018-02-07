@@ -1,5 +1,22 @@
 import React from 'react';
 import styled from 'styled-components';
+import { css } from 'styled-components';
+
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+  return acc
+}, {})
 
 const StyledPopup = styled.div`
   position: fixed;
@@ -9,12 +26,15 @@ const StyledPopup = styled.div`
   height: 100vh;
   padding: 20px;
 `;
-const StyledContent = styled.form`
+const StyledContainer = styled.div`
   max-width: 480px;
   border: 1px solid rgba(255,255,255,0.1);
-  padding: 40px;
   margin: 0 auto;
   background: rgba(0,0,0,0.9);
+  position: relative;
+`;
+const StyledContent = styled.form`
+  padding: 40px;
 `;
 const StyledTitle = styled.h2`
   margin-bottom: 40px;
@@ -86,9 +106,67 @@ const StyledButtonSubmit = styled.button`
   &:hover{
     border: 1px solid rgba(255,255,255,1);
   }
+  &:focus{
+    outline: none;
+  }
+`;
+const StyledSeparator = styled.div`
+  position: relative;
+  text-align: center;
+  font-weight: 100;
+  &:before{
+    border-top: 1px solid rgba(255,255,255,0.1);
+    content: "";
+    height: 1px;
+    left: auto;
+    right: 0;
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    z-index: 0;    
+  }
+  &:after{
+    border-top: 1px solid rgba(255,255,255,0.1);
+    content: "";
+    height: 1px;
+    left: 0;
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    z-index: 0;    
+  }
+`;
+const StyledOptionsActions = styled.div`
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  ${media.xmedium`
+    flex-direction: row;
+  `}
+`;
+const StyledOptionsButton = styled.a`
+  width: 100%;
+  margin: 10px 0;
+  height: 40px;
+  line-height: 40px;
+  display: inline-block;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 0 20px;
+  transition: all .3s ease;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  &:hover{
+    border: 1px solid rgba(255,255,255,1);
+  }
+  ${media.xmedium`
+    margin: 0 10px;
+  `}
 `;
 
-const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist}) => {
+const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, toggleImportPlaylistPopup}) => {
 
   if (!open) {
     return null;
@@ -97,26 +175,43 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
   let modalTitle = null;
   let callToAction = null;
   let textInput = null;
+  let formAction = null;
+
+  let separator = separator = <StyledSeparator>Or Import</StyledSeparator>;
+
+  let options =
+    <StyledContent>
+      <StyledOptionsActions>
+        <StyledOptionsButton onClick={() => toggleImportPlaylistPopup(true)}>
+          From Spotify
+        </StyledOptionsButton>
+      </StyledOptionsActions>
+    </StyledContent>;
 
   if(addingNewPlaylist === true){
 
-    modalTitle = <StyledTitle>Add new playlist</StyledTitle>
-    callToAction = <StyledButtonSubmit onClick={onAddPlaylist}>Create</StyledButtonSubmit>
+    modalTitle = <StyledTitle>Add new playlist</StyledTitle>;
+    callToAction = <StyledButtonSubmit form="popup-form" value="Create">Create</StyledButtonSubmit>;
+    formAction = onAddPlaylist;
     textInput = <StyledInput
       id="input-playlist-popup"
       placeholder="Playlist Name"
       type="text"
       value={playlistName}
       onChange={onEditPlaylistInputChange}
+      autoComplete = "off"
       min="1"
-      onSubmit={onAddPlaylist}
+      
       required
     />
 
   } else if (importingNewPlaylist === true){
 
     modalTitle = <StyledTitle>Import a playlist from Spotify</StyledTitle>
-    callToAction = <StyledButtonSubmit onClick={onImportPlaylist}>Import</StyledButtonSubmit>
+    callToAction = <StyledButtonSubmit form="popup-form" value="Import">Import</StyledButtonSubmit>
+    formAction = onImportPlaylist;
+    separator = null;
+    options = null;
     textInput = <StyledInput
       id="input-playlist-popup"
       placeholder="Public Playlist Url"
@@ -124,14 +219,15 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
       value={playlistUrl}
       onChange={onImportPlaylistInputChange}
       min="1"
-      onSubmit={onImportPlaylist}
+      autoComplete = "off"
       required
     />
 
   } else {
 
     modalTitle = <StyledTitle>Edit playlist</StyledTitle>
-    callToAction = <StyledButtonSubmit onClick={onEditPlaylist}>Update</StyledButtonSubmit>
+    callToAction = <StyledButtonSubmit form="popup-form" value="Update">Update</StyledButtonSubmit>
+    formAction = onEditPlaylist;
     textInput = <StyledInput
       id="input-playlist-popup"
       placeholder="Playlist Name"
@@ -139,7 +235,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
       value={playlistName}
       onChange={onEditPlaylistInputChange}
       min="1"
-      onSubmit={onEditPlaylist}
+      autoComplete = "off"
       required
     />
 
@@ -149,16 +245,20 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
   return (
     <StyledPopup>
-      <StyledContent>
-        {modalTitle}
-        {textInput}
-        <StyledActions>
-          <StyledButton onClick={onClose}>
-            Cancel
-          </StyledButton>
-          {callToAction}
-        </StyledActions>
-      </StyledContent>
+      <StyledContainer>
+        <StyledContent id="popup-form" onSubmit={(e)=> {e.preventDefault(); formAction()}}>
+          {modalTitle}
+          {textInput}
+          <StyledActions>
+            <StyledButton onClick={onClose}>
+              Cancel
+            </StyledButton>
+            {callToAction}
+          </StyledActions>
+        </StyledContent>
+        {separator}
+        {options}
+      </StyledContainer>
     </StyledPopup>
   );
 

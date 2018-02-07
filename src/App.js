@@ -203,7 +203,8 @@ class App extends Component {
       libraryVideos: [],
       //Snackbar
       snackIsOpen: false,
-      snackMessage: ""
+      snackMessage: "",
+      snackAction: ""
     }
 
     this.player = null;
@@ -866,7 +867,7 @@ class App extends Component {
     })
     .then((newVideoCount)=> {
       docRef.get().then((tDoc)=> {
-        if (tDoc.exists) throw new Error("Track already on playlist!");
+        if (tDoc.exists) throw new Error("Track already on library!");
 
         newVideoCount++;
 
@@ -1000,7 +1001,7 @@ class App extends Component {
 
   onImportPlaylistDrop = (event) => {
     event.preventDefault();
-    this.toggleImportPlaylistPopup();
+    this.toggleImportPlaylistPopup(true);
     this.setState({
       playlistUrl: event.dataTransfer.getData("URL")
     });
@@ -1017,7 +1018,9 @@ class App extends Component {
     });
   };
 
-  toggleImportPlaylistPopup = () => {    
+  toggleImportPlaylistPopup = (dontHide) => {
+    const toggle = dontHide === true ? true : !this.state.editPlaylistPopupIsOpen;
+    
     this.setState({
       addingNewPlaylist: false,
       importingNewPlaylist: true,
@@ -1026,7 +1029,7 @@ class App extends Component {
       playlistName: '',
       playlistSlug: '',
       playlistUrl: '',
-      editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
+      editPlaylistPopupIsOpen: toggle
     });
   };
 
@@ -1127,7 +1130,10 @@ class App extends Component {
   onImportPlaylist = (isUpdate, playlist) => {
     const playlistUrl = isUpdate === true ? playlist.spotifyUrl : this.state.playlistUrl;
     
-    if (!playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) return;
+    if (!playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) {
+      this.setSnackbar("Plase enter a valid Spotify playlist");
+      return;
+    }
 
     const self = this;
     const userId = playlistUrl.match(/user.([^/]+)/);
@@ -1495,10 +1501,13 @@ class App extends Component {
     progTimeout = setTimeout(() => {self.player.seekTo(time)}, 100);
   }
 
-  setSnackbar = (message) => {
+  setSnackbar = (message, action) => {
+    action = action ? action : "";
+
     this.setState({
       snackIsOpen: true,
-      snackMessage: message
+      snackMessage: message,
+      snackAction: action
     });
   }
 
@@ -1506,6 +1515,10 @@ class App extends Component {
     this.setState({
       snackIsOpen: false
     });
+  }
+
+  onSnackbarAction = (action) => {
+    console.log(action);    
   }
 
 //Render
@@ -1581,6 +1594,10 @@ class App extends Component {
                     featuredPlaylists={this.state.featuredPlaylists}
                     onPlaylistFollow={this.onPlaylistFollow}
                     togglePlayer={this.togglePlayer}
+                    libraryVideos={this.state.libraryVideos}
+                    onAddToLibrary={this.onAddToLibrary}
+                    onRemoveFromLibrary={this.onRemoveFromLibrary}
+                    togglePlaylistPopup={this.togglePlaylistPopup}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
@@ -1669,6 +1686,7 @@ class App extends Component {
           importingNewPlaylist={this.state.importingNewPlaylist}
           playlistUrl={this.state.playlistUrl}
           onImportPlaylistInputChange={this.onImportPlaylistInputChange}
+          toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
         />
         <AddTagsPopup 
           open={this.state.addTagPopupIsOpen}
@@ -1690,7 +1708,9 @@ class App extends Component {
           <Snackbar
             open={this.state.snackIsOpen}
             message={this.state.snackMessage}
+            action={this.state.snackAction}
             autoHideDuration={4000}
+            onActionTouchTap={() => this.onSnackbarAction(this.state.snackAction)}
             onRequestClose={this.closeSnackbar}
           />
         </MuiThemeProvider>
