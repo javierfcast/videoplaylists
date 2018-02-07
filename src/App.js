@@ -10,6 +10,9 @@ import YTSearch from './components/yt_search'
 import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import Snackbar from 'material-ui/Snackbar';
+
 import axios from 'axios';
 
 //Import app components
@@ -197,7 +200,10 @@ class App extends Component {
       progressMax: 0,
       progress: 0,
       //Library
-      libraryVideos: []
+      libraryVideos: [],
+      //Snackbar
+      snackIsOpen: false,
+      snackMessage: ""
     }
 
     this.player = null;
@@ -307,7 +313,7 @@ class App extends Component {
       const nextVideo = prevState.playlistVideos[nextVideoNumber];
       
       console.log('MyStateChange', nextVideo);
-
+      
       this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
       return {
         ...prevState,
@@ -389,6 +395,7 @@ class App extends Component {
     if (document.getElementById("input-playlist-popup") !== null) {
       document.getElementById("input-playlist-popup").focus();
     }
+    
     if(this.state.playingFromSearch){
       console.log(`Playing from search results.`)
     }
@@ -636,7 +643,7 @@ class App extends Component {
     const videoId = video.videoID;
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
-
+    
     this.player.loadVideoById(videoId);
 
     this.setState({
@@ -662,6 +669,7 @@ class App extends Component {
     const videoId = video.id.videoId;
     const videoTitle = video.snippet.title;
     const videoChannel = video.snippet.channelTitle;
+    
 
     this.setState((prevState) => {
       const index = prevState.searchResults.indexOf(video)
@@ -758,7 +766,9 @@ class App extends Component {
 
   onAddToPlaylist = (video, item, autoAdd) => {
 
-    console.log('adding song');  
+    console.log('adding song');
+    
+    const self = this;
 
     const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
@@ -776,7 +786,7 @@ class App extends Component {
 
     docRef.get().then((dDoc) => {
       //Check if song it's on playlist
-      if (dDoc.exists) throw "Song already on playlist";
+      if (dDoc.exists) throw new Error("Track already on playlist!");
     })
     .then(() => {
       //Get the number of songs on the playlist
@@ -785,7 +795,7 @@ class App extends Component {
       })
       .then((newVideoCount)=> {
         userPlaylistRef.get().then((tDoc)=> {
-         if (!tDoc.exists) throw "Document does not exist!";
+         if (!tDoc.exists) throw new Error("Playlist does not exist!");
             
           //Increment count
           newVideoCount++;
@@ -804,27 +814,25 @@ class App extends Component {
             duration: duration,
             order: newVideoCount
           })
-          .then(() => console.log("Song added to playlist"));
+          .then(() => console.log("Added to playlist"));
           
           userPlaylistRef.update({
             videoCount: newVideoCount,
             customOrder: newCustomOrder
-          })
-          .then(() => console.log("Custom order and user count updated"));
+          });
 
           publicPlaylistRef.update({
             videoCount: newVideoCount
-          })  
-          .then(() => console.log("Public count count updated"));
+          });  
   
         }).catch(function(error) {
-            console.log("Got Error: ", error);
+          self.setSnackbar(error.toString());
         });
       }).catch(function(error) {
-          console.log("Got Error: ", error);
+        self.setSnackbar(error.toString());
       });
     }).catch(function(error) {
-        console.log("Got Error: ", error);
+      self.setSnackbar(error.toString());
     });
 
     if (autoAdd) return
@@ -837,6 +845,8 @@ class App extends Component {
   onAddToLibrary = (video, autoAdd) => {
 
     console.log('adding song');
+
+    const self = this;
 
     const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
     const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
@@ -856,7 +866,7 @@ class App extends Component {
     })
     .then((newVideoCount)=> {
       docRef.get().then((tDoc)=> {
-        if (tDoc.exists) throw "Song already on playlist";
+        if (tDoc.exists) throw new Error("Track already on playlist!");
 
         newVideoCount++;
 
@@ -869,18 +879,17 @@ class App extends Component {
           datePublished: datePublished,
           order: newVideoCount
         })
-        .then(() => console.log("Song added to library"));
+        .then(() => console.log("Added to library"));
 
         userRef.update({
           libraryVideoCount: newVideoCount
-        })
-        .then(() => console.log("Library count updated"));
+        });
 
       }).catch(function(error) {
-          console.log("Got Error: ", error);
+        self.setSnackbar(error.toString());
       });
     }).catch(function(error) {
-        console.log("Got Error: ", error);
+      self.setSnackbar(error.toString());
     });
 
     if (autoAdd) return
@@ -893,6 +902,7 @@ class App extends Component {
   onRemoveFromLibrary = (video) => {
     console.log(`Removing: ${video.videoID}`)
     const user = this.state.user;
+    const self = this;
 
     const docRef = firebase.firestore().doc(`users/${user.uid}/library/${video.videoID}`);
     const userRef = firebase.firestore().doc(`users/${user.uid}`);
@@ -903,29 +913,29 @@ class App extends Component {
     })
     .then((newVideoCount)=> {
       docRef.get().then((tDoc)=> {
-        if (!tDoc.exists) throw "Document does not exist!";
+        if (!tDoc.exists) throw new Error("Track does not exist!");
 
         newVideoCount--;
 
         docRef.delete()
-        .then(() => console.log("Song removed from library"));
+        .then(() => console.log("Track removed!"));
 
         userRef.update({
           libraryVideoCount: newVideoCount
-        })
-        .then(() => console.log("Library count updated"));
+        });
 
       }).catch(function(error) {
-          console.log("Got Error: ", error);
+        self.setSnackbar(error.toString());
       });
     }).catch(function(error) {
-        console.log("Got Error: ", error);
+      self.setSnackbar(error.toString());
     });
   }
 
   onRemoveFromPlaylist = (videoId, item) => {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
     const user = this.state.user;
+    const self = this;
 
     //Increment video count in the user playlist and the public playlist
     const userPlaylistRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(item.playlistId);
@@ -939,7 +949,7 @@ class App extends Component {
     })
     .then((newVideoCount)=> {
       userPlaylistRef.get().then((tDoc)=> {
-        if (!tDoc.exists) throw "Document does not exist!";
+        if (!tDoc.exists) throw new Error("Track does not exist!");
 
         //Decrement count
         newVideoCount--;
@@ -948,19 +958,18 @@ class App extends Component {
         const newCustomOrder = tDoc.data().customOrder.filter(i => i !== videoId);
 
         docRef.delete()
-        .then(() => console.log("Song removed from playlist"));
+        .then(() => console.log("Track removed!"));
 
         userPlaylistRef.update({
           videoCount: newVideoCount,
           customOrder: newCustomOrder
-        })
-        .then(() => console.log("Video count and custom order updated"));
+        });
 
       }).catch(function(error) {
-          console.log("Got Error: ", error);
+        self.setSnackbar(error.toString());
       });
     }).catch(function(error) {
-        console.log("Got Error: ", error);
+      self.setSnackbar(error.toString());
     });
   };
 
@@ -1126,6 +1135,8 @@ class App extends Component {
     const user = this.state.user;
     let allTracks = [];
 
+    if (isUpdate !== true) this.setSnackbar("Importing playlist...");
+
     function batchAdd(playlistIdRef, items) {
       const db = firebase.firestore();
       const batch = db.batch();
@@ -1175,9 +1186,10 @@ class App extends Component {
       });
 
       batch.commit().then(function () {
-        console.log('batch commited');
+        if (isUpdate !== true) self.setSnackbar("Successfully imported!");
+        else self.setSnackbar("Successfully updated!");
       }).catch((error) => {
-        console.log(error);        
+        throw new Error(error); 
       });
     }
 
@@ -1199,7 +1211,9 @@ class App extends Component {
           .then((nextData)=> {
             nextData.items.forEach((nextItem=> allTracks.push(nextItem)));
             getNext(nextData.next, prevData);
-          })
+          }).catch((error) => {
+            throw new Error(error); 
+          });
         }
         else {
           const promises = [];
@@ -1223,7 +1237,7 @@ class App extends Component {
               }
             })
           }).catch((error) => {
-            console.log(error);        
+            throw new Error(error); 
           });
         }
       }
@@ -1233,10 +1247,11 @@ class App extends Component {
         allTracks = data.tracks.items.map(item=>item);
         getNext(data.tracks.next, data);
       }).catch((error) => {
-        console.log(error);        
+        self.setSnackbar(error.toString()); 
       });      
     }).catch((error)=> {
-      console.log(error);      
+      console.log(error);
+      self.setSnackbar("Couldn't reach Spotify. Please try again later.");    
     });
 
     if (isUpdate === true) return;
@@ -1251,6 +1266,8 @@ class App extends Component {
     const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlist.playlistId).collection('videos');
 
     let self = this;
+    
+    this.setSnackbar("Updating playlist...");
 
     if (batchSize !== 0) {
 
@@ -1260,6 +1277,8 @@ class App extends Component {
         deleteQueryBatch(db, query, batchSize, resolve, reject);
       }).then((deleted)=> {
         this.onImportPlaylist(true, playlist);
+      }).catch((error) => {
+        throw new Error(error); 
       });
     } else {
       this.onImportPlaylist(true, playlist);
@@ -1476,6 +1495,19 @@ class App extends Component {
     progTimeout = setTimeout(() => {self.player.seekTo(time)}, 100);
   }
 
+  setSnackbar = (message) => {
+    this.setState({
+      snackIsOpen: true,
+      snackMessage: message
+    });
+  }
+
+  closeSnackbar = () => {
+    this.setState({
+      snackIsOpen: false
+    });
+  }
+
 //Render
 
   render() {
@@ -1517,6 +1549,9 @@ class App extends Component {
                 togglePlayer = {this.togglePlayer}
                 toggleSearchPlayer = {this.toggleSearchPlayer}
                 togglePlaylistPopup = {this.togglePlaylistPopup}
+                libraryVideos={this.state.libraryVideos}
+                onAddToLibrary={this.onAddToLibrary}
+                onRemoveFromLibrary={this.onRemoveFromLibrary}
               />     
               <Switch>
                 <Route exact path='/' render={({ match }) =>
@@ -1605,6 +1640,7 @@ class App extends Component {
             progressMax={this.state.progressMax}
             progress={this.state.progress}
             onProgressChange={this.onProgressChange}
+            togglePlaylistPopup={this.togglePlaylistPopup}
           />
         </StyledContainer>
         <AddToPlaylistPopup 
@@ -1650,6 +1686,14 @@ class App extends Component {
           open={this.state.loginPopupIsOpen}
           onClose={this.onPlaylistFollow}
         />
+        <MuiThemeProvider>
+          <Snackbar
+            open={this.state.snackIsOpen}
+            message={this.state.snackMessage}
+            autoHideDuration={4000}
+            onRequestClose={this.closeSnackbar}
+          />
+        </MuiThemeProvider>
         <VideoPlayer
           video={this.state.video}
         />

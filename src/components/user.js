@@ -189,10 +189,10 @@ class User extends Component {
 
     const playlistItem = this.state.profilePlaylists.map((playlist) => {
 
-      let publicFollowers = this.state.publicPlaylists;
-      for (let i in publicFollowers) {
-        if (playlist.playlistId === publicFollowers[i].playlistId) {
-          publicFollowers = publicFollowers[i].followers;
+      let publicFollowers = 0;
+      for (let i in this.state.publicPlaylists) {
+        if (playlist.playlistId === this.state.publicPlaylists[i].playlistId) {
+          publicFollowers = this.state.publicPlaylists[i].followers;
           break;
         }
       }

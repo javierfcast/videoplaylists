@@ -60,6 +60,11 @@ const SearchResults = (props) => {
       month = '0' + month;
     }
 
+    //check if video it's in library
+    const itsOnLibrary = props.libraryVideos.some((element) => {
+      return element.videoID === video.id.videoId
+    });
+
     return (
       <VideoItem 
         user={props.user}
@@ -77,6 +82,9 @@ const SearchResults = (props) => {
         toggleSearchPlayer={props.toggleSearchPlayer}
         togglePlaylistPopup = {props.togglePlaylistPopup}
         onAddToPlaylist={props.onAddToPlaylist}
+        onAddToLibrary={props.onAddToLibrary}
+        onRemoveFromLibrary={props.onRemoveFromLibrary}
+        itsOnLibrary={itsOnLibrary}
       />
     )
   });

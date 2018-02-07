@@ -4,7 +4,8 @@ import { css } from 'styled-components';
 import { Link } from 'react-router-dom';
 import MaterialIcon from 'material-icons-react';
 import SeekSlider from 'react-video-seek-slider';
-import '../style/slider.css';
+
+import logoYoutube from '../images/logo_youtube.svg';
 
 const sizes = {
   small: 360,
@@ -77,12 +78,13 @@ const StyledPlayerControls = styled.div`
   `}
 `;
 const StyledAditionalOptions = styled.div`
-  padding-right: 20px;
+  padding-right: 16px;
   display: none;
   align-items: center;
   justify-content: flex-end;
   width: 100%;
   flex: 1 0 auto;
+  position: relative;
   ${media.xmedium`
     display: flex;
     width: 33.3333%;
@@ -120,14 +122,33 @@ const LabelLink = styled(Link)`
   font-size: 10px;
   margin-right: 20px;
 `;
+const StyledYtLogo = styled.img`
+  width: 110px;
+  height: 26px;
+  opacity: 0.4;
+  transition: all .3s ease;
+  &:hover{
+    opacity: 1;
+  }
+`;
+const StyledYtLink = styled.a`
+  display: inline-block;
+  width: 110px;
+  height: 26px;
+  margin-left: 10px;
+`;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup}) => {
 
   let button = null;
   let previousButton = null;
   let nextButton = null;
   let videoSource = null;
   let seekSlider = null;
+  let addButton = null;
+  let ytLink = null;
+
+  const ytUrl = video ? "https://www.youtube.com/watch?v=" + video.videoID : null;
 
   if (playerIsPlaying === true) {
     button = <MaterialIcon icon="pause" color='#fff' />;
@@ -137,6 +158,8 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
 
   if (currentPlaylist) {
     videoSource = <LabelLink to={`/users/${currentPlaylist.AuthorId}/${currentPlaylist.playlistId}`}>{currentPlaylist.playlistName || `library`}</LabelLink>
+    addButton = <StyledButton onClick={() => togglePlaylistPopup(video)} ><MaterialIcon icon="playlist_add" color='#fff' /></StyledButton>
+    if (ytUrl) ytLink = <StyledYtLink href={ytUrl} target="_blank"><StyledYtLogo src={logoYoutube} alt='Logo YouTube' /></StyledYtLink>
   }
 
   if (playingFromSearch === true) {
@@ -197,8 +220,9 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
           {nextButton}
         </StyledPlayerControls>
         <StyledAditionalOptions>
-          {/* <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton>
-          <StyledButton><MaterialIcon icon="add" color='#fff' /></StyledButton> */}
+          {/* <StyledButton><MaterialIcon icon="loop" color='#fff' /></StyledButton> */}
+          {addButton}
+          {ytLink}
         </StyledAditionalOptions>
       </StyledPlayerContainer>
     </StyledControlsContainer>

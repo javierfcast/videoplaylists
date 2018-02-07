@@ -167,6 +167,9 @@ const StyledOptionsPopup = styled.div`
   .material-icons{
     margin-left: 10px;
   }
+  &:focus{
+    outline: none;
+  }
 `;
 const StyledOptionsLabel = styled.span`
   display: flex;
@@ -366,6 +369,10 @@ class Playlist extends Component {
   togglePlaylistsOptions = () => {
     this.setState({
       playlistOptionsIsOpen: !this.state.playlistOptionsIsOpen
+    }, () => {
+      if (document.getElementById("playlist-options-popup") !== null) {
+        document.getElementById("playlist-options-popup").focus();
+      }
     });
   };
 
@@ -774,7 +781,7 @@ class Playlist extends Component {
         
         playlistOptionsPopup = 
 
-        <StyledOptionsPopup>
+        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={ () => this.togglePlaylistsOptions() } >
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
@@ -806,7 +813,7 @@ class Playlist extends Component {
       } else if (this.props.user !== null) {
         playlistOptionsPopup = 
 
-        <StyledOptionsPopup>
+        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={ () => this.togglePlaylistsOptions() } >
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
