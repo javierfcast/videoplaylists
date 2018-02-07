@@ -165,6 +165,9 @@ const StyledOptionsPopup = styled.div`
   .material-icons{
     margin-left: 10px;
   }
+  &:focus{
+    outline: none;
+  }
 `;
 const StyledOptionsLabel = styled.span`
   display: flex;
@@ -301,7 +304,6 @@ class Library extends Component {
     if (!this.state.library){
       return null;
     }
-
     //Get videos and reorder them if order changed.
     if (this.state.libraryOrderDirection !== prevState.libraryOrderDirection) {
       let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');    
@@ -325,12 +327,16 @@ class Library extends Component {
   toggleLibraryOptions = () => {
     this.setState({
       libraryOptionsIsOpen: !this.state.libraryOptionsIsOpen
+    }, () => {
+      if (document.getElementById("playlist-options-popup") !== null) {
+        document.getElementById("playlist-options-popup").focus();
+      }
     });
   };
 
   orderBy = (type) => {
 
-    let orderDirection = this.state.orderDirection;
+    let orderDirection = this.state.libraryOrderDirection;
 
     if (orderDirection === 'asc'){
       orderDirection = 'desc'
@@ -339,8 +345,8 @@ class Library extends Component {
     }
 
     this.setState({
-      orderLibraryBy: type,
-      orderLibraryDirection: orderDirection,
+      libraryOrderBy: type,
+      libraryOrderDirection: orderDirection,
       libraryOptionsIsOpen: !this.state.libraryOptionsIsOpen
     })
 
@@ -348,8 +354,8 @@ class Library extends Component {
       const libraryRef = firebase.firestore().collection('users').doc(this.state.profileId);
 
       libraryRef.update({
-        orderLibraryBy: type,
-        orderLibraryDirection: orderDirection,
+        libraryOrderBy: type,
+        libraryOrderDirection: orderDirection,
       })
       .then(function () {
         console.log("Library order updated Succesfully");
@@ -373,7 +379,7 @@ class Library extends Component {
 
     const library = this.state.library;
     const batchSize = this.state.libraryVideos.length;
-    
+
     //Map videos inside library
     const videoItems = this.state.libraryVideos.map((video) => { 
       
@@ -388,6 +394,11 @@ class Library extends Component {
       if (month < 10) {
         month = '0' + month;
       }
+
+      //check if video it's in library
+      const itsOnLibrary = this.props.libraryVideos.some((element) => {
+        return element.videoID === video.videoID
+      });
 
       return (
         <VideoItem
@@ -407,6 +418,9 @@ class Library extends Component {
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          onAddToLibrary={this.props.onAddToLibrary}
+          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
+          itsOnLibrary={itsOnLibrary}
         />
       )
     });
@@ -419,7 +433,7 @@ class Library extends Component {
         
         libraryOptionsPopup = 
 
-        <StyledOptionsPopup>
+        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={ () => this.toggleLibraryOptions() } >
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
@@ -447,10 +461,10 @@ class Library extends Component {
           <StyledPlaylistName>Library</StyledPlaylistName>
           <StyledHeaderActions>
             <StyledPlaylistInfo>
-              {/* <StyledLabel>{library.videoCount} Videos in library</StyledLabel> */}
+              <StyledLabel>{library.libraryVideoCount} Videos in library</StyledLabel>
             </StyledPlaylistInfo>
             <StyledPlaylistActions>
-              <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+              <StyledButton onClick={() => this.toggleLibraryOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               {libraryOptionsPopup}
             </StyledPlaylistActions>
           </StyledHeaderActions>

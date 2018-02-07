@@ -339,6 +339,7 @@ class Playlist extends Component {
 
     //Get videos and reorder them if order changed.
     if (this.state.orderDirection !== prevState.orderDirection) {
+      
       let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');    
       if (this.state.orderBy === 'custom') {
         this.customOrder();
