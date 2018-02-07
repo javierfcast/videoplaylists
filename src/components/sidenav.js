@@ -135,6 +135,23 @@ const StyledButton = styled.a`
   height: 40px;
   width: 100%;
   display: flex;
+  margin-bottom: 20px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all .3s ease;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  &:hover{
+    border: 1px solid rgba(255,255,255,1);
+  }
+`;
+const SecondStyledButton = styled.a`
+  height: 40px;
+  width: 100%;
+  display: flex;
   margin-bottom: 40px;
   align-items: center;
   justify-content: center;
@@ -277,12 +294,16 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, toggleImportPlaylist
                 <StyledNavItemLink to={`/users/${user.uid}/library`}>My Library</StyledNavItemLink>
                 <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
               </StyledNavList>
-              <StyledButton onClick={toggleAddPlaylistPopup}
-                onDrop={(event) => {onImportPlaylistDrop(event)}}
-                onDragOver={(e) => e.preventDefault()}>
+              <StyledButton onClick={toggleAddPlaylistPopup}>
                 <MaterialIcon icon="add" color='#fff' />
                 Add new Playlist
               </StyledButton>
+              <SecondStyledButton onClick={toggleImportPlaylistPopup} 
+                onDrop={(event) => {onImportPlaylistDrop(event)}}
+                onDragOver={(e) => e.preventDefault()}>
+                <MaterialIcon icon="add" color='#fff' />
+                Import from Spotify
+              </SecondStyledButton>
               <StyledTitleLabel>My Playlists - {myPlaylists.length}</StyledTitleLabel>
               <StyledList>
                 {MyPlaylists}
