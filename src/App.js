@@ -299,35 +299,11 @@ class App extends Component {
       });
       this.setState({ featuredPlaylists })
     });
+
   };
 
-  changeVideo = (isNext=true) => {
-
-    this.setState((prevState) => {
-
-      let nextVideoNumber;
-      if (isNext) {
-        nextVideoNumber = prevState.currentVideoNumber !== prevState.playlistVideos.length - 1 ? prevState.currentVideoNumber + 1 : 0;
-      } else {
-        nextVideoNumber = prevState.currentVideoNumber !== 0 ? prevState.currentVideoNumber - 1 : prevState.playlistVideos.length - 1;
-      }
-      const nextVideo = prevState.playlistVideos[nextVideoNumber];
-      
-      console.log('MyStateChange', nextVideo);
-      
-      this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
-      return {
-        ...prevState,
-        currentVideoNumber: nextVideoNumber,
-        video: nextVideo,
-        videoId: nextVideo.videoID || nextVideo.id.videoId,
-        videoTitle: nextVideo.videoTitle || nextVideo.snippet.title,
-        videoChannel: nextVideo.videoChannel || nextVideo.snippet.channelTitle,
-      }
-    });
-  }
-
   componentDidMount(){
+
     this.player = YouTubePlayer('video-player', {
       videoId: null,
       playerVars: {
@@ -336,7 +312,6 @@ class App extends Component {
         rel: 0,
       }
     });
-    
     
     this.player.on('stateChange', (event) => { 
       //Update the current video to the next in list.
@@ -408,6 +383,32 @@ class App extends Component {
 
 //Methods
 
+  changeVideo = (isNext = true) => {
+
+    this.setState((prevState) => {
+
+      let nextVideoNumber;
+      if (isNext) {
+        nextVideoNumber = prevState.currentVideoNumber !== prevState.playlistVideos.length - 1 ? prevState.currentVideoNumber + 1 : 0;
+      } else {
+        nextVideoNumber = prevState.currentVideoNumber !== 0 ? prevState.currentVideoNumber - 1 : prevState.playlistVideos.length - 1;
+      }
+      const nextVideo = prevState.playlistVideos[nextVideoNumber];
+
+      console.log('MyStateChange', nextVideo);
+
+      this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
+      return {
+        ...prevState,
+        currentVideoNumber: nextVideoNumber,
+        video: nextVideo,
+        videoId: nextVideo.videoID || nextVideo.id.videoId,
+        videoTitle: nextVideo.videoTitle || nextVideo.snippet.title,
+        videoChannel: nextVideo.videoChannel || nextVideo.snippet.channelTitle,
+      }
+    });
+  };
+
   toggleInterface = () => {
     this.setState({
       interfaceAlwaysOn: !this.state.interfaceAlwaysOn
@@ -445,11 +446,11 @@ class App extends Component {
     newTagsToSearch.push(this.state.newTag);
     this.onTagSearch(newTagsToSearch);
     this.toggleAddTagPopup();    
-  }
+  };
 
   onRemoveTagSearch = (newTagsToSearch) => {
     this.onTagSearch(newTagsToSearch);   
-  }
+  };
 
   onTagSearch = (searchArray) => {
     let results = [];
@@ -473,7 +474,7 @@ class App extends Component {
     }
     
     this.setState({tagsSearchResults: results, tagsToSearch: searchArray})   
-  }
+  };
 
   onLogin = (source) => {
 
@@ -556,7 +557,7 @@ class App extends Component {
       playlistIsOpen: false,
     })
     console.log(`Browsing: ${this.state.playlistIsOpen}`)
-  }
+  };
 
   onPlaylistFollow = (playlist, playlistFollowers) => {
     
@@ -660,7 +661,7 @@ class App extends Component {
       videoChannel,
     });
 
-    console.log(`Currently playing: ${videoTitle} - from Playlist Player`);
+    this.setSnackbar(`Currently playing: ${videoTitle} - from Playlist ${playlist.playlistName}`);
 
   };
 
@@ -690,9 +691,7 @@ class App extends Component {
       
     });
 
-    const player = this.state.player;
-
-    console.log(`Currently playing: ${videoTitle} - out of ${this.state.searchResults.length} from Search Results Player`);
+    this.setSnackbar(`Currently playing: ${videoTitle} from Search Results`);
     
   };
 
@@ -703,7 +702,6 @@ class App extends Component {
     }
 
     this.changeVideo(true);
-    console.log(`The current video number is ${this.state.currentVideoNumber} out of ${this.state.playlistVideos.length}`);
 
   };
 
@@ -931,7 +929,7 @@ class App extends Component {
     }).catch(function(error) {
       self.setSnackbar(error.toString());
     });
-  }
+  };
 
   onRemoveFromPlaylist = (videoId, item) => {
     console.log(`Removing: ${videoId} from ${item.playlistName}`)
@@ -1005,7 +1003,7 @@ class App extends Component {
     this.setState({
       playlistUrl: event.dataTransfer.getData("URL")
     });
-  }
+  };
 
   toggleAddPlaylistPopup = () => {
     this.setState({

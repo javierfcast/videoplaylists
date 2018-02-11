@@ -28,22 +28,28 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 //custom components
 
 const PlaylistContainer = styled.div`
-  padding: 20px;
+  padding: 0 20px;
   width: 100%;
   overflow: hidden;
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
 `;
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
   height: calc(100vh - 420px);
   overflow-y: auto;
-  ${media.xmedium`
-    height: calc(100vh - 318px);
-  `}
+  height: 100%;
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 10px;
+  height: 210px;
+  transition: all .5s ease-out;
+  ${props => props.scrolling && `
+    height: 60px;
+  `}
 `;
 const StyledRelatedHeader = styled.h2`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -54,6 +60,10 @@ const StyledPlaylistName = styled.h1`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all .5s ease;
+  ${props => props.scrolling && `
+    font-size: 24px;
+  `}
 `;
 const StyledNoFoundContent = styled.div`
   width: 100%;
@@ -74,8 +84,12 @@ const StyledHeaderActions = styled.div`
   display: flex;
   justify-content: space-between;
   flex-direction: column;
+  transition: all .5s ease-out;
   ${media.xmedium`
     flex-direction: row;
+  `}
+  ${props => props.scrolling && `
+    margin-top: -86px;
   `}
 `;
 const StyledPlaylistInfo = styled.div`
@@ -92,6 +106,11 @@ const StyledLabel = styled.h3`
   text-transform: uppercase;
   letter-spacing: 2px;
   font-weight: 400;
+  transition: all .3s;
+  ${props => props.scrolling && `
+    opacity: 0;
+    visibility: hidden;
+  `}
 `;
 const StyledAuthorLink = styled(Link)`
   font-size: 10px;
@@ -121,8 +140,13 @@ const StyledPlaylistTags = styled.div`
   margin: 10px 0;
   overflow-x: auto;
   overflow-y: hidden;
+  transition: all .5s;
   ${media.xmedium`
     padding-top: 0;
+  `}
+  ${props => props.scrolling && `
+    opacity: 0;
+    visibility: hidden;
   `}
 `;
 const PlaylistActions = styled.a`
@@ -268,7 +292,8 @@ class Playlist extends Component {
       orderBy: null,
       orderDirection: null,
       tags: [],
-      customOrder: []
+      customOrder: [],
+      scrolling: false
     };
   };
 
@@ -336,6 +361,8 @@ class Playlist extends Component {
     if (!this.state.playlist){
       return null;
     }
+
+    console.log(this.state.scrolling);
 
     //Get videos and reorder them if order changed.
     if (this.state.orderDirection !== prevState.orderDirection) {
@@ -553,6 +580,23 @@ class Playlist extends Component {
     }
   };
 
+  handleScroll = (event) => {
+    
+    if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
+      this.setState({
+        scrolling: !this.state.scrolling
+      })
+      console.log('scrolled top');
+
+    } else if (event.currentTarget.scrollTop !== 0 && this.state.scrolling !== true){
+      this.setState({
+        scrolling: !this.state.scrolling
+      })
+      console.log('scrolled down');
+    }
+
+  }
+
   render() {    
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
       return null;
@@ -709,14 +753,14 @@ class Playlist extends Component {
         <MaterialIcon icon="add" color='#fff' size="14px" />Add Tag
       </StyledButtonTagMore>
 
-      playlistTags = <StyledPlaylistTags>
+      playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling}>
         {tagItems}
         {addTags}
       </StyledPlaylistTags>
     } 
     //if user doesn't owns the playlist but it has tags
     else if (tagItems) {
-      playlistTags = <StyledPlaylistTags>
+      playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling}>
         {tagItems}
       </StyledPlaylistTags>
     }
@@ -734,7 +778,7 @@ class Playlist extends Component {
           {playlistFollowers} Followers
         </PlaylistActions>
 
-        videoContainerComponent = <VideoListContainer>
+        videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
           {videoItems}
           {relatedSection}
         </VideoListContainer>
@@ -753,7 +797,7 @@ class Playlist extends Component {
             orderBy={this.state.orderBy}
           />
         } else {
-          videoContainerComponent = <VideoListContainer>
+          videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
             {videoItems}
             {relatedSection}
           </VideoListContainer>
@@ -769,7 +813,7 @@ class Playlist extends Component {
 
     } else {
       followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
-      videoContainerComponent = <VideoListContainer>
+      videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
         {videoItems}
         {relatedSection}
       </VideoListContainer>
@@ -837,13 +881,13 @@ class Playlist extends Component {
 
     return(
       <PlaylistContainer>
-        <StyledHeader>
+        <StyledHeader scrolling={this.state.scrolling}>
           <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
-          <StyledPlaylistName>{playlistName}</StyledPlaylistName>
+          <StyledPlaylistName scrolling={this.state.scrolling}>{playlistName}</StyledPlaylistName>
           {playlistTags}
-          <StyledHeaderActions>
+          <StyledHeaderActions scrolling={this.state.scrolling}>
             <StyledPlaylistInfo>
-              <StyledLabel>{playlist.videoCount} Videos in this playlist</StyledLabel>
+              <StyledLabel scrolling={this.state.scrolling}>{playlist.videoCount} Videos in this playlist</StyledLabel>
             </StyledPlaylistInfo>
             <StyledPlaylistActions>
               {followButton}

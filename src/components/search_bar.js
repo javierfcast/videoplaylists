@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 
 const StyledSearchInputContainer = styled.div`
-  padding: 20px;
+  padding: 20px ;
   width: 100%;
 `;
 
@@ -42,7 +42,7 @@ class SearchBar extends Component {
 
   render() {
     return (
-      <StyledSearchInputContainer>
+      <StyledSearchInputContainer className='searchbar'>
         <Input
           placeholder="Search videos on YouTube"
           type="text"
