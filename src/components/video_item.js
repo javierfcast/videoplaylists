@@ -146,9 +146,9 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   }
 
   return(
-    <StyledVideoItem>
+    <StyledVideoItem className={currentVideoId === videoId && 'active'}>
       {libraryButton}
-      <StyledContent className={currentVideoId === videoId && 'active'}>
+      <StyledContent>
         {videoTrigger}
         <StyledActions>
           {addButton}
