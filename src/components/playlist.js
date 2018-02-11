@@ -660,6 +660,7 @@ class Playlist extends Component {
           playlistVideos={this.state.playlistVideos}
           currentVideoId = {this.props.videoId}
           inSearchResults={false}
+          inRelatedVideos={true}
           key={video.videoEtag}
           video={video}
           videoEtag={video.videoEtag}

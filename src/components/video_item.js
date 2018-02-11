@@ -73,7 +73,7 @@ const StyledLibraryButton = styled.a`
   margin-right: 12px;
 `;
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos}) => {
   
   let durationFormated = Moment.duration(duration).asMilliseconds();
   durationFormated = Moment.utc(durationFormated).format("mm:ss");
@@ -116,7 +116,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
     );;
 
   if (user !== null) {
-    if (inSearchResults === true || user.uid !== AuthorId) {
+    if (inSearchResults === true || user.uid !== AuthorId || inRelatedVideos) {
       deleteButton = null
     } else {
       deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, playlist)}>
