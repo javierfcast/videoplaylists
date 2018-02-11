@@ -2,8 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import Moment from 'moment';
-import {SortableHandle} from 'react-sortable-hoc';
-
 
 const StyledVideoItem = styled.li`
   padding: 20px 0;
@@ -61,10 +59,9 @@ const StyledActionButton = styled.a`
   }
 `;
 const StyledDragHandle = styled.span`
-  cursor: grab;
   display: inline-block;
   margin-right: 20px;
-  
+  cursor: grab;
 `;
 const StyledLibraryButton = styled.a`
   cursor: pointer;
@@ -73,7 +70,7 @@ const StyledLibraryButton = styled.a`
   margin-right: 12px;
 `;
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos}) => {
   
   let durationFormated = Moment.duration(duration).asMilliseconds();
   durationFormated = Moment.utc(durationFormated).format("mm:ss");
@@ -109,21 +106,18 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   }
 
   let handle = null;
-  const DragHandle = SortableHandle(() => 
-      <StyledDragHandle>
-        <MaterialIcon icon="drag_handle" color='#fff' />
-      </StyledDragHandle>
-    );;
 
   if (user !== null) {
-    if (inSearchResults === true || user.uid !== AuthorId) {
+    if (inSearchResults === true || user.uid !== AuthorId || inRelatedVideos) {
       deleteButton = null
     } else {
       deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, playlist)}>
         <MaterialIcon icon="delete_forever" color='#fff' />
       </StyledActionButton>
 
-      if (orderBy === "custom") handle = <DragHandle />;
+      if (orderBy === "custom") {
+        handle = <StyledDragHandle><MaterialIcon icon="drag_handle" color='#fff' /></StyledDragHandle>
+      }
     }
   }
 
