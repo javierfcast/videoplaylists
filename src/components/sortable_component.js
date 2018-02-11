@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 
-import {SortableContainer, SortableElement, arrayMove} from 'react-sortable-hoc';
+import {SortableContainer, SortableElement, arrayMove, SortableHandle} from 'react-sortable-hoc';
 
 const sizes = {
   small: 360,
@@ -38,10 +38,24 @@ const StyledSortableElement = styled.ul`
   align-items: center;
 `;
 
+const StyledDragHandle = styled.span`
+  cursor: grab;
+  position: relative;
+  margin-left: -40px;
+  width: 24px;
+  height: 24px;
+  z-index: 99px;
+`;
+
+const DragHandle = SortableHandle(() => 
+    <StyledDragHandle></StyledDragHandle>
+);;
+
 const SortableItem = SortableElement(({value}) => {
   return (
     <StyledSortableElement>
       {value}
+      <DragHandle />
     </StyledSortableElement>
   );
 });
