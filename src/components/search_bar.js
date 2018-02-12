@@ -1,17 +1,21 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import MaterialIcon from 'material-icons-react';
 
 const StyledSearchInputContainer = styled.div`
-  padding: 20px ;
   width: 100%;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
 `;
 
 const Input = styled.input`
   border: none;
   border-bottom: 1px solid rgba(255,255,255,.1);
-  padding: 10px 0;
+  padding: 12px 0 10px 0;
   width: 100%;
-  font-size: 18px;
+  font-size: 16px;
   color: #fff;
   background: none;
   transition: all .3s ease;
@@ -33,29 +37,57 @@ const Input = styled.input`
   }
 `;
 
+const SearchBarIcon = styled.a`
+  position: absolute;
+  right: 20px;
+  top: 10px;
+  cursor: pointer;
+  z-index: 10;
+`
+
 class SearchBar extends Component {
 
   constructor(props) {
 		super(props);
 		this.state = { searchTerm: '' };
-	}
+  }
+  
+  onInputChange = searchTerm => {
+    this.setState({ searchTerm });
+    this.props.onVideoSearch(searchTerm);
+  }
+
+  clearSearch = () => {
+    this.setState({ searchTerm: '' })
+    this.props.onVideoSearch('');
+  }
 
   render() {
+    
+    let searchIcon = null;
+    if (this.state.searchTerm === ''){
+      searchIcon = 
+      <SearchBarIcon>
+        <MaterialIcon icon="search" color='#fff' />
+      </SearchBarIcon>
+    } else {
+      searchIcon =
+      <SearchBarIcon onClick={this.clearSearch}>
+        <MaterialIcon icon="close" color='#fff' />
+      </SearchBarIcon>
+    }
+
     return (
-      <StyledSearchInputContainer className='searchbar'>
+      <StyledSearchInputContainer>
         <Input
           placeholder="Search videos on YouTube"
           type="text"
           value={this.state.searchTerm}
           onChange={event => this.onInputChange(event.target.value)}
         />
+        {searchIcon}
       </StyledSearchInputContainer>
     )
-  }
-
-  onInputChange = searchTerm => {
-    this.setState({searchTerm});
-    this.props.onVideoSearch(searchTerm);
   }
 }
 
