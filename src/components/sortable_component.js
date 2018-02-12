@@ -25,11 +25,7 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 420px);
   overflow-y: auto;
-  ${media.xmedium`
-    height: calc(100vh - 318px);
-  `}
 `;
 
 const StyledSortableElement = styled.ul`

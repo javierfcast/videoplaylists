@@ -35,26 +35,26 @@ const PlaylistContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
-const VideoListContainer = styled.ul`
-  list-style: none;
-  width: 100%;
-  height: calc(100vh - 420px);
-  overflow-y: auto;
-  height: 100%;
+const StyledHeaderContainer = styled.div`
+  display: flex;
+  flex: 1 0 auto;
+`;
+const StyledBackButton = styled.a`
+  font-size: 24px;
+  margin-right: 10px;
+  transition: all .5s ease;
+  cursor: pointer;
+  display: block;
 `;
 const StyledHeader = styled.div`
+  display: block;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 10px;
-  height: 210px;
   transition: all .5s ease-out;
+  width: 100%;
   ${props => props.scrolling && `
     height: 60px;
   `}
-`;
-const StyledRelatedHeader = styled.h2`
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-top: 20px;
-  padding-bottom: 10px;
 `;
 const StyledPlaylistName = styled.h1`
   white-space: nowrap;
@@ -89,7 +89,7 @@ const StyledHeaderActions = styled.div`
     flex-direction: row;
   `}
   ${props => props.scrolling && `
-    margin-top: -86px;
+    margin-top: -80px;
   `}
 `;
 const StyledPlaylistInfo = styled.div`
@@ -276,6 +276,17 @@ const StyledButtonTagName = styled(Link)`
   text-decoration: none;
   color: #fff;
 `;
+const VideoListContainer = styled.ul`
+  list-style: none;
+  width: 100%;
+  overflow-y: auto;
+  height: 100%;
+`;
+const StyledRelatedHeader = styled.h2`
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-top: 20px;
+  padding-bottom: 10px;
+`;
 
 class Playlist extends Component {
 
@@ -361,8 +372,6 @@ class Playlist extends Component {
     if (!this.state.playlist){
       return null;
     }
-
-    console.log(this.state.scrolling);
 
     //Get videos and reorder them if order changed.
     if (this.state.orderDirection !== prevState.orderDirection) {
@@ -881,21 +890,24 @@ class Playlist extends Component {
 
     return(
       <PlaylistContainer>
-        <StyledHeader scrolling={this.state.scrolling}>
-          <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
-          <StyledPlaylistName scrolling={this.state.scrolling}>{playlistName}</StyledPlaylistName>
-          {playlistTags}
-          <StyledHeaderActions scrolling={this.state.scrolling}>
-            <StyledPlaylistInfo>
-              <StyledLabel scrolling={this.state.scrolling}>{playlist.videoCount} Videos in this playlist</StyledLabel>
-            </StyledPlaylistInfo>
-            <StyledPlaylistActions>
-              {followButton}
-              <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
-              {playlistOptionsPopup}
-            </StyledPlaylistActions>
-          </StyledHeaderActions>
-        </StyledHeader>
+        <StyledHeaderContainer>
+          <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton>
+          <StyledHeader scrolling={this.state.scrolling}>
+            <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
+            <StyledPlaylistName scrolling={this.state.scrolling}> {playlistName} </StyledPlaylistName>
+            {playlistTags}
+            <StyledHeaderActions scrolling={this.state.scrolling}>
+              <StyledPlaylistInfo>
+                <StyledLabel scrolling={this.state.scrolling}>{playlist.videoCount} Videos in this playlist</StyledLabel>
+              </StyledPlaylistInfo>
+              <StyledPlaylistActions>
+                {followButton}
+                <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+                {playlistOptionsPopup}
+              </StyledPlaylistActions>
+            </StyledHeaderActions>
+          </StyledHeader>
+        </StyledHeaderContainer>
         {videoContainerComponent}
       </PlaylistContainer>
     )

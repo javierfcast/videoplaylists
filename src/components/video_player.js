@@ -13,6 +13,8 @@ const StyledVideoPlayer = styled.div`
 `;
 
 const StyledIframe = styled.div`
+  -moz-object-fit: cover;
+  -webkit-object-fit: cover;
   object-fit: cover;
   width: 100%;
   height: 100%;
