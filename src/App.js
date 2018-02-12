@@ -1200,7 +1200,7 @@ class App extends Component {
     //Fetch Spotify Web Api token with Google Apps Script
     //Using Google Apps Script to not expose client secret
     const spotifyApi = new SpotifyWebApi();
-    const APPS_SCRIPT_TOKEN = "https://script.google.com/macros/s/AKfycbyP2Bj6CatiqmAVm02e2iEizeLM6-hNrKv6sLeaRfvBGPFwD5Wd/exec";
+    const APPS_SCRIPT_TOKEN = "https://script.google.com/macros/s/AKfycbwxAkZ3StrS7tfLY1byXtKRCQF2k6PHVfjUNebnvfeEHq8CUdAR/exec";
     
 
     axios.get(APPS_SCRIPT_TOKEN).then((token)=> {      
