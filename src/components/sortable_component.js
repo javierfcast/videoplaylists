@@ -43,6 +43,30 @@ const StyledDragHandle = styled.span`
   z-index: 99px;
 `;
 
+const DragHandle = SortableHandle(() =>
+      <StyledDragHandle></StyledDragHandle>
+    );;
+
+  const SortableItem = SortableElement(({ value }) => {
+    return (
+      <StyledSortableElement>
+        {value}
+        <DragHandle />
+      </StyledSortableElement>
+    );
+  });
+
+  const SortableList = SortableContainer(({ items, relatedSection, handleScroll}) => {
+    return (
+      <VideoListContainer onScroll={handleScroll}>
+        {items.map((value, index) => (
+          <SortableItem key={`item-${index}`} index={index} value={value} />
+        ))}
+        {relatedSection}
+      </VideoListContainer>
+    );
+  });
+
 class SortableComponent extends Component {
   constructor(props) {
     super(props);
@@ -63,39 +87,7 @@ class SortableComponent extends Component {
     });
   };
 
-  // handleScroll = (event) => {
-  //   if (event.currentTarget.scrollTop === 0) {
-  //     this.props.onHandleScrollChild(false);
-  //   } else if (event.currentTarget.scrollTop !== 0) {
-  //     this.props.onHandleScrollChild(true);
-  //   }
-  // }
-
   render() {
-
-    const DragHandle = SortableHandle(() =>
-      <StyledDragHandle></StyledDragHandle>
-    );;
-
-    const SortableItem = SortableElement(({ value }) => {
-      return (
-        <StyledSortableElement>
-          {value}
-          <DragHandle />
-        </StyledSortableElement>
-      );
-    });
-
-    const SortableList = SortableContainer(({ items, relatedSection }) => {
-      return (
-        <VideoListContainer>
-          {items.map((value, index) => (
-            <SortableItem key={`item-${index}`} index={index} value={value} />
-          ))}
-          {relatedSection}
-        </VideoListContainer>
-      );
-    });
 
     const {items} = this.state;
     if (!items) return null
@@ -105,6 +97,7 @@ class SortableComponent extends Component {
       onSortEnd={this.onSortEnd}
       useDragHandle={true} 
       relatedSection={this.props.relatedSection}
+      handleScroll={this.props.handleScroll}
       />;
   }
 }

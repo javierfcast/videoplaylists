@@ -9,7 +9,7 @@ const StyledPopup = styled.div`
   height: 100vh;
   padding: 20px;
 `;
-const StyledContent = styled.div`
+const StyledContent = styled.form`
   max-width: 480px;
   border: 1px solid rgba(255,255,255,0.1);
   padding: 40px;
@@ -67,7 +67,7 @@ const StyledButton = styled.a`
     border: 1px solid rgba(255,255,255,1);
   }
 `;
-const StyledButtonSubmit = styled.a`
+const StyledButtonSubmit = styled.button`
   margin-left: 10px;
   margin-top: 40px;
   height: 40px;
@@ -96,7 +96,7 @@ const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddT
   const onSubmit = isTagSearch? onAddTagSearch: onAddTag;
   return (
     <StyledPopup>
-      <StyledContent>
+      <StyledContent id="popup-form" onSubmit={(e)=> {e.preventDefault(); onSubmit()}}>
       <StyledTitle>Add new tag</StyledTitle>
       <StyledInput
             id="input-playlist-popup"
@@ -105,13 +105,14 @@ const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddT
             value={newTag}
             onChange={onAddTagInputChange}
             min="1"
+            autoComplete = "off"
             required
         />
         <StyledActions>
           <StyledButton onClick={onClose}>
             Cancel
           </StyledButton>
-          <StyledButtonSubmit onClick={onSubmit}>Add</StyledButtonSubmit>
+          <StyledButtonSubmit form="popup-form" value="Add">Add</StyledButtonSubmit>
         </StyledActions>
       </StyledContent>
     </StyledPopup>

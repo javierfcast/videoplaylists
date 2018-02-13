@@ -166,7 +166,7 @@ const StyledOptionsButton = styled.a`
   `}
 `;
 
-const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, toggleImportPlaylistPopup}) => {
+const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, toggleImportPlaylistPopup, onImportPlaylistDrop}) => {
 
   if (!open) {
     return null;
@@ -182,7 +182,10 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
   let options =
     <StyledContent>
       <StyledOptionsActions>
-        <StyledOptionsButton onClick={() => toggleImportPlaylistPopup(true)}>
+        <StyledOptionsButton 
+          onClick={() => toggleImportPlaylistPopup(true)}
+          onDrop={(event) => {onImportPlaylistDrop(event)}}
+          onDragOver={(e) => e.preventDefault()}>
           From Spotify
         </StyledOptionsButton>
       </StyledOptionsActions>
