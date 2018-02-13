@@ -194,14 +194,6 @@ const StyledNotFoundContent = styled.div`
     margin-bottom: 40px;
   }
 `;
-const NotFoundItem = styled.li`
-  padding: 20px 0;
-  width: 100%;
-  transition: all .3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
 
 class searchTags extends Component { 
   render() {
@@ -274,19 +266,15 @@ class searchTags extends Component {
       )
     })
     else {
-      playlistItem = <NotFoundItem>
-          <StyledNotFoundContent>
-            <h1>No playlists found.</h1>
-          </StyledNotFoundContent>
-        </NotFoundItem>
+      playlistItem = <StyledNotFoundContent>
+        <h1>No playlists found.</h1>
+      </StyledNotFoundContent>
     }
     
     if (toSearch.length === 0) {
-      playlistItem = <NotFoundItem>
-          <StyledNotFoundContent>
-            <h1>Add a tag to start searching.</h1>
-          </StyledNotFoundContent>
-        </NotFoundItem>
+      playlistItem = <StyledNotFoundContent>
+        <h1>Add a tag to start searching.</h1>
+      </StyledNotFoundContent>
     }
 
     return (
