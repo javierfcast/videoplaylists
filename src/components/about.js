@@ -42,6 +42,9 @@ const StyledContainer = styled.div`
   a{
     color: #fff;
   }
+  p{
+    margin-bottom: 20px;
+  }
 `;
 
 const About = (props) => {
@@ -52,7 +55,8 @@ const About = (props) => {
       <h1>About</h1>
       <h3>VideoPlaylists.tv is a platform where everyone can create, share and discover great video playlists. For free. Enjoy!</h3>
       <p>Powered by <a href="https://youtube.com" target="_blank" rel="noopener noreferrer">Youtube.</a></p>
-      <p>Designed and Developed by <a href="https://javierfcast.com" target="_blank" rel="noopener noreferrer">Javier Castillo</a> in Guatemala.</p>
+      <p>Designed and Developed by <a href="https://javierfcast.com" target="_blank" rel="noopener noreferrer">Javier Castillo</a>, co-founder and creative director of <a href="https://royalestudios.com" target="_blank" rel="noopener noreferrer">Royale Studios,</a> a design and development agency based in Guatemala.</p>
+      <p>Special thanks to Kevin Chanquín and Steven Quiroa for their help.</p>
       
     </StyledContainer>
   )
