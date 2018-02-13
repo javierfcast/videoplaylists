@@ -655,7 +655,7 @@ class App extends Component {
       videoChannel,
     });
 
-    this.setSnackbar(`Currently playing: ${videoTitle} - from Playlist ${playlist.playlistName}`);
+    this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `library`}`);
 
   };
 
