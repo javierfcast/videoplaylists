@@ -69,6 +69,25 @@ const StyledLibraryButton = styled.a`
   flex: 0 1 auto;
   margin-right: 12px;
 `;
+const StyledLibraryButtonCheck = styled.a`
+  cursor: pointer;
+  width: 24px;
+  flex: 0 1 auto;
+  margin-right: 12px;
+  height: 24px;
+  overflow: hidden;
+  position: relative;
+  span{
+    transition: all .3s;
+    position: absolute;
+    top: 0;
+  }
+  &:hover{
+    span:first-child{
+      top: -26px;
+    }
+  }
+`
 
 const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos}) => {
   
@@ -127,9 +146,12 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   if (user !== null) {
     if (itsOnLibrary === true) {
       libraryButton = 
-      <StyledLibraryButton onClick={() => onRemoveFromLibrary(video)}>
-        <MaterialIcon icon="check" color='#fff' />
-      </StyledLibraryButton>
+      <StyledLibraryButtonCheck onClick={() => onRemoveFromLibrary(video)}>
+        <span>
+          <MaterialIcon icon="check" color='#fff' />
+          <MaterialIcon icon="close" color='#fff' />
+        </span>
+      </StyledLibraryButtonCheck>
     }
     else if (itsOnLibrary === false) {
       libraryButton = 
