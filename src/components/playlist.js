@@ -655,7 +655,7 @@ class Playlist extends Component {
     const batchSize = this.state.playlistVideos.length;
     
     //Map videos inside playlist
-    const videoItems = this.state.playlistVideos.map((video) => {     
+    const videoItems = this.state.playlistVideos.map((video) => {   
       
       let date = new Date(video.datePublished);
       let year = date.getFullYear();

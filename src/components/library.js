@@ -294,6 +294,7 @@ class Library extends Component {
           videoTitle={video.videoTitle}
           videoId={video.videoID}
           videoChannel={video.videoChannel}
+          duration={video.duration}
           datePublished={year + '-' + month + '-' + dt}
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}

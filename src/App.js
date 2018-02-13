@@ -655,7 +655,7 @@ class App extends Component {
       videoChannel,
     });
 
-    this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `library`}`);
+    this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `Library`}`);
 
   };
 
@@ -844,6 +844,7 @@ class App extends Component {
     const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
+    const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
 
     const user = this.state.user;
 
@@ -868,6 +869,7 @@ class App extends Component {
           videoTitle: videoTitle,
           videoChannel: videoChannel,
           datePublished: datePublished,
+          duration: duration,
           order: newVideoCount
         })
         .then(() => self.setSnackbar(`${videoTitle} added to library`));
@@ -909,7 +911,7 @@ class App extends Component {
         newVideoCount--;
 
         docRef.delete()
-        .then(() => console.log("Track removed!"));
+        .then(() => self.setSnackbar(`${video.videoTitle} removed from Library.`));
 
         userRef.update({
           libraryVideoCount: newVideoCount
@@ -1579,6 +1581,7 @@ class App extends Component {
                   <Library
                     match={match}
                     user={this.state.user}
+                    videoId={this.state.videoId}
                     browsePlaylists={this.state.browsePlaylists}
                     popularPlaylists={this.state.popularPlaylists}
                     featuredPlaylists={this.state.featuredPlaylists}
