@@ -63,13 +63,13 @@ class SortableComponent extends Component {
     });
   };
 
-  handleScroll = (event) => {
-    if (event.currentTarget.scrollTop === 0) {
-      this.props.onHandleScrollChild(false);
-    } else if (event.currentTarget.scrollTop !== 0) {
-      this.props.onHandleScrollChild(true);
-    }
-  }
+  // handleScroll = (event) => {
+  //   if (event.currentTarget.scrollTop === 0) {
+  //     this.props.onHandleScrollChild(false);
+  //   } else if (event.currentTarget.scrollTop !== 0) {
+  //     this.props.onHandleScrollChild(true);
+  //   }
+  // }
 
   render() {
 
@@ -88,7 +88,7 @@ class SortableComponent extends Component {
 
     const SortableList = SortableContainer(({ items, relatedSection }) => {
       return (
-        <VideoListContainer onScroll={this.handleScroll}>
+        <VideoListContainer>
           {items.map((value, index) => (
             <SortableItem key={`item-${index}`} index={index} value={value} />
           ))}
