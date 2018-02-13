@@ -259,7 +259,7 @@ class searchTags extends Component {
           <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistMeta>{playlist.Author}</PlaylistMeta>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistMeta>Tags: {playlistTags}</PlaylistMeta>
+            <PlaylistMeta>Tags: {playlistTags} | {playlist.videoCount} videos</PlaylistMeta>
           </PlaylistLink>
           {followButton}
         </PlaylistItem>

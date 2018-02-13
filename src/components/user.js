@@ -217,7 +217,7 @@ class User extends Component {
         <PlaylistItem key={playlist.playlistId}>
           <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
             <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author}</PlaylistAuthor>
+            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} Videos</PlaylistAuthor>
           </PlaylistLink>
           {followButton}
         </PlaylistItem>
