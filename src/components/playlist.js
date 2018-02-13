@@ -771,14 +771,14 @@ class Playlist extends Component {
         <MaterialIcon icon="add" color='#fff' size="14px" />Add Tag
       </StyledButtonTagMore>
 
-      playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling}>
+      playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling ? 1 : 0}>
         {tagItems}
         {addTags}
       </StyledPlaylistTags>
     } 
     //if user doesn't owns the playlist but it has tags
     else if (tagItems) {
-      playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling}>
+      playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling ? 1 : 0}>
         {tagItems}
       </StyledPlaylistTags>
     }
@@ -902,13 +902,13 @@ class Playlist extends Component {
       <PlaylistContainer>
         <StyledHeaderContainer>
           <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton>
-          <StyledHeader scrolling={this.state.scrolling}>
+          <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
             <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
-            <StyledPlaylistName scrolling={this.state.scrolling}> {playlistName} </StyledPlaylistName>
+            <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}> {playlistName} </StyledPlaylistName>
             {playlistTags}
-            <StyledHeaderActions scrolling={this.state.scrolling}>
+            <StyledHeaderActions scrolling={this.state.scrolling ? 1 : 0}>
               <StyledPlaylistInfo>
-                <StyledLabel scrolling={this.state.scrolling}>{playlist.videoCount} Videos in this playlist</StyledLabel>
+                <StyledLabel scrolling={this.state.scrolling ? 1 : 0}>{playlist.videoCount} Videos in this playlist</StyledLabel>
               </StyledPlaylistInfo>
               <StyledPlaylistActions>
                 {followButton}
