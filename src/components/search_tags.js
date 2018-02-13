@@ -23,9 +23,12 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 //custom components
 
 const SearchContainer = styled.div`
-  padding: 20px;
+  padding: 20px 20px 0;
   width: 100%;
   overflow: hidden;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -34,11 +37,8 @@ const StyledHeader = styled.div`
 const StyledContent = styled.div`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 288px);
   overflow-y: auto;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
+  height: 100%;
 `;
 const StyledTitle = styled.div`
   font-size: 10px;
@@ -184,15 +184,12 @@ const PlaylistMeta = styled.span`
 `;
 const StyledNotFoundContent = styled.div`
   width: 100%;
-  height: calc(100vh - 354px);
+  height: 100%;
   overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  ${media.xmedium`
-    height: calc(100vh - 300px);
-  `}
   h1{
     margin-bottom: 40px;
   }

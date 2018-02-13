@@ -1,12 +1,10 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import YTSearch from './yt_search';
 
 const sizes = {
   small: 360,
@@ -27,47 +25,26 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 //custom components
 
 const PlaylistContainer = styled.div`
-  padding: 20px;
+  padding: 20px 20px 0;
   width: 100%;
   overflow: hidden;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
 `;
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 354px);
   overflow-y: auto;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 10px;
-`;
-const StyledRelatedHeader = styled.h2`
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-top: 20px;
   padding-bottom: 10px;
 `;
 const StyledPlaylistName = styled.h1`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-`;
-const StyledNoFoundContent = styled.div`
-  width: 100%;
-  height: calc(100vh - 354px);
-  overflow-y: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
-  h1{
-    margin-bottom: 40px;
-  }
 `;
 const StyledHeaderActions = styled.div`
   display: flex;
@@ -92,15 +69,6 @@ const StyledLabel = styled.h3`
   letter-spacing: 2px;
   font-weight: 400;
 `;
-const StyledAuthorLink = styled(Link)`
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 400;  
-  margin-bottom: 6px;
-  color: #fff;
-  text-decoration: none;
-`;
 const StyledPlaylistActions = styled.div`
   width: 100%;
   display: flex;
@@ -112,42 +80,6 @@ const StyledPlaylistActions = styled.div`
     margin-top: 0;
     justify-content: flex-end;
   `}
-`
-const StyledPlaylistTags = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding-top: 10px;
-  margin: 10px 0;
-  ${media.xmedium`
-    padding-top: 0;
-  `}
-`;
-const PlaylistActions = styled.a`
-  position: relative;
-  display: inline-block;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-size: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 10px;
-  cursor: pointer;
-  transition: all .3s ease;
-  overflow: hidden;
-  &:hover{
-    border: 1px solid rgba(255,255,255,1);
-  }
-`;
-const PlaylistActionsNone = styled.span`
-  position: relative;
-  display: inline-block;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-size: 10px;
-  padding: 10px;
-  padding-left: 0;
-  transition: all .3s ease;
-  overflow: hidden;
 `;
 const StyledOptionsPopup = styled.div`
   position: absolute;
@@ -196,56 +128,6 @@ const StyledButtonPopup = StyledButton.extend`
   text-transform: uppercase;
   font-size: 10px;
   letter-spacing: 2px;
-`;
-const StyledButtonTagMore = styled.a`
-  opacity: 0.8;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all .3s ease;
-  display: block;
-  padding: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-  &:hover{
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-`;
-const StyledDivTag = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: .8;
-  cursor: pointer;
-  transition: all .3s ease;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  margin-right: 10px;
-  height: 35px;
-  padding: 0 6px;
-  &:hover{
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-`;
-const StyledButtonTagRemove = styled.a`
-  cursor: pointer;
-  transition: all .3s ease;
-  margin-top: 1px;
-  padding: 9px 0 9px 4px;
-  opacity: 0.4;
-  &:hover{
-    opacity: 1;
-  }
-`;
-const StyledButtonTagName = styled.a`
-  cursor: pointer;
-  transition: all .3s ease;
-  font-size: 14px;
-  padding: 12px 8px;
 `;
 
 class Library extends Component {
@@ -378,7 +260,6 @@ class Library extends Component {
     //Basic constants
 
     const library = this.state.library;
-    const batchSize = this.state.libraryVideos.length;
 
     //Map videos inside library
     const videoItems = this.state.libraryVideos.map((video) => { 

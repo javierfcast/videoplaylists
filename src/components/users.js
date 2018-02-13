@@ -22,8 +22,12 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 }, {})
 
 const StyledContainer = styled.div`
-  padding: 20px;
+  padding: 20px 20px 0;
   width: 100%;
+  overflow: hidden;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -33,15 +37,11 @@ const StyledContent = styled.div`
   list-style: none;
   width: calc(100% + 20px);
   margin-left: -10px;
-  height: calc(100vh - 288px);
   overflow-y: auto;
   padding: 20px 0;
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
 `;
 const StyledUserItemContainer = styled.div`
   padding: 10px;

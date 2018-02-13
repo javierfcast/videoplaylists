@@ -590,20 +590,29 @@ class Playlist extends Component {
   };
 
   handleScroll = (event) => {
-    
     if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
       this.setState({
         scrolling: !this.state.scrolling
       })
-      console.log('scrolled top');
-
     } else if (event.currentTarget.scrollTop !== 0 && this.state.scrolling !== true){
       this.setState({
         scrolling: !this.state.scrolling
       })
-      console.log('scrolled down');
     }
+  }
 
+  onHandleScrollChild = (result) => {
+    if (result === true && this.state.scrolling !== true) {
+      this.setState({
+        scrolling: true
+      })
+      console.log(this.state.scrolling)
+    } else if (result === false && this.state.scrolling === true) {
+      this.setState({
+        scrolling: false
+      })
+      console.log(this.state.scrolling)
+    }
   }
 
   render() {    
@@ -804,6 +813,7 @@ class Playlist extends Component {
             relatedSection={relatedSection}
             onSort={this.onSort}
             orderBy={this.state.orderBy}
+            onHandleScrollChild={this.onHandleScrollChild}
           />
         } else {
           videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>

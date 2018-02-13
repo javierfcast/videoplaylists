@@ -29,8 +29,12 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 
 
 const PlaylistsContainer = styled.div`
-  padding: 20px;
+  padding: 20px 20px 0;
   width: 100%;
+  overflow: hidden;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
 `;
 const PlaylistItem = styled.li`
   padding: 20px 0;

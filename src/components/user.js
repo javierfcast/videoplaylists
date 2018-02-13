@@ -22,8 +22,12 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 }, {})
 
 const StyledUserContainer = styled.div`
-  padding: 20px;
+  padding: 20px 20px 0;
   width: 100%;
+  overflow: hidden;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -37,11 +41,7 @@ const StyledUserName = styled.h1`
 const StyledContent = styled.div`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 288px);
   overflow-y: auto;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
 `;
 const PlaylistItem = styled.li`
   padding: 20px 0;
