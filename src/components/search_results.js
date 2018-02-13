@@ -21,21 +21,21 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 }, {})
 
 const SearchResultsContainer = styled.div`
-  padding: 20px;
+  padding: 20px 20px 0;
   width: 100%;
-`
+  overflow: hidden;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+`;
 const SearchResultsTitle = styled.h1`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 10px;
-`
+`;
 const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  height: calc(100vh - 277px);
   overflow-y: auto;
-  ${media.xmedium`
-    height: calc(100vh - 218px);
-  `}
 `;
 
 const SearchResults = (props) => {
