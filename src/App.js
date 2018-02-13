@@ -372,12 +372,6 @@ class App extends Component {
       document.getElementById("input-playlist-popup").focus();
     }
     
-    if(this.state.playingFromSearch){
-      console.log(`Playing from search results.`)
-    }
-    if(this.state.currentPlaylist){
-      console.log(`Current Playlist: ${this.state.currentPlaylist.playlistName}`)
-    }
   };
 
 
@@ -843,8 +837,6 @@ class App extends Component {
 
   onAddToLibrary = (video, autoAdd) => {
 
-    console.log('adding song');
-
     const self = this;
 
     const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
@@ -878,7 +870,7 @@ class App extends Component {
           datePublished: datePublished,
           order: newVideoCount
         })
-        .then(() => console.log("Added to library"));
+        .then(() => self.setSnackbar(`${videoTitle} added to library`));
 
         userRef.update({
           libraryVideoCount: newVideoCount
