@@ -1296,8 +1296,10 @@ class App extends Component {
           });
 
           batch.update(docRef, {
+            orderBy: 'custom',
             customOrder: [],
-            videoCount: 0
+            videoCount: 0,
+            orderDirection: 'asc',
           });
     
           batch.update(publicPlaylistRef, {
