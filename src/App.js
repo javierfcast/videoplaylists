@@ -425,7 +425,7 @@ class App extends Component {
       return null;
     }
 
-    YTSearch({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video' })
+    YTSearch({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
     .then((searchResults)=> {    
       this.setState({
         searchResults: searchResults
@@ -1296,10 +1296,8 @@ class App extends Component {
           });
 
           batch.update(docRef, {
-            orderBy: 'custom',
             customOrder: [],
-            videoCount: 0,
-            orderDirection: 'asc',
+            videoCount: 0
           });
     
           batch.update(publicPlaylistRef, {
@@ -1681,7 +1679,6 @@ class App extends Component {
           playlistUrl={this.state.playlistUrl}
           onImportPlaylistInputChange={this.onImportPlaylistInputChange}
           toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
-          onImportPlaylistDrop={this.onImportPlaylistDrop}
         />
         <AddTagsPopup 
           open={this.state.addTagPopupIsOpen}
