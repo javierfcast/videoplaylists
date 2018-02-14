@@ -1679,6 +1679,7 @@ class App extends Component {
           playlistUrl={this.state.playlistUrl}
           onImportPlaylistInputChange={this.onImportPlaylistInputChange}
           toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}
+          onImportPlaylistDrop={this.onImportPlaylistDrop}
         />
         <AddTagsPopup 
           open={this.state.addTagPopupIsOpen}

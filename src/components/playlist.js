@@ -467,8 +467,11 @@ class Playlist extends Component {
         if (doc.exists && doc.data().customOrder) {
           const newPlaylistVideos = [];
           const newCustomOrder = [];
+          let order = doc.data().customOrder;
 
-          doc.data().customOrder.forEach((orderId) => {
+          if (self.state.orderDirection === 'desc') order = order.reverse();
+
+          order.forEach((orderId) => {
             playlistVideos.forEach((video)=> {
               if (orderId === video.videoID) {
                 newPlaylistVideos.push(video);
@@ -519,8 +522,9 @@ class Playlist extends Component {
   }
 
   onSort = (items) => {
-    const newOrder = items.map(item => item.props.videoId);
+    let newOrder = items.map(item => item.props.videoId);
     
+    //Return if no changes
     if (this.state.customOrder && newOrder.toString() === this.state.customOrder.toString()) return;
 
     const newPlaylistVideos = [];
@@ -534,6 +538,8 @@ class Playlist extends Component {
       playlistVideos: newPlaylistVideos,
       customOrder: newOrder
     }));
+
+    if (this.state.orderDirection === 'desc') newOrder = newOrder.reverse();
 
     const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
     playlistRef.update({customOrder: newOrder}).then(() => {
@@ -598,20 +604,6 @@ class Playlist extends Component {
       this.setState({
         scrolling: !this.state.scrolling
       })
-    }
-  }
-
-  onHandleScrollChild = (result) => {
-    if (result === true && this.state.scrolling !== true) {
-      this.setState({
-        scrolling: true
-      })
-      console.log(this.state.scrolling)
-    } else if (result === false && this.state.scrolling === true) {
-      this.setState({
-        scrolling: false
-      })
-      console.log(this.state.scrolling)
     }
   }
 
@@ -715,6 +707,11 @@ class Playlist extends Component {
         month = '0' + month;
       }
 
+      //check if video it's in library
+      const itsOnLibrary = this.props.libraryVideos.some((element) => {
+        return element.videoID === video.videoID
+      });
+
       return (
         <VideoItem
           user={this.props.user}
@@ -735,7 +732,10 @@ class Playlist extends Component {
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          onAddToLibrary={this.props.onAddToLibrary}
+          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
           autoAdd={true}
+          itsOnLibrary={itsOnLibrary}
         />
       )
     });
@@ -813,7 +813,7 @@ class Playlist extends Component {
             relatedSection={relatedSection}
             onSort={this.onSort}
             orderBy={this.state.orderBy}
-            onHandleScrollChild={this.onHandleScrollChild}
+            handleScroll={this.handleScroll}
           />
         } else {
           videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
