@@ -309,6 +309,7 @@ class Library extends Component {
 
     //Set Library options popup
     let libraryOptionsPopup = null;
+    const arrow = this.state.libraryOrderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
 
     if (this.state.libraryOptionsIsOpen){
       if (this.props.user.uid) {
@@ -321,15 +322,27 @@ class Library extends Component {
           </StyledOptionsLabel>
           <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
             Recently Added
+            <div style={{opacity: this.state.libraryOrderBy === 'timestamp' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
             Video Date
+            <div style={{opacity: this.state.libraryOrderBy === 'datePublished' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
             Video Title
+            <div style={{opacity: this.state.libraryOrderBy === 'videoTitle' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
             Channel
+            <div style={{opacity: this.state.libraryOrderBy === 'videoChannel' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
         </StyledOptionsPopup>
 

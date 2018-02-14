@@ -840,6 +840,7 @@ class Playlist extends Component {
 
     //Set Playlist options popup
     let playlistOptionsPopup = null;
+    const arrow = this.state.orderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
 
     if (this.state.playlistOptionsIsOpen){
       if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
@@ -851,19 +852,34 @@ class Playlist extends Component {
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
           <StyledButtonPopup onClick={() => this.orderBy('custom')}>
-            Custom Order
+            Custom Order 
+            <div style={{opacity: this.state.orderBy === 'custom' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
-            Recently Added
+            Recently Added 
+            <div style={{opacity: this.state.orderBy === 'timestamp' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
             Video Date
+            <div style={{opacity: this.state.orderBy === 'datePublished' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
             Video Title
+            <div style={{opacity: this.state.orderBy === 'videoTitle' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
             Channel
+            <div style={{opacity: this.state.orderBy === 'videoChannel' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <hr />
           <StyledButtonPopup onClick={() => this.props.toggleEditPlaylistPopup(playlist)}>
@@ -884,15 +900,27 @@ class Playlist extends Component {
           </StyledOptionsLabel>
           <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
             Recently Added
+            <div style={{opacity: this.state.orderBy === 'timestamp' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
             Video Date
+            <div style={{opacity: this.state.orderBy === 'datePublished' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
             Video Title
+            <div style={{opacity: this.state.orderBy === 'videoTitle' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
             Channel
+            <div style={{opacity: this.state.orderBy === 'videoChannel' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
           </StyledButtonPopup>
         </StyledOptionsPopup>
       }
