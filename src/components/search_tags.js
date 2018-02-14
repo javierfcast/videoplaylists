@@ -206,12 +206,12 @@ class searchTags extends Component {
     
     if (toSearch.length > 1) {
 
-      title = "Searching tags:";
+      title = "Search playlists by tags:";
       resultCount += " playlists for this tags";
 
     } else {
 
-      title = "Searching tag:";
+      title = "Search playlists by tags:";
       resultCount += " playlists for this tag";
 
     }

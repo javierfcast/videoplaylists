@@ -407,7 +407,6 @@ class App extends Component {
     this.setState({
       interfaceAlwaysOn: !this.state.interfaceAlwaysOn
     })
-    console.log(`Interface Always On?: ${this.state.interfaceAlwaysOn}`)
   };
 
   toggleNav = () => {
