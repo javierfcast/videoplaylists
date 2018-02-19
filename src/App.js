@@ -244,14 +244,23 @@ class App extends Component {
           this.setState({ followingPlaylists })
         });
 
-        const libraryRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('library');
+        let libraryRef = firebase.firestore().collection('users').doc(this.state.user.uid);
+        libraryRef.onSnapshot((doc) => {
+          if (doc.exists) {
+            this.setState({
+              libraryVideos: doc.data().libraryVideos ? doc.data().libraryVideos : []
+            })
+          }
+        });
+
+        /* const libraryRef = firebase.firestore().collection('users').doc(this.state.user.uid).collection('library');
         libraryRef.onSnapshot(querySnapshot => {
           const libraryVideos = [];
           querySnapshot.forEach(function (doc) {
             libraryVideos.push(doc.data());
           });
           this.setState({libraryVideos});
-        });
+        }); */
       };
     });
 
@@ -490,14 +499,11 @@ class App extends Component {
 
       userRef.get().then(function (doc) {
         if (doc.exists) {
-          userRef.set({
+          userRef.update({
             lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
             displayName: user.displayName,
             photoURL: user.photoURL,
             uid: user.uid,
-            libraryVideoCount: 0,
-            libraryOrderBy: 'timestamp',
-            libraryOrderDirection: 'asc',
           }).then(() => {
             console.log(`User updated succesfully`);
           }).catch(function (error) {
@@ -510,6 +516,7 @@ class App extends Component {
             photoURL: user.photoURL,
             uid: user.uid,
             joinedOn: user.metadata.creationTime,
+            libraryVideos: [],
             libraryVideoCount: 0,
             libraryOrderBy: 'timestamp',
             libraryOrderDirection: 'asc',
@@ -834,7 +841,7 @@ class App extends Component {
     });
   };
 
-  onAddToLibrary = (video, autoAdd) => {
+  /* onAddToLibrary = (video, autoAdd) => {
 
     const self = this;
 
@@ -889,9 +896,63 @@ class App extends Component {
     this.setState({
       playlistPopupIsOpen: !this.state.playlistPopupIsOpen
     });
-  };
+  }; */
 
-  onRemoveFromLibrary = (video) => {
+  onAddToLibrary = (video, autoAdd) => {
+    const self = this;
+
+    const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+    const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
+    const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
+    const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+    const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
+    const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+
+    const user = this.state.user;
+
+    //Add song to library
+    const docRef = firebase.firestore().doc(`users/${user.uid}`);
+
+    docRef.get().then((doc)=> {
+      if (!doc.exists) throw new Error("User not found");
+
+      let libraryVideos = [];
+      
+      if (doc.data().libraryVideos && Array.isArray(doc.data().libraryVideos)) {
+        libraryVideos = doc.data().libraryVideos;
+      }
+
+      //Find duplicates
+      if (libraryVideos.some((track) => track.videoID === videoId)) {
+        throw new Error("Track already on library!");
+      }
+
+      docRef.update({
+        libraryVideos: [...libraryVideos, {
+          timestamp: new Date(),
+          videoEtag: videoEtag,
+          videoID: videoId,
+          videoTitle: videoTitle,
+          videoChannel: videoChannel,
+          datePublished: datePublished,
+          duration: duration,
+        }],
+        libraryVideoCount: libraryVideos.length + 1
+      })
+      .then(() => self.setSnackbar(`${videoTitle} added to library`));
+
+    }).catch(function(error) {
+      self.setSnackbar(error.toString());
+    });
+
+    if (autoAdd) return
+
+    this.setState({
+      playlistPopupIsOpen: !this.state.playlistPopupIsOpen
+    });
+  }
+
+  /* onRemoveFromLibrary = (video) => {
     console.log(`Removing: ${video.videoID}`)
     const user = this.state.user;
     const self = this;
@@ -919,6 +980,26 @@ class App extends Component {
       }).catch(function(error) {
         self.setSnackbar(error.toString());
       });
+    }).catch(function(error) {
+      self.setSnackbar(error.toString());
+    });
+  }; */
+
+  onRemoveFromLibrary = (video) => {
+    const user = this.state.user;
+    const self = this;
+
+    const docRef = firebase.firestore().doc(`users/${user.uid}`);
+
+    docRef.get().then((doc)=> {
+      if (!doc.exists) throw new Error("User not found");
+
+      docRef.update({
+        libraryVideos: doc.data().libraryVideos.filter((libraryTrack) => libraryTrack.videoID !== video.videoID),
+        libraryVideoCount: doc.data().libraryVideos.length - 1
+      })
+      .then(() => self.setSnackbar(`${video.videoTitle} removed from Library.`));
+
     }).catch(function(error) {
       self.setSnackbar(error.toString());
     });

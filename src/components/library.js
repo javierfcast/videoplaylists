@@ -5,6 +5,8 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
+import SortableComponent from './sortable_component';
+import _ from 'lodash';
 
 const sizes = {
   small: 360,
@@ -148,13 +150,39 @@ class Library extends Component {
     
     //Get User document basic info
     let docRef = firebase.firestore().collection('users').doc(this.state.profileId);
-
     docRef.onSnapshot((doc) => {
       if (doc.exists) {
+        let libraryVideos = doc.data().libraryVideos;
+
+        //Copy old collection videos
+        if (!libraryVideos) {
+          let legacyVideosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');
+
+          legacyVideosRef.onSnapshot(querySnapshot => {
+            libraryVideos = [];
+            querySnapshot.forEach(function (doc) {
+              libraryVideos.push(doc.data());
+            });
+            
+            docRef.update({
+              libraryVideos,
+              libraryVideoCount: libraryVideos.length
+            });
+          });
+        }
+
+        //Sort videos
+        if (doc.data().libraryOrderBy === 'custom' && doc.data().libraryOrderDirection === 'desc') {
+          libraryVideos = libraryVideos.reverse();
+        }
+        else if (doc.data().libraryOrderBy !== 'custom') {
+          libraryVideos = _.orderBy(libraryVideos, [doc.data().libraryOrderBy], [doc.data().libraryOrderDirection])
+        }
         this.setState({
           library: doc.data(),
           libraryOrderBy: doc.data().libraryOrderBy,
-          libraryOrderDirection: doc.data().libraryOrderDirection
+          libraryOrderDirection: doc.data().libraryOrderDirection,
+          libraryVideos: libraryVideos
         })
       } else {
         this.setState({
@@ -162,48 +190,25 @@ class Library extends Component {
         })
         console.log("No such document!");
       }
-    });    
+    });
 
     //Get videos inside library
-    if (!this.state.library){
-      return null;
-    }
-    let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');
-    videosRef = videosRef.orderBy(this.state.libraryOrderBy, this.state.libraryOrderDirection);
+    // if (!this.state.library){
+    //   return null;
+    // }
+    // let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');
+    // videosRef = videosRef.orderBy(this.state.libraryOrderBy, this.state.libraryOrderDirection);
 
-    videosRef.onSnapshot(querySnapshot => {
-      const libraryVideos = [];
-      querySnapshot.forEach(function (doc) {
-        libraryVideos.push(doc.data());
-      });
-      this.setState({
-        libraryVideos: libraryVideos,
-      });
-    });
+    // videosRef.onSnapshot(querySnapshot => {
+    //   const libraryVideos = [];
+    //   querySnapshot.forEach(function (doc) {
+    //     libraryVideos.push(doc.data());
+    //   });
+    //   this.setState({
+    //     libraryVideos: libraryVideos,
+    //   });
+    // });
   }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (!this.state.library){
-      return null;
-    }
-    //Get videos and reorder them if order changed.
-    if (this.state.libraryOrderDirection !== prevState.libraryOrderDirection) {
-      let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');    
-
-      videosRef = videosRef.orderBy(this.state.libraryOrderBy, this.state.libraryOrderDirection);
-
-      videosRef.onSnapshot(querySnapshot => {
-        const libraryVideos = [];
-        querySnapshot.forEach(function (doc) {
-          libraryVideos.push(doc.data());
-        });
-        this.setState({
-          libraryVideos: libraryVideos,
-        });
-      });
-    };
-
-  };
 
   //Playlists Methods
   toggleLibraryOptions = () => {
@@ -251,6 +256,32 @@ class Library extends Component {
 
   }
 
+  onSort = (items) => {
+    let docRef = firebase.firestore().collection('users').doc(this.state.profileId);
+    
+    let newOrder = items.map(item => {
+      return {
+        timestamp: item.props.video.timestamp,
+        videoEtag: item.props.video.videoEtag,
+        videoID: item.props.video.videoID,
+        videoTitle: item.props.video.videoTitle,
+        videoChannel: item.props.video.videoChannel,
+        datePublished: item.props.video.datePublished,
+        duration: item.props.video.duration,
+      }
+    })
+
+    if (this.state.libraryOrderDirection === 'desc') newOrder.reverse(); 
+
+    docRef.update({
+      libraryVideos: newOrder,
+    })
+    .then(() => console.log('Order updated'))
+    .catch(function(error) {
+      console.log(error)
+    });
+  };
+
   render() {    
 
     if (!this.state.library) {
@@ -276,11 +307,6 @@ class Library extends Component {
         month = '0' + month;
       }
 
-      //check if video it's in library
-      const itsOnLibrary = this.props.libraryVideos.some((element) => {
-        return element.videoID === video.videoID
-      });
-
       return (
         <VideoItem
           user={this.props.user}
@@ -302,10 +328,24 @@ class Library extends Component {
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
           onAddToLibrary={this.props.onAddToLibrary}
           onRemoveFromLibrary={this.props.onRemoveFromLibrary}
-          itsOnLibrary={itsOnLibrary}
+          itsOnLibrary={true}
+          orderBy={this.state.libraryOrderBy}
+          inLibraryVideos={true}
         />
       )
     });
+
+    let videoContainerComponent =
+    <VideoListContainer>
+      {videoItems}
+    </VideoListContainer>;
+
+    if (this.state.libraryOrderBy === 'custom' && this.props.user.uid === this.state.profileId) {
+      videoContainerComponent = <SortableComponent
+        onSort={this.onSort}
+        videoItems={videoItems}
+      />
+    }
 
     //Set Library options popup
     let libraryOptionsPopup = null;
@@ -320,6 +360,12 @@ class Library extends Component {
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
+          <StyledButtonPopup onClick={() => this.orderBy('custom')}>
+            Custom Order
+            <div style={{opacity: this.state.libraryOrderBy === 'custom' ? 1 : 0}} >
+              <MaterialIcon icon={arrow} color='#fff' size='20px' />
+            </div>
+          </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
             Recently Added
             <div style={{opacity: this.state.libraryOrderBy === 'timestamp' ? 1 : 0}} >
@@ -364,9 +410,7 @@ class Library extends Component {
             </StyledPlaylistActions>
           </StyledHeaderActions>
         </StyledHeader>
-        <VideoListContainer>
-          {videoItems}
-        </VideoListContainer>
+        {videoContainerComponent}
       </PlaylistContainer>
     )
   };
