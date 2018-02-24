@@ -26,6 +26,8 @@ const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
 `;
 
 const StyledSortableElement = styled.ul`

@@ -120,6 +120,7 @@ const StyledMain = styled.div`
 `;
 const StyledMainHeading = styled.div`
   display: flex;
+  align-items: center;
 `;
 const StyledMainContainer = styled.div`
   display: block;

@@ -31,13 +31,17 @@ const PlaylistContainer = styled.div`
   padding: 20px 20px 0;
   width: 100%;
   overflow: hidden;
-  height: calc(100vh - 100px);
+  height: calc(100vh - 190px);
   display: flex;
   flex-direction: column;
+  ${media.xmedium`
+    height: calc(100vh - 100px);
+  `}
 `;
 const StyledHeaderContainer = styled.div`
   display: flex;
   flex: 1 0 auto;
+  position: relative;
 `;
 const StyledBackButton = styled.a`
   font-size: 24px;
@@ -52,6 +56,7 @@ const StyledHeader = styled.div`
   padding-bottom: 10px;
   transition: all .5s ease-out;
   width: 100%;
+  overflow: hidden;
   ${props => props.scrolling && `
     height: 60px;
   `}
@@ -175,9 +180,12 @@ const PlaylistActionsNone = styled.span`
   transition: all .3s ease;
   overflow: hidden;
 `;
+const StyledPopupContainer = styled.div`
+  position: relative;
+`;
 const StyledOptionsPopup = styled.div`
   position: absolute;
-  top: 40px;
+  right: 0px;
   width: 220px;
   background: rgba(0,0,0,0.9);
   color: #fff;
@@ -280,6 +288,7 @@ const VideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
 `;
 const StyledRelatedHeader = styled.h2`
@@ -941,11 +950,13 @@ class Playlist extends Component {
               <StyledPlaylistActions>
                 {followButton}
                 <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
-                {playlistOptionsPopup}
               </StyledPlaylistActions>
             </StyledHeaderActions>
           </StyledHeader>
         </StyledHeaderContainer>
+        <StyledPopupContainer>
+          {playlistOptionsPopup}
+        </StyledPopupContainer>
         {videoContainerComponent}
       </PlaylistContainer>
     )

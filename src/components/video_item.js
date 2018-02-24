@@ -39,9 +39,12 @@ const VideoMeta = styled.span`
   margin-right: 20px;
 `;
 const StyledActions = styled.div`
-  width: 180px;
+  min-width: 110px;
   flex: 0 1 auto;
   text-align: right;
+  ${props => props.children[0]._owner.memoizedProps.orderBy === 'custom' && `
+    min-width: 150px;
+  `}
 `
 const StyledActionButton = styled.a`
   cursor: pointer;
