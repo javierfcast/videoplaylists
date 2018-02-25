@@ -91,7 +91,7 @@ class Users extends Component {
     usersRef = usersRef.orderBy("lastLogin", "desc");
 
     //Query Data
-    usersRef.onSnapshot(querySnapshot => {
+    this._unsubscribe = usersRef.onSnapshot(querySnapshot => {
       const usersList = [];
       querySnapshot.forEach(function (doc) {
         usersList.push(doc.data());
@@ -100,6 +100,10 @@ class Users extends Component {
     });
 
   };
+
+  componentWillUnmount() {
+    this._unsubscribe()
+  }
 
   render() {
 

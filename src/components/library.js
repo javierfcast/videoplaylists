@@ -150,7 +150,7 @@ class Library extends Component {
     
     //Get User document basic info
     let docRef = firebase.firestore().collection('users').doc(this.state.profileId);
-    docRef.onSnapshot((doc) => {
+    this._unsubscribe = docRef.onSnapshot((doc) => {
       if (doc.exists) {
         let libraryVideos = doc.data().libraryVideos;
 
@@ -158,7 +158,7 @@ class Library extends Component {
         if (!libraryVideos) {
           let legacyVideosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');
 
-          legacyVideosRef.onSnapshot(querySnapshot => {
+          this._legacyUnsubscribe = legacyVideosRef.onSnapshot(querySnapshot => {
             libraryVideos = [];
             querySnapshot.forEach(function (doc) {
               libraryVideos.push(doc.data());
@@ -169,6 +169,8 @@ class Library extends Component {
               libraryVideoCount: libraryVideos.length
             });
           });
+
+          return
         }
 
         //Sort videos
@@ -208,6 +210,11 @@ class Library extends Component {
     //     libraryVideos: libraryVideos,
     //   });
     // });
+  }
+  
+  componentWillUnmount() {
+      this._unsubscribe()
+      if (this._legacyUnsuscribe) this._legacyUnsubscribe()
   }
 
   //Playlists Methods

@@ -137,7 +137,7 @@ class User extends Component {
 
     playlistsRef = playlistsRef.orderBy("createdOn", "desc");
 
-    playlistsRef.onSnapshot(querySnapshot => {
+    this._unsubscribe = playlistsRef.onSnapshot(querySnapshot => {
       const profilePlaylists = [];
       querySnapshot.forEach(function (doc) {
         profilePlaylists.push(doc.data());
@@ -148,7 +148,7 @@ class User extends Component {
     //Browse Public Playlists Rutes
     const publicPlaylistsRef = firebase.firestore().collection('playlists');
 
-    publicPlaylistsRef.onSnapshot(querySnapshot => {
+    this._publicUnsubscribe = publicPlaylistsRef.onSnapshot(querySnapshot => {
       const publicPlaylists = [];
       querySnapshot.forEach(function (doc) {
         publicPlaylists.push(doc.data());
@@ -157,6 +157,11 @@ class User extends Component {
     });
 
   };
+
+  componentWillUnmount() {
+    this._unsubscribe();
+    this._publicUnsubscribe();
+  }
 
   render() {
     if (!this.state.profile) {

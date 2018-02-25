@@ -195,16 +195,14 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>;
     callToAction = <StyledButtonSubmit form="popup-form" value="Create">Create</StyledButtonSubmit>;
-    formAction = onAddPlaylist;
+    formAction = e => {e.preventDefault(); onAddPlaylist(null, null, e.target.playlistInput.value)};
     textInput = <StyledInput
+      name="playlistInput"
       id="input-playlist-popup"
       placeholder="Playlist Name"
       type="text"
-      value={playlistName}
-      onChange={onEditPlaylistInputChange}
       autoComplete = "off"
       min="1"
-      
       required
     />
 
@@ -212,15 +210,15 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
     modalTitle = <StyledTitle>Import a playlist from Spotify</StyledTitle>
     callToAction = <StyledButtonSubmit form="popup-form" value="Import">Import</StyledButtonSubmit>
-    formAction = onImportPlaylist;
+    formAction = e => {e.preventDefault(); onImportPlaylist(null, null, e.target.playlistInput.value)};
     separator = null;
     options = null;
     textInput = <StyledInput
+      name="playlistInput"
       id="input-playlist-popup"
       placeholder="Public Playlist Url"
       type="text"
-      value={playlistUrl}
-      onChange={onImportPlaylistInputChange}
+      defaultValue={playlistUrl}
       min="1"
       autoComplete = "off"
       required
@@ -230,13 +228,13 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
     modalTitle = <StyledTitle>Edit playlist</StyledTitle>
     callToAction = <StyledButtonSubmit form="popup-form" value="Update">Update</StyledButtonSubmit>
-    formAction = onEditPlaylist;
+    formAction = e => {e.preventDefault(); onEditPlaylist(e.target.playlistInput.value)};
     textInput = <StyledInput
+      name="playlistInput"
       id="input-playlist-popup"
       placeholder="Playlist Name"
       type="text"
-      value={playlistName}
-      onChange={onEditPlaylistInputChange}
+      defaultValue={playlistName}
       min="1"
       autoComplete = "off"
       required
@@ -249,7 +247,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
   return (
     <StyledPopup>
       <StyledContainer>
-        <StyledContent id="popup-form" onSubmit={(e)=> {e.preventDefault(); formAction()}}>
+        <StyledContent id="popup-form" onSubmit={formAction}>
           {modalTitle}
           {textInput}
           <StyledActions>

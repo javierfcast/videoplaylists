@@ -73,7 +73,7 @@ class SortableComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: [],
+      items: this.props.videoItems,
     }
   }
 

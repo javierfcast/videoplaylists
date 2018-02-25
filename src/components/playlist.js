@@ -8,6 +8,7 @@ import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
 import YTSearch from './yt_search';
 import SortableComponent from './sortable_component';
+import _ from 'lodash';
 
 const sizes = {
   small: 360,
@@ -318,98 +319,107 @@ class Playlist extends Component {
   };
 
   componentDidMount() {
-
     //Get Playlist document basic info
     let docRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
 
-    docRef.onSnapshot((doc) => {
+    this._unsubscribe = docRef.onSnapshot((doc) => {
       if (doc.exists) {
+
+        let playlistVideos = doc.data().playlistVideos;
+
+        //Copy old videos collection
+        if (!playlistVideos) {
+          let legacyVideosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
+
+          this._legacyUnsubscribe = legacyVideosRef.onSnapshot(querySnapshot => {
+            playlistVideos = [];
+            querySnapshot.forEach(function (doc) {
+              playlistVideos.push(doc.data());
+            });
+
+            if (this.props.user && doc.data().AuthorId === this.props.user.uid) {
+              docRef.update({
+                playlistVideos,
+                videoCount: playlistVideos.length
+              });
+            }
+
+            this.setState({
+              playlist: doc.data(),
+              orderBy: doc.data().orderBy,
+              orderDirection: doc.data().orderDirection,
+              tags: doc.data().tags,
+              playlistVideos:  doc.data().orderBy === 'custom'
+              ? doc.data().orderDirection === 'asc' ? playlistVideos : playlistVideos.reverse() 
+              : _.orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection]),
+            })
+
+          });
+
+          return
+        }
+        
+        //Sort videos
+        if (doc.data().orderBy === 'custom' && doc.data().orderDirection === 'desc') {
+          playlistVideos = playlistVideos.reverse();
+        }
+        else if (doc.data().orderBy !== 'custom') {
+          playlistVideos = _.orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection])
+        }
+
         this.setState({
           playlist: doc.data(),
           orderBy: doc.data().orderBy,
-          orderDirection: doc.data().orderDirection
+          orderDirection: doc.data().orderDirection,
+          tags: doc.data().tags,
+          playlistVideos: playlistVideos,
         })
-      } else {
+
+        //Get related videos
+        this.getRelated(playlistVideos, doc.data().playlistName);
+
+      } 
+      
+      else {
+
         this.setState({
           playlist: 'not found',
           playlistPublicInfo: 'not found'
         })
         console.log("No such document!");
+        
       }
-    });    
+    });
 
     //Get playlist public Information (followers)
     let publicRef = firebase.firestore().collection('playlists').doc(this.state.playlistId);
-    publicRef.onSnapshot((doc) => {
+    this._publicUnsuscribe = publicRef.onSnapshot((doc) => {
       if (doc.exists) {
         this.setState({
           playlistPublicInfo: doc.data(),
         });
       }
-    }); 
-
-    //Get tags of the playlist
-    let playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
-    
-    playlistRef.onSnapshot(doc => {
-      if (doc.exists) {       
-        this.setState({
-          tags: doc.data().tags
-        });
-      }
-    });
-    
-    //Get videos inside playlist
-    if (!this.state.playlist){
-      return null;
-    }
-    let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
-    videosRef = videosRef.orderBy(this.state.playlist.orderBy, this.state.playlist.orderDirection);
-    
-    videosRef.onSnapshot(querySnapshot => {
-      const playlistVideos = [];
-      querySnapshot.forEach(function (doc) {
-        playlistVideos.push(doc.data());
-      });
-      this.setState({
-        playlistVideos: playlistVideos,
-      });
     });
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    if (!this.state.playlist){
-      return null;
-    }
+  componentWillUnmount() {
+    this._unsubscribe()
+    this._publicUnsuscribe()
+    if (this._legacyUnsubscribe) this._legacyUnsubscribe()
+  }
 
-    //Get videos and reorder them if order changed.
-    if (this.state.orderDirection !== prevState.orderDirection) {
-      
-      let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');    
-      if (this.state.orderBy === 'custom') {
-        this.customOrder();
+  componentWillUpdate(nextProps, nextState) {
+
+    //Reorder videos if the current user doesn't owns the playlist
+    if (this.state.orderBy !== nextState.orderBy || this.state.orderDirection !== nextState.orderDirection) {
+      if (this.props.user && this.state.playlist && this.state.playlist.AuthorId !== this.props.user.uid) {
+        this.setState({
+          playlistVideos: _.orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
+        })
       }
-      else {
-        
-        videosRef = videosRef.orderBy(this.state.orderBy, this.state.orderDirection);
-      
-        videosRef.onSnapshot(querySnapshot => {
-          const playlistVideos = [];
-          querySnapshot.forEach(function (doc) {
-            playlistVideos.push(doc.data());
-          });
-          this.setState({
-            playlistVideos: playlistVideos,
-          });
-        });
-      };
     }
 
-    //get related videos 
-    if (this.state.playlistVideos !== prevState.playlistVideos) {
-      this.getRelated(this.state.playlistVideos, this.state.playlist.playlistName);
-    }
-  };
+  }
 
   //Playlists Methods
   togglePlaylistsOptions = () => {
@@ -456,105 +466,29 @@ class Playlist extends Component {
     }
   }
 
-  customOrder = () => {
-    const self = this;
-    const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId); 
-    const videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
-
-    videosRef.onSnapshot(querySnapshot => {
-
-      const playlistVideos = [];
-
-      querySnapshot.forEach(function (doc) {
-        playlistVideos.push(doc.data());
-      });
-
-      //reorder videos
-
-      playlistRef.get().then(function(doc) {
-        //if custom order found
-        if (doc.exists && doc.data().customOrder) {
-          const newPlaylistVideos = [];
-          const newCustomOrder = [];
-          let order = doc.data().customOrder;
-
-          if (self.state.orderDirection === 'desc') order = order.reverse();
-
-          order.forEach((orderId) => {
-            playlistVideos.forEach((video)=> {
-              if (orderId === video.videoID) {
-                newPlaylistVideos.push(video);
-                newCustomOrder.push(orderId);
-              };
-            });
-          });
-
-          //if there are videos with no match
-          if (playlistVideos.length !== newPlaylistVideos.length) {
-            playlistVideos.forEach((video) => {
-              const matches = doc.data().customOrder.some((orderId) => {
-                return orderId === video.videoID
-              })
-              if (!matches) {
-                newPlaylistVideos.push(video);
-                newCustomOrder.push(video.videoID);
-              };
-            });
-          }
-
-          self.setState({
-            playlistVideos: newPlaylistVideos,
-            customOrder: doc.data().customOrder
-          });
-        } 
-        //set order if it doesn't have any
-        else {
-          const order = playlistVideos.map((video) => video.videoID);
-          playlistRef.update({customOrder: order}).then(() => {
-
-            console.log(`Order set succesfully`);
-
-            self.setState({
-              playlistVideos: playlistVideos,
-              customOrder: doc.data().customOrder
-            });
-            
-          }).catch(function (error) {
-            console.log('Got an error:', error);
-          })
-        }
-      }).catch(function(error) {
-          console.log("Error getting document:", error);
-      });
-
-    });
-  }
-
   onSort = (items) => {
-    let newOrder = items.map(item => item.props.videoId);
+    let docRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
     
-    //Return if no changes
-    if (this.state.customOrder && newOrder.toString() === this.state.customOrder.toString()) return;
+    let newOrder = items.map(item => {
+      return {
+        timestamp: item.props.video.timestamp,
+        videoEtag: item.props.video.videoEtag,
+        videoID: item.props.video.videoID,
+        videoTitle: item.props.video.videoTitle,
+        videoChannel: item.props.video.videoChannel,
+        datePublished: item.props.video.datePublished,
+        duration: item.props.video.duration,
+      }
+    })
 
-    const newPlaylistVideos = [];
-    newOrder.forEach((orderId) => {
-      this.state.playlistVideos.forEach((video)=> {
-        if (orderId === video.videoID) newPlaylistVideos.push(video);
-      });
-    });
+    if (this.state.orderDirection === 'desc') newOrder.reverse(); 
 
-    this.setState(({
-      playlistVideos: newPlaylistVideos,
-      customOrder: newOrder
-    }));
-
-    if (this.state.orderDirection === 'desc') newOrder = newOrder.reverse();
-
-    const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
-    playlistRef.update({customOrder: newOrder}).then(() => {
-      console.log('Custom order set');
-    }).catch(function (error) {
-      console.log('Got an error:', error);
+    docRef.update({
+      playlistVideos: newOrder,
+    })
+    .then(() => console.log('Order updated'))
+    .catch(function(error) {
+      console.log(error)
     });
   };
 
@@ -616,7 +550,7 @@ class Playlist extends Component {
     }
   }
 
-  render() {    
+  render() {
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
       return null;
     }

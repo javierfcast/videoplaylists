@@ -88,7 +88,7 @@ const StyledButtonSubmit = styled.button`
   }
 `;
 
-const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddTag, isTagSearch, onAddTagSearch}) => {
+const addTagsPopup = ({ user, open, onClose, onAddTag, isTagSearch, onAddTagSearch}) => {
 
   if (!open) {
     return null;
@@ -96,14 +96,13 @@ const addTagsPopup = ({ user, open, onClose, newTag, onAddTagInputChange, onAddT
   const onSubmit = isTagSearch? onAddTagSearch: onAddTag;
   return (
     <StyledPopup>
-      <StyledContent id="popup-form" onSubmit={(e)=> {e.preventDefault(); onSubmit()}}>
+      <StyledContent id="popup-form" onSubmit={onSubmit}>
       <StyledTitle>Add new tag</StyledTitle>
       <StyledInput
             id="input-playlist-popup"
             placeholder="Tag Name"
             type="text"
-            value={newTag}
-            onChange={onAddTagInputChange}
+            name="tagInput"
             min="1"
             autoComplete = "off"
             required
