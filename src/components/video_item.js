@@ -165,6 +165,11 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
         <MaterialIcon icon="add" color='#fff' />
       </StyledLibraryButton>
     }
+  } else {
+    libraryButton = 
+    <StyledLibraryButton onClick={() => togglePlaylistPopup(video)}>
+      <MaterialIcon icon="add" color='#fff' />
+    </StyledLibraryButton>
   }
 
   return(

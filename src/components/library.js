@@ -347,7 +347,7 @@ class Library extends Component {
       {videoItems}
     </VideoListContainer>;
 
-    if (this.state.libraryOrderBy === 'custom' && this.props.user.uid === this.state.profileId) {
+    if (this.props.user && this.state.libraryOrderBy === 'custom' && this.props.user.uid === this.state.profileId) {
       videoContainerComponent = <SortableComponent
         onSort={this.onSort}
         videoItems={videoItems}
@@ -359,7 +359,7 @@ class Library extends Component {
     const arrow = this.state.libraryOrderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
 
     if (this.state.libraryOptionsIsOpen){
-      if (this.props.user.uid) {
+      if (this.props.user && this.props.user.uid) {
         
         libraryOptionsPopup = 
 
