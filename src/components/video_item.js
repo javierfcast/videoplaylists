@@ -42,9 +42,6 @@ const StyledActions = styled.div`
   min-width: 110px;
   flex: 0 1 auto;
   text-align: right;
-  ${props => props.children[0]._owner.memoizedProps.orderBy === 'custom' && `
-    min-width: 150px;
-  `}
 `
 const StyledActionButton = styled.a`
   cursor: pointer;
@@ -177,7 +174,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
       {libraryButton}
       <StyledContent>
         {videoTrigger}
-        <StyledActions>
+        <StyledActions style={orderBy === 'custom' ? {minWidth: '150px'} : {}} >
           {addButton}
           {deleteButton}
           {handle}
