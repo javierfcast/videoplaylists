@@ -908,6 +908,8 @@ class App extends Component {
   onRemoveFromLibrary = (video) => {
     const user = this.state.user;
     const self = this;
+    const videoID = video.videoID ? video.videoID : video.id.videoId
+    const videoTitle = video.videoTitle ? video.videoTitle : video.snippet.title
 
     const docRef = firebase.firestore().doc(`users/${user.uid}`);
 
@@ -915,10 +917,10 @@ class App extends Component {
       if (!doc.exists) throw new Error("User not found");
 
       docRef.update({
-        libraryVideos: doc.data().libraryVideos.filter((libraryTrack) => libraryTrack.videoID !== video.videoID),
+        libraryVideos: doc.data().libraryVideos.filter((libraryTrack) => libraryTrack.videoID !== videoID),
         libraryVideoCount: doc.data().libraryVideos.length - 1
       })
-      .then(() => self.setSnackbar(`${video.videoTitle} removed from Library.`));
+      .then(() => self.setSnackbar(`${videoTitle} removed from Library.`));
 
     }).catch(function(error) {
       self.setSnackbar(error.toString());
