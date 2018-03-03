@@ -43,6 +43,7 @@ import './style/style.css';
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
 let progTimeout;
 let progressTimerId;
+let updateProgressTimerId;
 
 const sizes = {
   small: 360,
@@ -329,8 +330,28 @@ class App extends Component {
 
         this.changeVideo(true);
       }
-      //video playling
       else if (event.data === 1) {
+        const self = this;
+        this.player.getDuration().then(playerTotalTime => this.setState({progressMax: playerTotalTime}))
+        clearInterval(updateProgressTimerId)
+
+        const progressUpdate = () => {
+          this.player.getCurrentTime().then(playerCurrentTime => {
+            let progressCount = playerCurrentTime
+            clearInterval(progressTimerId)
+  
+            progressTimerId = setInterval(() => {
+              progressCount = progressCount + 0.5
+              self.setState({progress: progressCount});
+            }, 500)
+          })
+        }
+
+        progressUpdate()
+        updateProgressTimerId = setInterval(progressUpdate, 6000)
+      }
+      //video playling
+      /* else if (event.data === 1) {
         const self = this;
         this.player.getDuration().then(playerTotalTime => {
           this.setState({progressMax: playerTotalTime});
@@ -341,9 +362,10 @@ class App extends Component {
             });
           }, 1000);    
         });
-      }
+      } */
       //video paused
-      else if (event.data === 2) {               
+      else if (event.data === 2) {
+        clearInterval(updateProgressTimerId)               
         clearInterval(progressTimerId);
       }
     });
