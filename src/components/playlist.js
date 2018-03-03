@@ -314,7 +314,11 @@ class Playlist extends Component {
       orderDirection: null,
       tags: [],
       customOrder: [],
-      scrolling: false
+      scrolling: false,
+
+      videoItems: null,
+      relatedVideoItems: null,
+      tagItems: null
     };
   };
 
@@ -409,7 +413,6 @@ class Playlist extends Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-
     //Reorder videos if the current user doesn't owns the playlist
     if (this.state.orderBy !== nextState.orderBy || this.state.orderDirection !== nextState.orderDirection) {
       if (this.props.user && this.state.playlist && this.state.playlist.AuthorId !== this.props.user.uid) {
@@ -419,6 +422,132 @@ class Playlist extends Component {
       }
     }
 
+    //Map videos inside playlist
+    if (this.state.playlistVideos !== nextState.playlistVideos || this.props.libraryVideos !== nextProps.libraryVideos) {
+
+      const videoItems = nextState.playlistVideos.map((video) => {   
+        let date = new Date(video.datePublished);
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let dt = date.getDate();
+
+        if (dt < 10) {
+          dt = '0' + dt;
+        }
+        if (month < 10) {
+          month = '0' + month;
+        }
+
+        //check if video it's in library
+        const itsOnLibrary = nextProps.libraryVideos.some((element) => {
+          return element.videoID === video.videoID
+        });
+
+        return (
+          <VideoItem
+            user={nextProps.user}
+            playlist={nextState.playlist}
+            playlistVideos={nextState.playlistVideos}
+            currentVideoId = {nextProps.videoId}
+            inSearchResults={false}
+            key={video.videoEtag}
+            video={video}
+            videoEtag={video.videoEtag}
+            videoTitle={video.videoTitle}
+            videoId={video.videoID}
+            videoChannel={video.videoChannel}
+            duration={video.duration}
+            datePublished={year + '-' + month + '-' + dt}
+            togglePlayer={nextProps.togglePlayer}
+            togglePlaylistPopup={nextProps.togglePlaylistPopup}
+            onAddToPlaylist={nextProps.onAddToPlaylist}
+            onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
+            onAddToLibrary={nextProps.onAddToLibrary}
+            onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
+            orderBy={nextState.orderBy}
+            itsOnLibrary={itsOnLibrary}
+          />
+        )
+      })
+
+      this.setState({videoItems});
+    }
+
+    if (this.state.relatedVideos !== nextState.relatedVideos || this.props.libraryVideos !== nextProps.libraryVideos) {
+
+      //Map related videos
+      const relatedVideoItems = nextState.relatedVideos.map((video) => { 
+        let date = new Date(video.datePublished);
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let dt = date.getDate();
+
+        if (dt < 10) {
+          dt = '0' + dt;
+        }
+        if (month < 10) {
+          month = '0' + month;
+        }
+
+        //check if video it's in library
+        const itsOnLibrary = nextProps.libraryVideos.some((element) => {
+          return element.videoID === video.videoID
+        });
+
+        return (
+          <VideoItem
+            user={nextProps.user}
+            playlist={nextState.playlist}
+            playlistVideos={nextState.playlistVideos}
+            currentVideoId = {nextProps.videoId}
+            inSearchResults={false}
+            inRelatedVideos={true}
+            key={video.videoEtag}
+            video={video}
+            videoEtag={video.videoEtag}
+            videoTitle={video.videoTitle}
+            videoId={video.videoID}
+            videoChannel={video.videoChannel}
+            duration={video.duration}
+            datePublished={year + '-' + month + '-' + dt}
+            togglePlayer={nextProps.togglePlayer}
+            togglePlaylistPopup={nextProps.togglePlaylistPopup}
+            onAddToPlaylist={nextProps.onAddToPlaylist}
+            onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
+            onAddToLibrary={nextProps.onAddToLibrary}
+            onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
+            autoAdd={true}
+            itsOnLibrary={itsOnLibrary}
+          />
+        )
+      });
+
+      this.setState({relatedVideoItems});
+    }
+
+    if (this.state.tags !== nextState.tags) {
+      //Map tags
+      const tagItems = nextState.tags ? nextState.tags.map((tag, i) => { //if tags exist
+        const newTags = [...nextState.tags];
+        newTags.splice(i, 1);
+
+        //add remove button if user is logged in and owns the playlist      
+        const tagRemove = nextProps.user !== null && nextProps.user.uid === nextState.playlist.AuthorId ?
+        <StyledButtonTagRemove onClick={() => nextProps.onRemoveTag(newTags, nextState.playlist)}>
+          <MaterialIcon icon="clear" color='#fff' size="18px" />
+        </StyledButtonTagRemove> : null;
+        return (
+          <StyledDivTag key= {i}>
+            {tagRemove}
+            <StyledButtonTagName to="/search"
+            onClick={() => nextProps.onTagClick([tag])}>
+            {tag}
+            </StyledButtonTagName>
+          </StyledDivTag>)
+      }) : null;
+
+      this.setState({tagItems});
+    }
   }
 
   //Playlists Methods
@@ -589,124 +718,10 @@ class Playlist extends Component {
     const playlistFollowers = this.state.playlistPublicInfo.followers;
     const batchSize = this.state.playlistVideos.length;
     
-    //Map videos inside playlist
-    const videoItems = this.state.playlistVideos.map((video) => {   
-      
-      let date = new Date(video.datePublished);
-      let year = date.getFullYear();
-      let month = date.getMonth() + 1;
-      let dt = date.getDate();
-
-      if (dt < 10) {
-        dt = '0' + dt;
-      }
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      //check if video it's in library
-      const itsOnLibrary = this.props.libraryVideos.some((element) => {
-        return element.videoID === video.videoID
-      });
-
-      return (
-        <VideoItem
-          user={this.props.user}
-          playlist={this.state.playlist}
-          playlistVideos={this.state.playlistVideos}
-          currentVideoId = {this.props.videoId}
-          inSearchResults={false}
-          key={video.videoEtag}
-          video={video}
-          videoEtag={video.videoEtag}
-          videoTitle={video.videoTitle}
-          videoId={video.videoID}
-          videoChannel={video.videoChannel}
-          duration={video.duration}
-          datePublished={year + '-' + month + '-' + dt}
-          togglePlayer={this.props.togglePlayer}
-          togglePlaylistPopup={this.props.togglePlaylistPopup}
-          onAddToPlaylist={this.props.onAddToPlaylist}
-          onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
-          onAddToLibrary={this.props.onAddToLibrary}
-          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
-          orderBy={this.state.orderBy}
-          itsOnLibrary={itsOnLibrary}
-        />
-      )
-    });
-
-    //Map related videos
-    const relatedVideoItems = this.state.relatedVideos.map((video) => { 
-      let date = new Date(video.datePublished);
-      let year = date.getFullYear();
-      let month = date.getMonth() + 1;
-      let dt = date.getDate();
-
-      if (dt < 10) {
-        dt = '0' + dt;
-      }
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      //check if video it's in library
-      const itsOnLibrary = this.props.libraryVideos.some((element) => {
-        return element.videoID === video.videoID
-      });
-
-      return (
-        <VideoItem
-          user={this.props.user}
-          playlist={this.state.playlist}
-          playlistVideos={this.state.playlistVideos}
-          currentVideoId = {this.props.videoId}
-          inSearchResults={false}
-          inRelatedVideos={true}
-          key={video.videoEtag}
-          video={video}
-          videoEtag={video.videoEtag}
-          videoTitle={video.videoTitle}
-          videoId={video.videoID}
-          videoChannel={video.videoChannel}
-          duration={video.duration}
-          datePublished={year + '-' + month + '-' + dt}
-          togglePlayer={this.props.togglePlayer}
-          togglePlaylistPopup={this.props.togglePlaylistPopup}
-          onAddToPlaylist={this.props.onAddToPlaylist}
-          onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
-          onAddToLibrary={this.props.onAddToLibrary}
-          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
-          autoAdd={true}
-          itsOnLibrary={itsOnLibrary}
-        />
-      )
-    });
-
     //Set tags
     let addTags = null;
     let playlistTags = null;
 
-    //Map tags
-    const tagItems = this.state.tags? this.state.tags.map((tag, i) => { //if tags exist
-      const newTags = this.state.tags.map((t)=>{return t});
-      newTags.splice(i, 1);
-
-      //add remove button if user is logged in and owns the playlist      
-      const tagRemove = this.props.user !== null && this.props.user.uid === playlist.AuthorId ?
-      <StyledButtonTagRemove onClick={() => this.props.onRemoveTag(newTags, this.state.playlist)}>
-        <MaterialIcon icon="clear" color='#fff' size="18px" />
-      </StyledButtonTagRemove> : null;
-      return (
-        <StyledDivTag key= {i}>
-          {tagRemove}
-          <StyledButtonTagName to="/search"
-           onClick={() => this.props.onTagClick([tag])}>
-           {tag}
-          </StyledButtonTagName>
-        </StyledDivTag>)
-    }) : null;
-    
     //if user is logged in and owns the playlist
     if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
       //add button to add tags
@@ -715,14 +730,14 @@ class Playlist extends Component {
       </StyledButtonTagMore>
 
       playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling ? 1 : 0}>
-        {tagItems}
+        {this.state.tagItems}
         {addTags}
       </StyledPlaylistTags>
     } 
     //if user doesn't owns the playlist but it has tags
-    else if (tagItems) {
+    else if (this.state.tagItems) {
       playlistTags = <StyledPlaylistTags scrolling={this.state.scrolling ? 1 : 0}>
-        {tagItems}
+        {this.state.tagItems}
       </StyledPlaylistTags>
     }
 
@@ -740,19 +755,19 @@ class Playlist extends Component {
         </PlaylistActions>
 
         videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-          {videoItems}
+          {this.state.videoItems}
           {relatedSection}
         </VideoListContainer>
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
         
         relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>
-          {relatedVideoItems}
+          {this.state.relatedVideoItems}
         </div>
 
         if (this.state.orderBy === 'custom') {
           videoContainerComponent = <SortableComponent
-            videoItems={videoItems}
+            videoItems={this.state.videoItems}
             relatedSection={relatedSection}
             onSort={this.onSort}
             orderBy={this.state.orderBy}
@@ -760,7 +775,7 @@ class Playlist extends Component {
           />
         } else {
           videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-            {videoItems}
+            {this.state.videoItems}
             {relatedSection}
           </VideoListContainer>
         }
@@ -776,7 +791,7 @@ class Playlist extends Component {
     } else {
       followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
       videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-        {videoItems}
+        {this.state.videoItems}
         {relatedSection}
       </VideoListContainer>
     }
