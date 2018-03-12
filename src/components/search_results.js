@@ -1,24 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
-import { css } from 'styled-components';
+
 //custom components
 import VideoItem from './video_item';
-
-const sizes = {
-  small: 360,
-  xmedium: 720,
-  xlarge: 1200
-}
-
-// Iterate through the sizes and create a media template
-const media = Object.keys(sizes).reduce((acc, label) => {
-  acc[label] = (...args) => css`
-		@media (min-width: ${sizes[label] / 16}em) {
-			${css(...args)}
-		}
-	`
-  return acc
-}, {})
 
 const SearchResultsContainer = styled.div`
   padding: 20px 20px 0;
