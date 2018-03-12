@@ -6,7 +6,7 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
-import YTSearch from './components/yt_search'
+import YTApi from './components/yt_api'
 import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
@@ -190,6 +190,8 @@ class App extends Component {
       //Import Playlists from Spotify
       playlistUrl: [],
       importingNewPlaylist: false,
+      //Import Playlist from Youtube
+      importingType: null,
       //Add Tag Popup
       addTagPopupIsOpen: false,
       playlistToAddTag: null,
@@ -456,7 +458,7 @@ class App extends Component {
       return null;
     }
 
-    YTSearch({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
+    YTApi.Search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
     .then((searchResults)=> {    
       this.setState({
         searchResults: searchResults
@@ -977,7 +979,7 @@ class App extends Component {
   onImportPlaylistDrop = (event) => {
     event.preventDefault();
 
-    this.toggleImportPlaylistPopup(true);
+    this.toggleImportPlaylistPopup('Spotify', true);
     this.setState({
       playlistUrl: event.dataTransfer.getData("URL")
     });
@@ -994,12 +996,13 @@ class App extends Component {
     });
   };
 
-  toggleImportPlaylistPopup = (dontHide) => {
+  toggleImportPlaylistPopup = (type, dontHide) => {
     const toggle = dontHide === true ? true : !this.state.editPlaylistPopupIsOpen;
     
     this.setState({
       addingNewPlaylist: false,
       importingNewPlaylist: true,
+      importingType: type,
       previousPlaylistName: '',
       previousPlaylistSlug: '',
       playlistName: '',
@@ -1009,12 +1012,20 @@ class App extends Component {
     });
   };
 
-  onAddPlaylist = (spotifyUrl, callback, playlistName) => {
+  onAddPlaylist = (playlistName, playlistUrl, callback) => {
     const user = this.state.user;
     const playlistSlugName = this.slugify(playlistName);
 
-    spotifyUrl = typeof spotifyUrl === "string"  ? spotifyUrl : null;
-    
+    const spotifyUrl = typeof playlistUrl === "string" 
+      && (/spotify/i).test(playlistUrl) 
+      ? playlistUrl 
+      : null;
+
+    const youtubeUrl = typeof playlistUrl === "string" 
+      && (/youtube/i).test(playlistUrl)
+      ? playlistUrl
+      : null;
+
     console.log(`User id: ${user.uid}`);
     console.log(`playlist name: ${playlistName}`);
     console.log(`playlist slug: ${playlistSlugName}`);
@@ -1032,7 +1043,8 @@ class App extends Component {
       orderBy: 'custom',
       orderDirection: 'asc',
       playlistVideos: [],
-      spotifyUrl: spotifyUrl
+      spotifyUrl: spotifyUrl,
+      youtubeUrl: youtubeUrl
     }).then((docRef) => {
       console.log(`Playlist saved with Id: ${docRef.id}`);
       docRef.update({
@@ -1059,7 +1071,7 @@ class App extends Component {
       console.log('Got an error:', error);
     })
     
-    if (!spotifyUrl) this.toggleClosePlaylistPopup();
+    if (!typeof playlistUrl === "string") this.toggleClosePlaylistPopup();
   };
 
   toggleEditPlaylistPopup = (playlist) => {
@@ -1108,7 +1120,65 @@ class App extends Component {
     this.toggleClosePlaylistPopup();
   };
 
-  onImportPlaylist = (isUpdate, playlist, url) => {
+  batchAdd = (playlistIdRef, items, isUpdate, kind) => {
+    let seen = [];
+    const db = firebase.firestore();
+    const playlistVideos = [];
+    const user = this.state.user;
+    const self = this;
+
+    items.forEach((video) => {
+      if (video) {
+        const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
+        const videoId = typeof video.id !== 'undefined' ? typeof video.id.videoId !== 'undefined' ? video.id.videoId : video.snippet.resourceId.videoId : video.videoID;
+        const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
+        const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
+        const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
+        const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+
+        //dont set if video is duplicated
+        if (!seen.some((id) => id === videoId)) {
+          playlistVideos.push({
+            timestamp: new Date(),
+            videoEtag: videoEtag,
+            videoID: videoId,
+            videoTitle: videoTitle,
+            videoChannel: videoChannel,
+            datePublished: datePublished,
+            duration: duration,
+          })
+
+          seen.push(videoId);
+        }
+      }
+    });
+
+    const userPlaylistRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef);
+    const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
+
+    let playlistItem = {
+      videoCount: playlistVideos.length,
+    }
+
+    //Add a Spotify tag if it's a new playlist
+    if (!isUpdate && kind === 'Spotify') playlistItem.tags = ["Spotify"]
+
+    publicPlaylistRef.update(playlistItem).catch((error) => {
+      throw new Error(error); 
+    });
+
+    playlistItem.playlistVideos = playlistVideos
+
+    userPlaylistRef.update(playlistItem)
+    .then(() => {
+      if (isUpdate !== true) self.setSnackbar("Successfully imported!");
+      else self.setSnackbar("Successfully updated!");
+    }).catch((error) => {
+      throw new Error(error); 
+    });
+  } 
+
+  onImportPlaylist = (url, isUpdate, playlist) => {
     const playlistUrl = isUpdate === true ? playlist.spotifyUrl : url;
     
     if (!playlistUrl.match(/user\/.+playlist\/[^/|?]+/)) {
@@ -1119,7 +1189,6 @@ class App extends Component {
     const self = this;
     const userId = playlistUrl.match(/user.([^/]+)/);
     const playlistId = playlistUrl.match(/playlist.([^/|?]+)/);
-    const user = this.state.user;
     let allTracks = [];
 
     if (isUpdate !== true) this.setSnackbar("Importing playlist...");
@@ -1151,19 +1220,19 @@ class App extends Component {
 
           allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
-            promises.push(YTSearch({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
+            promises.push(YTApi.Search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
           });
 
           Promise.all(promises)
           .then((results)=> {
             results = results.map((result) => result[0]);
             if (isUpdate === true) {
-              batchAdd(playlist.playlistId, results);
+              self.batchAdd(playlist.playlistId, results, isUpdate, 'Spotify');
             }
             else {
-              self.onAddPlaylist(playlistUrl, (docRefId) => {
-                batchAdd(docRefId, results);
-              }, prevData.name);
+              self.onAddPlaylist(prevData.name, playlistUrl, (docRefId) => {
+                self.batchAdd(docRefId, results, isUpdate, 'Spotify');
+              });
             }
           }).catch((error) => {
             throw new Error(error); 
@@ -1183,70 +1252,44 @@ class App extends Component {
       self.setSnackbar("Couldn't reach Spotify. Please try again later.");    
     });
 
-    function batchAdd(playlistIdRef, items) {
-      let seen = [];
-      const db = firebase.firestore();
-      const playlistVideos = [];
+    if (isUpdate === true) return;
+    this.toggleImportPlaylistPopup();
+  }
 
-      items.forEach((video) => {
-        if (video) {
-          const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
-          const videoId = typeof video.id !== 'undefined' ? video.id.videoId : video.videoID;
-          const videoTitle = typeof video.snippet !== 'undefined' ? video.snippet.title : video.videoTitle;
-          const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
-          const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
-          const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+  onImportFromYoutube = (url, isUpdate, playlist) => {
 
-          //dont set if video is duplicated
-          if (!seen.some((id) => id === videoId)) {
-            playlistVideos.push({
-              timestamp: new Date(),
-              videoEtag: videoEtag,
-              videoID: videoId,
-              videoTitle: videoTitle,
-              videoChannel: videoChannel,
-              datePublished: datePublished,
-              duration: duration,
-            })
+    const playlistUrl = isUpdate === true ? playlist.youtubeUrl : url;
 
-            seen.push(videoId);
-          }
-        }
+    if (!playlistUrl.match(/(youtube|youtu.be).+list=([^/|?|&]+)/)) {
+      this.setSnackbar("Plase enter a valid YouTube playlist");
+      return;
+    }
+    
+    const self = this;
+
+    const playlistId = playlistUrl.match(/list=([^/|?|&]+)/)[1];
+
+    if (isUpdate !== true) this.setSnackbar("Importing playlist...");
+
+    YTApi.playlistItems({ part: 'snippet', key: YT_API_KEY, id: playlistId })
+    .then((playlistItems)=> {
+      
+      self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
+        self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
       });
 
-      const userPlaylistRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef);
-      const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
-
-      let playlistItem = {
-        videoCount: playlistVideos.length,
-      }
-
-      //Add a Spotify tag if it's a new playlist
-      if (!isUpdate) playlistItem.tags = ["Spotify"]
-
-      publicPlaylistRef.update(playlistItem).catch((error) => {
-        throw new Error(error); 
-      });
-
-      playlistItem.playlistVideos = playlistVideos
-
-      userPlaylistRef.update(playlistItem)
-      .then(() => {
-        if (isUpdate !== true) self.setSnackbar("Successfully imported!");
-        else self.setSnackbar("Successfully updated!");
-      }).catch((error) => {
-        throw new Error(error); 
-      });
-    } 
+    }).catch((error) => {
+      self.setSnackbar(error.toString()); 
+    });
 
     if (isUpdate === true) return;
     this.toggleImportPlaylistPopup();
   }
 
-  onUpdatePlaylist = (playlist, batchSize) => {
+  onUpdatePlaylist = (playlist) => {
 
     this.setSnackbar("Updating playlist...");
-    this.onImportPlaylist(true, playlist);
+    this.onImportPlaylist(null, true, playlist);
 
   }
 
@@ -1613,11 +1656,13 @@ class App extends Component {
           onAddPlaylist={this.onAddPlaylist}
           onEditPlaylist={this.onEditPlaylist}
           onImportPlaylist={this.onImportPlaylist}
+          onImportFromYoutube={this.onImportFromYoutube}
           playlistName={this.state.playlistName}
           playlistSlug={this.state.playlistSlug}
           selectedPlaylist={this.state.selectedPlaylist}
           addingNewPlaylist={this.state.addingNewPlaylist}
           importingNewPlaylist={this.state.importingNewPlaylist}
+          importingType={this.state.importingType}
           playlistUrl={this.state.playlistUrl}
           onImportPlaylistInputChange={this.onImportPlaylistInputChange}
           toggleImportPlaylistPopup={this.toggleImportPlaylistPopup}

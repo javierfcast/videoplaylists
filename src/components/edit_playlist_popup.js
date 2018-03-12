@@ -166,7 +166,7 @@ const StyledOptionsButton = styled.a`
   `}
 `;
 
-const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, toggleImportPlaylistPopup, onImportPlaylistDrop}) => {
+const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, onImportFromYoutube, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, importingType, toggleImportPlaylistPopup, onImportPlaylistDrop}) => {
 
   if (!open) {
     return null;
@@ -177,25 +177,29 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
   let textInput = null;
   let formAction = null;
 
-  let separator = separator = <StyledSeparator>Or Import</StyledSeparator>;
+  let separator = <StyledSeparator>Or Import</StyledSeparator>;
 
   let options =
     <StyledContent>
       <StyledOptionsActions>
         <StyledOptionsButton 
-          onClick={() => toggleImportPlaylistPopup(true)}
+          onClick={() => toggleImportPlaylistPopup('Spotify', true)}
           onDrop={(event) => {onImportPlaylistDrop(event)}}
           onDragOver={(e) => e.preventDefault()}>
           From Spotify
         </StyledOptionsButton>
+        <StyledOptionsButton 
+          onClick={() => toggleImportPlaylistPopup('YouTube', true)}>
+          From YouTube
+        </StyledOptionsButton>
       </StyledOptionsActions>
     </StyledContent>;
 
-  if(addingNewPlaylist === true){
+  if (addingNewPlaylist === true){
 
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>;
     callToAction = <StyledButtonSubmit form="popup-form" value="Create">Create</StyledButtonSubmit>;
-    formAction = e => {e.preventDefault(); onAddPlaylist(null, null, e.target.playlistInput.value)};
+    formAction = e => {e.preventDefault(); onAddPlaylist(e.target.playlistInput.value)};
     textInput = <StyledInput
       name="playlistInput"
       id="input-playlist-popup"
@@ -208,15 +212,18 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
   } else if (importingNewPlaylist === true){
 
-    modalTitle = <StyledTitle>Import a playlist from Spotify</StyledTitle>
+    modalTitle = <StyledTitle>Import a playlist from {importingType}</StyledTitle>
     callToAction = <StyledButtonSubmit form="popup-form" value="Import">Import</StyledButtonSubmit>
-    formAction = e => {e.preventDefault(); onImportPlaylist(null, null, e.target.playlistInput.value)};
+    formAction = 
+      importingType === 'Spotify'
+      ? e => {e.preventDefault(); onImportPlaylist(e.target.playlistInput.value)} 
+      : e => {e.preventDefault(); onImportFromYoutube(e.target.playlistInput.value)};
     separator = null;
     options = null;
     textInput = <StyledInput
       name="playlistInput"
       id="input-playlist-popup"
-      placeholder="Public Playlist Url"
+      placeholder="Playlist Url"
       type="text"
       defaultValue={playlistUrl}
       min="1"

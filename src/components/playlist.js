@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import YTSearch from './yt_search';
+import YTApi from './yt_api';
 import SortableComponent from './sortable_component';
 import _ from 'lodash';
 
@@ -625,7 +625,7 @@ class Playlist extends Component {
 
     if (playlistVideos.length > 0) {
       const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
-      YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
+      YTApi.Search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
       .then((searchResults)=> {    
         const video = searchResults.map((result, index) => {
           return {
@@ -646,7 +646,7 @@ class Playlist extends Component {
     }
     
     else {
-      YTSearch({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
+      YTApi.Search({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
       .then((searchResults)=> {    
         const video = searchResults.map((result, index) => {
           return {
