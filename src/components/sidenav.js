@@ -233,11 +233,11 @@ const StyledInterfaceSwitch = styled.label`
   }
 `;
 
-const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, toggleImportPlaylistPopup, importFromSpotify, onImportPlaylistDrop, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
+const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, importFromSpotify, onImportPlaylistDrop, myPlaylists, followingPlaylists, onLogin, onLogout, user}) => {
 
   const MyPlaylists = myPlaylists.map((playlist) => {
     return (
-      <li key = {playlist.playlistSlugName}>
+      <li key = {playlist.playlistId}>
         <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>{playlist.playlistName}</StyledNavItemLink>
       </li>
     )
