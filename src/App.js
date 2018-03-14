@@ -44,6 +44,7 @@ const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
 let progTimeout;
 let progressTimerId;
 let updateProgressTimerId;
+let mouseTimeout;
 
 const sizes = {
   small: 360,
@@ -372,26 +373,24 @@ class App extends Component {
       }
     });
     
-    //Hide inteface after 5 seconds of mouse inactivity
+    // Hide inteface after 5 seconds of mouse inactivity
 
-    // document.onmousemove = () => {
+    document.onmousemove = () => {
 
-    //   if (this.state.playerIsOpen !== false ){
+      if (this.state.playerIsOpen !== false ){
 
-    //     document.getElementById("interface").classList.remove('hidden');
+        document.getElementById("interface").classList.remove('hidden');
 
-    //     let mouseTimeout;
+        clearTimeout(mouseTimeout);
 
-    //     clearTimeout(mouseTimeout);
+        mouseTimeout = setTimeout( () => {
+          document.getElementById("interface").classList.add('hidden');
+          console.log('hidding interface after 10 seconds of mouse inactivity');
+        }, 10000);
 
-    //     mouseTimeout = setTimeout( () => {
-    //       document.getElementById("interface").classList.add('hidden');
-    //       console.log('hidding interface after 10 seconds of mouse inactivity');
-    //     }, 10000);
+      }
 
-    //   }
-
-    // }
+    }
 
   };
 
