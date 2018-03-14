@@ -1273,9 +1273,15 @@ class App extends Component {
     YTApi.playlistItems({ part: 'snippet', key: YT_API_KEY, id: playlistId })
     .then((playlistItems)=> {
       
-      self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
-        self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
-      });
+      if (isUpdate) {
+        self.batchAdd(playlist.playlistId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+      }
+      else {
+        self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
+          self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+        });
+      }
+      
 
     }).catch((error) => {
       self.setSnackbar(error.toString()); 
@@ -1288,7 +1294,9 @@ class App extends Component {
   onUpdatePlaylist = (playlist) => {
 
     this.setSnackbar("Updating playlist...");
-    this.onImportPlaylist(null, true, playlist);
+
+    if (playlist.spotifyUrl) this.onImportPlaylist(null, true, playlist);
+    else if (playlist.youtubeUrl) this.onImportFromYoutube(null, true, playlist);
 
   }
 

@@ -780,7 +780,7 @@ class Playlist extends Component {
           </VideoListContainer>
         }
 
-        if (playlist.spotifyUrl) {
+        if (playlist.spotifyUrl || playlist.youtubeUrl) {
           updatePlaylist = 
           <StyledButtonPopup onClick={() => {this.props.onUpdatePlaylist(playlist, batchSize); this.togglePlaylistsOptions()}}>
             Update Playlist <MaterialIcon icon="cached" color='#fff' />
@@ -805,7 +805,7 @@ class Playlist extends Component {
         
         playlistOptionsPopup = 
 
-        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={ () => this.togglePlaylistsOptions() } >
+        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={this.togglePlaylistsOptions} >
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
@@ -852,7 +852,7 @@ class Playlist extends Component {
       } else if (this.props.user !== null) {
         playlistOptionsPopup = 
 
-        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={ () => this.togglePlaylistsOptions() } >
+        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={this.togglePlaylistsOptions} >
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
@@ -898,7 +898,7 @@ class Playlist extends Component {
               </StyledPlaylistInfo>
               <StyledPlaylistActions>
                 {followButton}
-                <StyledButton onClick={() => this.togglePlaylistsOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+                <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               </StyledPlaylistActions>
             </StyledHeaderActions>
           </StyledHeader>
