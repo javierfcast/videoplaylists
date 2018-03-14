@@ -42,6 +42,9 @@ h6 {
 p {
   line-height: 1.5; }
 
+.hidden {
+  opacity: 0 !important; }
+
 /**************************
 
 External Components styling
