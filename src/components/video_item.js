@@ -89,7 +89,7 @@ const StyledLibraryButtonCheck = styled.a`
   }
 `
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos, reorder}) => {
   
   let durationFormated = Moment.duration(duration).asMilliseconds();
   durationFormated = Moment.utc(durationFormated).format("mm:ss");
@@ -124,25 +124,6 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
       </StyledVideoInfo>
   }
 
-  let handle = null;
-
-  if (user !== null) {
-    if (inSearchResults === true || user.uid !== AuthorId || inRelatedVideos) {
-      deleteButton = null
-      if (inLibraryVideos && orderBy === "custom") {
-        handle = <StyledDragHandle><MaterialIcon icon="drag_handle" color='#fff' /></StyledDragHandle>
-      }
-    } else {
-      deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, playlist)}>
-        <MaterialIcon icon="delete_forever" color='#fff' />
-      </StyledActionButton>
-      
-      if (orderBy === "custom") {
-        handle = <StyledDragHandle><MaterialIcon icon="drag_handle" color='#fff' /></StyledDragHandle>
-      }
-    }
-  }
-
   let libraryButton = null;
 
   //Add to library button
@@ -162,6 +143,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
         <MaterialIcon icon="add" color='#fff' />
       </StyledLibraryButton>
     }
+
   } else {
     libraryButton = 
     <StyledLibraryButton onClick={() => togglePlaylistPopup(video)}>
@@ -169,15 +151,32 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
     </StyledLibraryButton>
   }
 
+  if (user !== null) {
+    if (inSearchResults === true || user.uid !== AuthorId || inRelatedVideos) {
+      deleteButton = null
+      if (inLibraryVideos && orderBy === "custom" && reorder) {
+        libraryButton = <StyledDragHandle><MaterialIcon icon="drag_handle" color='#fff' /></StyledDragHandle>
+      }
+    } else {
+      deleteButton = <StyledActionButton onClick={() => onRemoveFromPlaylist(videoId, playlist)}>
+        <MaterialIcon icon="delete_forever" color='#fff' />
+      </StyledActionButton>
+      
+      if (orderBy === "custom" && reorder) {
+        libraryButton = <StyledDragHandle><MaterialIcon icon="drag_handle" color='#fff' /></StyledDragHandle>
+      }
+    }
+  }
+
+
   return(
     <StyledVideoItem className={currentVideoId === videoId && 'active'}>
       {libraryButton}
       <StyledContent>
         {videoTrigger}
-        <StyledActions style={orderBy === 'custom' ? {minWidth: '150px'} : {}} >
+        <StyledActions>
           {addButton}
           {deleteButton}
-          {handle}
         </StyledActions>
       </StyledContent>
     </StyledVideoItem>

@@ -315,6 +315,7 @@ class Playlist extends Component {
       tags: [],
       customOrder: [],
       scrolling: false,
+      reorder: false,
 
       videoItems: null,
       relatedVideoItems: null,
@@ -423,7 +424,7 @@ class Playlist extends Component {
     }
 
     //Map videos inside playlist
-    if (this.state.playlistVideos !== nextState.playlistVideos || this.props.libraryVideos !== nextProps.libraryVideos) {
+    if (this.state.playlistVideos !== nextState.playlistVideos || this.props.libraryVideos !== nextProps.libraryVideos || this.state.reorder !== nextState.reorder) {
 
       const videoItems = nextState.playlistVideos.map((video) => {   
         let date = new Date(video.datePublished);
@@ -466,6 +467,7 @@ class Playlist extends Component {
             onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
             orderBy={nextState.orderBy}
             itsOnLibrary={itsOnLibrary}
+            reorder={nextState.reorder}
           />
         )
       })
@@ -679,6 +681,10 @@ class Playlist extends Component {
     }
   }
 
+  onToggleReorder = () => {
+    this.setState({reorder: !this.state.reorder})
+  }
+
   render() {
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
       return null;
@@ -746,6 +752,7 @@ class Playlist extends Component {
     let relatedSection = null;
     let videoContainerComponent = null;
     let updatePlaylist = null;
+    let reorderButton = null;
 
     if (this.props.user !== null ) {
       if (this.props.user.uid !== playlist.AuthorId) {
@@ -758,6 +765,7 @@ class Playlist extends Component {
           {this.state.videoItems}
           {relatedSection}
         </VideoListContainer>
+
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
         
@@ -766,14 +774,35 @@ class Playlist extends Component {
         </div>
 
         if (this.state.orderBy === 'custom') {
-          videoContainerComponent = <SortableComponent
-            videoItems={this.state.videoItems}
-            relatedSection={relatedSection}
-            onSort={this.onSort}
-            orderBy={this.state.orderBy}
-            handleScroll={this.handleScroll}
-          />
-        } else {
+
+          if (this.state.reorder) {
+            reorderButton = 
+            <StyledButton onClick={this.onToggleReorder}>
+              <MaterialIcon icon="done" color='#fff' />
+            </StyledButton>
+
+            videoContainerComponent = <SortableComponent
+              videoItems={this.state.videoItems}
+              relatedSection={relatedSection}
+              onSort={this.onSort}
+              orderBy={this.state.orderBy}
+              handleScroll={this.handleScroll}
+            />
+          } 
+          
+          else {
+            reorderButton = 
+            <StyledButton onClick={this.onToggleReorder}>
+              <MaterialIcon icon="format_line_spacing" color='#fff' />
+            </StyledButton>
+
+            videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
+              {this.state.videoItems}
+              {relatedSection}
+            </VideoListContainer>
+          }
+        } 
+        else {
           videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
             {this.state.videoItems}
             {relatedSection}
@@ -898,6 +927,7 @@ class Playlist extends Component {
               </StyledPlaylistInfo>
               <StyledPlaylistActions>
                 {followButton}
+                {reorderButton}
                 <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               </StyledPlaylistActions>
             </StyledHeaderActions>

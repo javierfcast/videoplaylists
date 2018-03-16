@@ -22,11 +22,15 @@ const StyledSortableElement = styled.ul`
 const StyledDragHandle = styled.span`
   cursor: grab;
   position: relative;
-  margin-left: -40px;
+  margin-right: -40px;
   width: 24px;
   height: 24px;
   z-index: 99px;
 `;
+const StyledSortableItem = styled.div`
+  margin-left: 16px;
+  width: 100%;
+`
 
 const DragHandle = SortableHandle(() =>
       <StyledDragHandle></StyledDragHandle>
@@ -35,8 +39,8 @@ const DragHandle = SortableHandle(() =>
   const SortableItem = SortableElement(({ value }) => {
     return (
       <StyledSortableElement>
-        {value}
         <DragHandle />
+        <StyledSortableItem>{value}</StyledSortableItem>
       </StyledSortableElement>
     );
   });
