@@ -147,6 +147,7 @@ class App extends Component {
     this.state = {
       searchResults: [],
       user: null,
+      accessToken: null,
       //Responsive
       navIsOpen: false,
       //Toggle Interface
@@ -252,7 +253,8 @@ class App extends Component {
         libraryRef.onSnapshot((doc) => {
           if (doc.exists) {
             this.setState({
-              libraryVideos: doc.data().libraryVideos ? doc.data().libraryVideos : []
+              libraryVideos: doc.data().libraryVideos ? doc.data().libraryVideos : [],
+              accessToken: doc.data().accessToken
             })
           }
         });
@@ -510,15 +512,19 @@ class App extends Component {
 
     if (source === 'google'){
       provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/youtube.readonly');
     } else if (source === 'facebook') {
       provider = new firebase.auth.FacebookAuthProvider();
     }
 
     firebase.auth().signInWithPopup(provider)
-    .then((result) => { 
+    .then((result) => {
       const user = result.user;
+      const accessToken = result.credential ? result.credential.accessToken : null
+
       this.setState({
-        user: user
+        user: user,
+        accessToken: accessToken 
       });
       
       const userRef = firebase.firestore().doc(`users/${user.uid}`);
@@ -530,6 +536,7 @@ class App extends Component {
             displayName: user.displayName,
             photoURL: user.photoURL,
             uid: user.uid,
+            accessToken: accessToken
           }).then(() => {
             console.log(`User updated succesfully`);
           }).catch(function (error) {
@@ -541,6 +548,7 @@ class App extends Component {
             displayName: user.displayName,
             photoURL: user.photoURL,
             uid: user.uid,
+            accessToken: accessToken,
             joinedOn: user.metadata.creationTime,
             libraryVideos: [],
             libraryVideoCount: 0,
@@ -1270,7 +1278,7 @@ class App extends Component {
 
     if (isUpdate !== true) this.setSnackbar("Importing playlist...");
 
-    YTApi.playlistItems({ part: 'snippet', key: YT_API_KEY, id: playlistId })
+    YTApi.PlaylistItems({ part: 'snippet', key: YT_API_KEY, id: playlistId })
     .then((playlistItems)=> {
       
       if (isUpdate) {
