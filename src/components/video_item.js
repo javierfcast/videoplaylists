@@ -59,9 +59,9 @@ const StyledActionButton = styled.a`
   }
 `;
 const StyledDragHandle = styled.span`
-  display: inline-block;
-  margin-right: 20px;
   cursor: grab;
+  width: 24px;
+  margin-right: 12px;
 `;
 const StyledLibraryButton = styled.a`
   cursor: pointer;

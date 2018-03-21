@@ -30,7 +30,7 @@ const YTApi = {
         });
     },
 
-    playlistItems: (params) => {
+    PlaylistItems: (params) => {
         //get playlist items
         return new Promise((resolve,reject) => {
             
@@ -83,6 +83,10 @@ const YTApi = {
                 reject(e);
             });
         });
+    },
+
+    Videos: () => {
+        
     }
 }
 
