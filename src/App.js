@@ -29,6 +29,7 @@ import Library from './components/library';
 import Browse from './components/browse';
 import Users from './components/users';
 import User from './components/user';
+import Video from './components/video';
 import LoginPopup from './components/login_popup.js';
 import About from './components/about';
 import Terms from './components/terms';
@@ -85,6 +86,9 @@ const StyledContainer = styled.div`
   &:hover{
     opacity: 1;
     transition-delay: 0s;
+  }
+  &.hidden{
+    opacity: 0;
   }
 `;
 const StyledAside = styled.div`
@@ -385,8 +389,8 @@ class App extends Component {
 
         mouseTimeout = setTimeout( () => {
           document.getElementById("interface").classList.add('hidden');
-          console.log('hidding interface after 10 seconds of mouse inactivity');
-        }, 10000);
+          console.log('hidding interface after 5 seconds of mouse inactivity');
+        }, 5000);
 
       }
 
@@ -690,6 +694,38 @@ class App extends Component {
     this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `Library`}`);
 
   };
+
+  toggleWatchPlayer = (video) => {
+
+    const videoId = video.videoID;
+    const videoTitle = video.videoTitle;
+    const videoChannel = video.videoChannel;
+
+    console.log(videoId);
+
+    this.player = YouTubePlayer('video-player', {
+      videoId: video.videoID,
+      playerVars: {
+        controls: 0,
+        showinfo: 0,
+        rel: 0,
+      }
+    });
+
+    this.player.playVideo();
+
+
+    this.setState({
+      playerIsOpen: true,
+      playerIsPlaying: true,
+      playingFromSearch: false,
+      video,
+      videoId,
+      videoTitle,
+      videoChannel,
+    });
+
+  }
 
   toggleSearchPlayer = (video) => {
    
@@ -1559,6 +1595,13 @@ class App extends Component {
                     onPlaylistFollow={this.onPlaylistFollow}
                   /> }
                 />
+                <Route exact path='/watch/:videoId' render={({ match }) =>
+                  <Video
+                    match={match}
+                    toggleWatchPlayer={this.toggleWatchPlayer}
+                  />} 
+                  
+                />
                 <Route exact path='/users' component={Users} />
                 <Route exact path='/users/:profileId' render={({ match }) =>
                   <User
@@ -1566,7 +1609,7 @@ class App extends Component {
                     user={this.state.user}
                     onPlaylistFollow={this.onPlaylistFollow}
                     onPlaylistUnfollow={this.onPlaylistUnfollow}
-                  /> } 
+                  />}
                 />
                 <Route exact path='/users/:profileId/library' render={({ match }) =>
                   <Library

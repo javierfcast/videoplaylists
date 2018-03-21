@@ -111,8 +111,6 @@ class User extends Component {
   };
 
   componentWillMount() {
-    
-    console.log(this.props.match.params.profileId);
 
     //Get User Info
     let profileRef = firebase.firestore().collection('users').doc(this.props.match.params.profileId);
