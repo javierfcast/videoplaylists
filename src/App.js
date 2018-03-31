@@ -6,7 +6,7 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import { keyframes } from 'styled-components';
-import YTApi from './components/yt_api'
+import YTApi from './components/yt_api';
 import SpotifyWebApi from 'spotify-web-api-js';
 import YouTubePlayer from 'youtube-player';
 import MaterialIcon from 'material-icons-react';
@@ -212,7 +212,9 @@ class App extends Component {
       //Snackbar
       snackIsOpen: false,
       snackMessage: "",
-      snackAction: ""
+      snackAction: "",
+      //GoogleApi
+      gapiReady: false,
     }
 
     this.player = null;
@@ -220,6 +222,8 @@ class App extends Component {
   };
 
   componentWillMount() {
+
+    this.loadYoutubeApi();
     
     //Handle login / logout
     firebase.auth().onAuthStateChanged(user => {
@@ -410,7 +414,6 @@ class App extends Component {
     
   };
 
-
 //Methods
 
   changeVideo = (isNext = true) => {
@@ -508,12 +511,55 @@ class App extends Component {
     this.setState({tagsSearchResults: results, tagsToSearch: searchArray})   
   };
 
+  loadYoutubeApi = () => {
+    const script = document.createElement("script");
+    script.src = "https://apis.google.com/js/client.js";
+
+    script.onload = () => {
+      window.gapi.load('client:auth2', () => {
+        window.gapi.client.init({
+          apiKey: 'AIzaSyC414ldiHXtTTh6ewYAKNYnK4NYyE8TRrY',
+          discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest"],
+          clientId: '248783838381-sdq0l8u9hjh2a21cuccs43n6vd6s0klk.apps.googleusercontent.com',
+          scope: 'profile https://www.googleapis.com/auth/youtube.readonly'
+        })
+        .then(() => {
+          window.gapi.auth2.getAuthInstance().isSignedIn.listen(this.updateSigninStatus);
+
+          this.updateSigninStatus(window.gapi.auth2.getAuthInstance().isSignedIn.get());
+        })
+      });
+    };
+
+    document.body.appendChild(script);
+  };
+
+  updateSigninStatus = (isSignedIn) => {
+    if (isSignedIn) {
+
+      this.setState({gapiReady: true});
+
+      const idToken = window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
+      const creds = firebase.auth.GoogleAuthProvider.credential(idToken);
+
+      if (!this.state.user) {
+        firebase.auth().signInWithCredential(creds).then((user) => {
+            if (user) {
+              this.setUser(user)
+            }
+        });
+      }
+    }
+  };
+
   onLogin = (source) => {
 
     let provider = null;
 
     if (source === 'google'){
-      provider = new firebase.auth.GoogleAuthProvider();
+      window.gapi.auth2.getAuthInstance().signIn();
+      return
+      // provider = new firebase.auth.GoogleAuthProvider();
     } else if (source === 'facebook') {
       provider = new firebase.auth.FacebookAuthProvider();
     }
@@ -521,47 +567,7 @@ class App extends Component {
     firebase.auth().signInWithPopup(provider)
     .then((result) => { 
       const user = result.user;
-      this.setState({
-        user: user
-      });
-      
-      const userRef = firebase.firestore().doc(`users/${user.uid}`);
-
-      userRef.get().then(function (doc) {
-        if (doc.exists) {
-          userRef.update({
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            uid: user.uid,
-          }).then(() => {
-            console.log(`User updated succesfully`);
-          }).catch(function (error) {
-            console.log('Got an error:', error);
-          })
-        } else {
-          userRef.set({
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            uid: user.uid,
-            joinedOn: user.metadata.creationTime,
-            libraryVideos: [],
-            libraryVideoCount: 0,
-            libraryOrderBy: 'timestamp',
-            libraryOrderDirection: 'asc',
-          }).then(() => {
-            console.log(`User created succesfully`);
-          }).catch(function (error) {
-            console.log('Got an error:', error);
-          })
-        }
-      }).catch(function (error) {
-        console.log("Error getting document:", error);
-      });
-
-      console.log(`${user.email} ha iniciado sesion`);
-
+      this.setUser(user)
     })
     .catch((error) => {
       console.log(`Error ${error.code}: ${error.message}`)
@@ -570,7 +576,10 @@ class App extends Component {
 
   onLogout = () => {
     firebase.auth().signOut()
-    .then((result) => { 
+    .then((result) => {
+
+      window.gapi.auth2.getAuthInstance().signOut();
+
       this.setState({
         user: null
       });
@@ -579,6 +588,49 @@ class App extends Component {
     .catch((error) => {
       console.log(`Error ${error.code}: ${error.message}`)
     })
+  };
+
+  setUser = (user) => {
+    this.setState({
+      user: user
+    });
+    
+    const userRef = firebase.firestore().doc(`users/${user.uid}`);
+
+    userRef.get().then(function (doc) {
+      if (doc.exists) {
+        userRef.update({
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          uid: user.uid,
+        }).then(() => {
+          console.log(`User updated succesfully`);
+        }).catch(function (error) {
+          console.log('Got an error:', error);
+        })
+      } else {
+        userRef.set({
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          uid: user.uid,
+          joinedOn: user.metadata.creationTime,
+          libraryVideos: [],
+          libraryVideoCount: 0,
+          libraryOrderBy: 'timestamp',
+          libraryOrderDirection: 'asc',
+        }).then(() => {
+          console.log(`User created succesfully`);
+        }).catch(function (error) {
+          console.log('Got an error:', error);
+        })
+      }
+    }).catch(function (error) {
+      console.log("Error getting document:", error);
+    });
+
+    console.log(`${user.email} ha iniciado sesion`);
   };
 
   onBrowse = () => {
