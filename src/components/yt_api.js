@@ -86,15 +86,10 @@ const YTApi = {
     },
 
     videos: (params) => {
-        // {
-        //     part: 'snippet,contentDetails',
-        //     myRating: 'like',
-        //     maxResults: 50,
-        // }
         return new Promise((resolve,reject) => {
             window.gapi.client.youtube.videos.list(params)
             .then(response => {
-                resolve(response.result.items)
+                resolve(response.result)
             }).catch((e)=> {
                 reject(e);
             })

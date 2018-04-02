@@ -35,6 +35,7 @@ import About from './components/about';
 import Terms from './components/terms';
 import Privacy from './components/privacy';
 import SearchTags from './components/search_tags'
+import YoutubeLikes from './components/youtube_likes';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -1677,6 +1678,21 @@ class App extends Component {
                     onAddToLibrary={this.onAddToLibrary}
                     onRemoveFromLibrary={this.onRemoveFromLibrary}
                     togglePlaylistPopup={this.togglePlaylistPopup}
+                  /> }
+                />
+                <Route exact path='/youtubeLikes' render={({ match }) =>
+                  <YoutubeLikes
+                    match={match}
+                    user={this.state.user}
+                    videoId={this.state.videoId}
+                    togglePlayer={this.togglePlayer}
+                    libraryVideos={this.state.libraryVideos}
+                    onAddToLibrary={this.onAddToLibrary}
+                    onRemoveFromLibrary={this.onRemoveFromLibrary}
+                    togglePlaylistPopup={this.togglePlaylistPopup}
+                    accessToken={this.state.accessToken}
+                    YT_API_KEY={YT_API_KEY}
+                    gapiReady={this.state.gapiReady}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
