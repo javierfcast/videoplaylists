@@ -60,7 +60,7 @@ const SearchResults = (props) => {
         videoEtag={video.etag}
         videoId={video.id.videoId}
         videoChannel={video.snippet.channelTitle}
-        duration={video.contentDetails.duration}
+        duration={video.contentDetails ? video.contentDetails.duration : null}
         datePublished={year + '-' + month + '-' + dt}
         togglePlayer = {props.togglePlayer}
         toggleSearchPlayer={props.toggleSearchPlayer}
