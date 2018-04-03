@@ -91,8 +91,9 @@ const StyledLibraryButtonCheck = styled.a`
 
 const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos, reorder}) => {
   
-  let durationFormated = Moment.duration(duration).asMilliseconds();
-  durationFormated = Moment.utc(durationFormated).format("mm:ss");
+  const durationFormated = Moment.duration(duration).asMilliseconds() > 3600000
+    ? Moment.utc(Moment.duration(duration).asMilliseconds()).format("hh:mm:ss")
+    : Moment.utc(Moment.duration(duration).asMilliseconds()).format("mm:ss")
   
   const AuthorId = typeof playlist !== 'undefined' ? playlist.AuthorId : null;
   const extraMeta = duration ? " · Duration: " + durationFormated : null; 
