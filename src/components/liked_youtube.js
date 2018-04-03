@@ -88,6 +88,7 @@ const StyledPlaylistInfo = styled.div`
   display: flex;
   align-items: center;
   padding-top: 10px;
+  justify-content: space-between;
   ${media.xmedium`
     padding-top: 0;
   `}
@@ -156,6 +157,10 @@ const StyledButton = styled.a`
   &:hover{
     opacity: 1;
   }
+  ${props => props.scrolling && `
+    opacity: 0;
+    visibility: hidden;
+  `}
 `;
 const StyledButtonPopup = StyledButton.extend`
   display: flex;
@@ -406,12 +411,10 @@ class LikedYoutube extends Component {
             <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
             <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}>Liked on YouTube</StyledPlaylistName>
             <StyledHeaderActions scrolling={this.state.scrolling ? 1 : 0}>
-              <StyledPlaylistInfo>
+              <StyledPlaylistInfo scrolling={this.state.scrolling ? 1 : 0}>
                 <StyledLabel scrolling={this.state.scrolling ? 1 : 0}>{playlist.videoCount} Videos in this playlist</StyledLabel>
+                <StyledButton scrolling={this.state.scrolling ? 1 : 0} onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               </StyledPlaylistInfo>
-              <StyledPlaylistActions>
-                <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
-              </StyledPlaylistActions>
             </StyledHeaderActions>
           </StyledHeader>
         </StyledHeaderContainer>
