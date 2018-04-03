@@ -64,6 +64,15 @@ const StyledPlaylistName = styled.h1`
     font-size: 24px;
   `}
 `;
+const StyledAuthorLink = styled(Link)`
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 400;  
+  margin-bottom: 6px;
+  color: #fff;
+  text-decoration: none;
+`;
 const StyledHeaderActions = styled.div`
   display: flex;
   justify-content: space-between;
@@ -167,7 +176,7 @@ const VideoListContainer = styled.ul`
   height: 100%;
 `;
 
-class YoutubeLikes extends Component {
+class LikedYoutube extends Component {
 
   constructor(props) {
     super(props);
@@ -179,89 +188,10 @@ class YoutubeLikes extends Component {
       orderBy: null,
       orderDirection: null,
       scrolling: false,
-      reorder: false,
 
       videoItems: null,
     };
   };
-
-  componentDidMount() {
-   
-    // let docRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
-
-    // this._unsubscribe = docRef.onSnapshot((doc) => {
-    //   if (doc.exists) {
-
-    //     let playlistVideos = doc.data().playlistVideos;
-
-    //     //Copy old videos collection
-    //     if (!playlistVideos) {
-    //       let legacyVideosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId).collection('videos');
-
-    //       this._legacyUnsubscribe = legacyVideosRef.onSnapshot(querySnapshot => {
-    //         playlistVideos = [];
-    //         querySnapshot.forEach(function (doc) {
-    //           playlistVideos.push(doc.data());
-    //         });
-
-    //         if (this.props.user && doc.data().AuthorId === this.props.user.uid) {
-    //           docRef.update({
-    //             playlistVideos,
-    //             videoCount: playlistVideos.length
-    //           });
-    //         }
-
-    //         this.setState({
-    //           playlist: doc.data(),
-    //           orderBy: doc.data().orderBy,
-    //           orderDirection: doc.data().orderDirection,
-    //           tags: doc.data().tags,
-    //           playlistVideos:  doc.data().orderBy === 'custom'
-    //           ? doc.data().orderDirection === 'asc' ? playlistVideos : playlistVideos.reverse() 
-    //           : _.orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection]),
-    //         })
-
-    //       });
-
-    //       return
-    //     }
-        
-    //     //Sort videos
-    //     if (doc.data().orderBy === 'custom' && doc.data().orderDirection === 'desc') {
-    //       playlistVideos = playlistVideos.reverse();
-    //     }
-    //     else if (doc.data().orderBy !== 'custom') {
-    //       playlistVideos = _.orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection])
-    //     }
-
-    //     this.setState({
-    //       playlist: doc.data(),
-    //       orderBy: doc.data().orderBy,
-    //       orderDirection: doc.data().orderDirection,
-    //       tags: doc.data().tags,
-    //       playlistVideos: playlistVideos,
-    //     })
-
-    //     //Get related videos
-    //     this.getRelated(playlistVideos, doc.data().playlistName);
-
-    //   } 
-      
-    //   else {
-
-    //     this.setState({
-    //       playlist: 'not found',
-    //       playlistPublicInfo: 'not found'
-    //     })
-    //     console.log("No such document!");
-        
-    //   }
-    // });
-  }
-
-  componentWillUnmount() {
-    // this._unsubscribe()
-  }
 
   componentWillMount() {
     if (!this.props.user) return
@@ -273,10 +203,9 @@ class YoutubeLikes extends Component {
         createdOn: new Date(),
         featured: false,
         followers: 0,
-        // playlistId: data.etag,
-        playlistName: 'Liked Videos',
-        playlistSlugName: 'liked-videos',
-        // videoCount: data.items.length
+        playlistName: 'Liked on YouTube',
+        playlistSlugName: 'liked-on-youtube',
+        videoCount: 0
       }
     }, () => {
       if (this.props.gapiReady) {
@@ -361,12 +290,12 @@ class YoutubeLikes extends Component {
           featured: false,
           followers: 0,
           playlistId: data.etag,
-          playlistName: 'Liked Videos',
-          playlistSlugName: 'liked-videos',
+          playlistName: 'Liked on YouTube',
+          playlistSlugName: 'liked-on-youtube',
           videoCount: data.items.length
         }
 
-        const playlistVideos = _.map(data.items, video => ({
+        let playlistVideos = _.map(data.items, video => ({
           timestamp: new Date(),
           videoEtag: video.etag,
           videoID: video.id,
@@ -375,8 +304,15 @@ class YoutubeLikes extends Component {
           datePublished: video.snippet.publishedAt,
           duration: video.contentDetails.duration,
         }))
+
+        playlistVideos = _.orderBy(playlistVideos, 'datePublished', 'desc')
         
-        this.setState({playlist, playlistVideos});
+        this.setState({
+          playlist,
+          playlistVideos,
+          orderBy: 'datePublished',
+          orderDirection: 'desc',
+        });
       })
   }
 
@@ -407,49 +343,7 @@ class YoutubeLikes extends Component {
       playlistOptionsIsOpen: !this.state.playlistOptionsIsOpen
     })
 
-    // if (this.props.user !== null && this.props.user.uid === this.state.profileId) {
-    //   const playlistRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
-
-    //   playlistRef.update({
-    //     orderBy: type,
-    //     orderDirection: orderDirection,
-    //   })
-    //   .then(function () {
-    //     console.log("Order updated Succesfully");
-    //   })
-    //   .catch(function (error) {
-    //     // The document probably doesn't exist.
-    //     console.error("Error updating document: ", error);
-    //   });
-
-    // }
   }
-
-  // onSort = (items) => {
-  //   let docRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
-    
-  //   let newOrder = items.map(item => {
-  //     return {
-  //       timestamp: item.props.video.timestamp,
-  //       videoEtag: item.props.video.videoEtag,
-  //       videoID: item.props.video.videoID,
-  //       videoTitle: item.props.video.videoTitle,
-  //       videoChannel: item.props.video.videoChannel,
-  //       datePublished: item.props.video.datePublished,
-  //       duration: item.props.video.duration,
-  //     }
-  //   })
-
-  //   if (this.state.orderDirection === 'desc') newOrder.reverse(); 
-
-  //   docRef.update({
-  //     playlistVideos: newOrder,
-  //   })
-  //   .then(() => console.log('Order updated'))
-  //   .catch(function(error) {
-  //     console.log(error)
-  //   });
-  // };
 
   handleScroll = (event) => {
     if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
@@ -463,10 +357,6 @@ class YoutubeLikes extends Component {
     }
   }
 
-  // onToggleReorder = () => {
-  //   this.setState({reorder: !this.state.reorder})
-  // }
-
   render() {
     if (!this.state.playlist) {
       return null;
@@ -474,44 +364,7 @@ class YoutubeLikes extends Component {
 
     //Basic constants
     const playlist = this.state.playlist;
-
-    //Set Follow for playlists, related videos and sortable list
-    let videoContainerComponent = null;
-    let reorderButton = null;
-
-    if (this.state.orderBy === 'custom') {
-
-      if (this.state.reorder) {
-        reorderButton = 
-        <StyledButton onClick={this.onToggleReorder}>
-          <MaterialIcon icon="done" color='#fff' />
-        </StyledButton>
-
-        videoContainerComponent = <SortableComponent
-          videoItems={this.state.videoItems}
-          onSort={this.onSort}
-          orderBy={this.state.orderBy}
-          handleScroll={this.handleScroll}
-        />
-      } 
-      
-      else {
-        reorderButton = 
-        <StyledButton onClick={this.onToggleReorder}>
-          <MaterialIcon icon="format_line_spacing" color='#fff' />
-        </StyledButton>
-
-        videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-          {this.state.videoItems}
-        </VideoListContainer>
-      }
-    } 
-
-    else {
-      videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-        {this.state.videoItems}
-      </VideoListContainer>
-    }
+    const playlistAuthor = this.state.playlist.Author;
 
     //Set Playlist options popup
     let playlistOptionsPopup = null;
@@ -526,18 +379,6 @@ class YoutubeLikes extends Component {
           <StyledOptionsLabel>
             Order by <MaterialIcon icon="sort" color='#fff' />
           </StyledOptionsLabel>
-          {/* <StyledButtonPopup onClick={() => this.orderBy('custom')}>
-            Custom Order 
-            <div style={{opacity: this.state.orderBy === 'custom' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup> */}
-          <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
-            Recently Added 
-            <div style={{opacity: this.state.orderBy === 'timestamp' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
           <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
             Video Date
             <div style={{opacity: this.state.orderBy === 'datePublished' ? 1 : 0}} >
@@ -564,13 +405,13 @@ class YoutubeLikes extends Component {
       <PlaylistContainer>
         <StyledHeaderContainer>
           <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
-            <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}>YouTube's Liked Videos</StyledPlaylistName>
+            <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
+            <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}>Liked on YouTube</StyledPlaylistName>
             <StyledHeaderActions scrolling={this.state.scrolling ? 1 : 0}>
               <StyledPlaylistInfo>
                 <StyledLabel scrolling={this.state.scrolling ? 1 : 0}>{playlist.videoCount} Videos in this playlist</StyledLabel>
               </StyledPlaylistInfo>
               <StyledPlaylistActions>
-                {reorderButton}
                 <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               </StyledPlaylistActions>
             </StyledHeaderActions>
@@ -579,10 +420,12 @@ class YoutubeLikes extends Component {
         <StyledPopupContainer>
           {playlistOptionsPopup}
         </StyledPopupContainer>
-        {videoContainerComponent}
+        <VideoListContainer onScroll={this.handleScroll}>
+          {this.state.videoItems}
+        </VideoListContainer>
       </PlaylistContainer>
     )
   };
 };
 
-export default YoutubeLikes;
+export default LikedYoutube;

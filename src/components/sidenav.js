@@ -274,7 +274,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, importFromSpotify, o
                 <StyledNavItemLink to="/">Discover</StyledNavItemLink>
                 <StyledNavItemLink to="/search">Search By Tag</StyledNavItemLink>
                 <StyledNavItemLink to={`/users/${user.uid}/library`}>My Library</StyledNavItemLink>
-                <StyledNavItemLink to={`/youtubeLikes`}>YouTube Likes</StyledNavItemLink>
+                <StyledNavItemLink to={`/likedyoutube`}>Liked on YouTube</StyledNavItemLink>
                 <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
               </StyledNavList>
               <StyledButton onClick={toggleAddPlaylistPopup}

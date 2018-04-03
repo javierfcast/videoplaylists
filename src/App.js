@@ -35,7 +35,7 @@ import About from './components/about';
 import Terms from './components/terms';
 import Privacy from './components/privacy';
 import SearchTags from './components/search_tags'
-import YoutubeLikes from './components/youtube_likes';
+import LikedYoutube from './components/liked_youtube';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -1680,8 +1680,8 @@ class App extends Component {
                     togglePlaylistPopup={this.togglePlaylistPopup}
                   /> }
                 />
-                <Route exact path='/youtubeLikes' render={({ match }) =>
-                  <YoutubeLikes
+                <Route exact path='/likedyoutube' render={({ match }) =>
+                  <LikedYoutube
                     match={match}
                     user={this.state.user}
                     videoId={this.state.videoId}
