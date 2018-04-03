@@ -521,7 +521,7 @@ class App extends Component {
         window.gapi.client.init({
           apiKey: 'AIzaSyC414ldiHXtTTh6ewYAKNYnK4NYyE8TRrY',
           discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest"],
-          clientId: '248783838381-sdq0l8u9hjh2a21cuccs43n6vd6s0klk.apps.googleusercontent.com',
+          clientId: '248783838381-dtt7afrnvc78m1bvf2jo42radgg6inme.apps.googleusercontent.com',
           scope: 'profile https://www.googleapis.com/auth/youtube.readonly'
         })
         .then(() => {
