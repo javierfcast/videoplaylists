@@ -541,9 +541,8 @@ class Playlist extends Component {
         return (
           <StyledDivTag key= {i}>
             {tagRemove}
-            <StyledButtonTagName to="/search"
-            onClick={() => nextProps.onTagClick([tag])}>
-            {tag}
+            <StyledButtonTagName to={`/tags/${tag}`}>
+              {tag}
             </StyledButtonTagName>
           </StyledDivTag>)
       }) : null;

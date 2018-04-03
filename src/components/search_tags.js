@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
+import split from 'lodash/split';
 
 const sizes = {
     small: 360,
@@ -195,7 +196,17 @@ const StyledNotFoundContent = styled.div`
   }
 `;
 
-class searchTags extends Component { 
+class searchTags extends Component {
+  componentWillMount() {
+    if (this.props.match.params.query) {
+      this.props.onTagSearch(split(this.props.match.params.query, '+'))
+    }
+  }
+  componentWillUpdate(nextProps) {
+    if (nextProps.browsePlaylists && this.props.browsePlaylists !== nextProps.browsePlaylists) {
+      this.props.onTagSearch(split(this.props.match.params.query, '+'))
+    }
+  } 
   render() {
     const toSearch = this.props.tagsToSearch;
     const searchResults = this.props.tagsSearchResults;    

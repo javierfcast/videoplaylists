@@ -490,26 +490,23 @@ class App extends Component {
 
   onTagSearch = (searchArray) => {
     let results = [];
-    if (searchArray.length > 0) {
-      results = this.state.browsePlaylists.filter((playlist) => {
-        const isMatch = [];
-        searchArray.forEach((term)=> {
-          if (playlist.tags && playlist.tags.length > 0) {
-            const matches = playlist.tags.some((tag)=> {
+    if (!_.isEmpty(searchArray)) {
+      results = 
+      _.filter(this.state.browsePlaylists, playlist => (
+        _.every(
+          _.map(searchArray, term => (
+            _.some(playlist.tags, tag => {
               const reg = new RegExp(term, 'i');
               return reg.test(tag);
-            });
-            isMatch.push(matches);
-          } else isMatch.push(false);
-        });
-
-        return isMatch.every((value)=> value === true);     
-      });
+            })
+          ))
+        )
+      ))
     } else {
       results = [];
     }
     
-    this.setState({tagsSearchResults: results, tagsToSearch: searchArray})   
+    this.setState({tagsSearchResults: results, tagsToSearch: searchArray});
   };
 
   loadYoutubeApi = () => {
@@ -1720,15 +1717,17 @@ class App extends Component {
                     YT_API_KEY={YT_API_KEY}
                   />}
                 />
-                <Route exact path='/search' render={({ match }) =>
+                <Route exact path='/tags/:query?' render={({ match }) =>
                   <SearchTags
                     match={match}
                     tagsToSearch={this.state.tagsToSearch}
                     tagsSearchResults={this.state.tagsSearchResults}
                     user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
                     toggleAddTagPopup={this.toggleAddTagPopup}
                     onPlaylistFollow={this.onPlaylistFollow}
                     onRemoveTagSearch={this.onRemoveTagSearch}
+                    onTagSearch={this.onTagSearch}
                   />}
                 />
                 <Route exact path='/about' component={About} />
