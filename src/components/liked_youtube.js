@@ -317,6 +317,9 @@ class LikedYoutube extends Component {
           orderDirection: 'desc',
         });
       })
+      .catch(e => {
+        console.log(e)
+      });
   }
 
   //Playlists Methods

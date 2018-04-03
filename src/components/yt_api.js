@@ -118,10 +118,32 @@ const YTApi = {
 
   videos: params => {
     return new Promise((resolve, reject) => {
+      let fullResponse;
+
       window.gapi.client.youtube.videos
         .list(params)
         .then(response => {
           resolve(response.result);
+          // const getNext = nextPageToken => {
+          //   params.pageToken = nextPageToken
+
+          //   if (nextPageToken) {
+          //     window.gapi.client.youtube.videos
+          //     .list(params)
+          //     .then(response => {
+          //       fullResponse.result.items = [...fullResponse.result.items, ...response.result.items]
+          //       getNext(response.result.nextPageToken);
+          //     })
+          //     .catch(e => {
+          //       reject(e);
+          //     });
+          //   }
+          //   else {
+          //     resolve(fullResponse.result);
+          //   }
+          // }
+          // fullResponse = response
+          // getNext(response.result.nextPageToken);
         })
         .catch(e => {
           reject(e);
