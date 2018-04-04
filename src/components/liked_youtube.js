@@ -7,6 +7,8 @@ import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
 import YTApi from './yt_api';
 import _ from 'lodash';
+import CircularProgress from 'material-ui/CircularProgress';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 const sizes = {
   small: 360,
@@ -104,18 +106,6 @@ const StyledLabel = styled.h3`
     visibility: hidden;
   `}
 `;
-const StyledPlaylistActions = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  position: relative;
-  ${media.xmedium`
-    margin-top: 0;
-    justify-content: flex-end;
-  `}
-`
 const StyledPopupContainer = styled.div`
   position: relative;
 `;
@@ -178,6 +168,15 @@ const VideoListContainer = styled.ul`
   overflow-x: hidden;
   height: 100%;
 `;
+const StyledLoading = styled.div`
+  margin: 40px 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  ${props => props.hide && `
+    display: none;
+  `}
+`
 
 class LikedYoutube extends Component {
 
@@ -193,6 +192,8 @@ class LikedYoutube extends Component {
       scrolling: false,
 
       videoItems: null,
+      nextPageToken: null,
+      loading: false,
     };
   };
 
@@ -222,7 +223,6 @@ class LikedYoutube extends Component {
       this.getYoutubeLikes()
     }
 
-    //Reorder videos if the current user doesn't owns the playlist
     if (this.state.orderBy !== nextState.orderBy || this.state.orderDirection !== nextState.orderDirection) {
       this.setState({
         playlistVideos: _.orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
@@ -283,43 +283,50 @@ class LikedYoutube extends Component {
   }
 
   getYoutubeLikes = () => {
-    YTApi.videos({part: 'snippet,contentDetails', myRating: 'like', maxResults: 50})
-      .then(data => {
-
-        const playlist = {
-          Author: this.props.user.displayName,
-          AuthorId: this.props.user.uid,
-          createdOn: new Date(),
-          featured: false,
-          followers: 0,
-          playlistId: data.etag,
-          playlistName: 'Liked on YouTube',
-          playlistSlugName: 'liked-on-youtube',
-          videoCount: data.items.length
-        }
-
-        let playlistVideos = _.map(data.items, video => ({
-          timestamp: new Date(),
-          videoEtag: video.etag,
-          videoID: video.id,
-          videoTitle: video.snippet.title,
-          videoChannel: video.snippet.channelTitle,
-          datePublished: video.snippet.publishedAt,
-          duration: video.contentDetails.duration,
-        }))
-
-        playlistVideos = _.orderBy(playlistVideos, 'datePublished', 'desc')
-        
-        this.setState({
-          playlist,
-          playlistVideos,
-          orderBy: 'datePublished',
-          orderDirection: 'desc',
+    this.setState({
+      loading: true
+    }, () => {
+      YTApi.videos({part: 'snippet,contentDetails', myRating: 'like', maxResults: 50, pageToken: this.state.nextPageToken})
+        .then(data => {
+  
+          const playlist = {
+            Author: this.props.user.displayName,
+            AuthorId: this.props.user.uid,
+            createdOn: new Date(),
+            featured: false,
+            followers: 0,
+            playlistId: data.etag,
+            playlistName: 'Liked on YouTube',
+            playlistSlugName: 'liked-on-youtube',
+            videoCount: data.pageInfo.totalResults
+          }
+  
+          let playlistVideos = _.map(data.items, video => ({
+            timestamp: new Date(),
+            videoEtag: video.etag,
+            videoID: video.id,
+            videoTitle: video.snippet.title,
+            videoChannel: video.snippet.channelTitle,
+            datePublished: video.snippet.publishedAt,
+            duration: video.contentDetails.duration,
+          }))
+  
+          playlistVideos = _.orderBy(playlistVideos, 'datePublished', 'desc')
+  
+          this.setState({
+            playlist,
+            playlistVideos: [...this.state.playlistVideos, ...playlistVideos],
+            orderBy: 'datePublished',
+            orderDirection: 'desc',
+            nextPageToken: data.nextPageToken,
+            allResults: data.nextPageToken ? false : true,
+            loading: false
+          });
+        })
+        .catch(e => {
+          console.log(e)
         });
-      })
-      .catch(e => {
-        console.log(e)
-      });
+    });
   }
 
   //Playlists Methods
@@ -352,14 +359,18 @@ class LikedYoutube extends Component {
   }
 
   handleScroll = (event) => {
-    if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
-      this.setState({
-        scrolling: !this.state.scrolling
-      })
-    } else if (event.currentTarget.scrollTop !== 0 && this.state.scrolling !== true){
-      this.setState({
-        scrolling: !this.state.scrolling
-      })
+    // if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
+    //   this.setState({
+    //     scrolling: !this.state.scrolling
+    //   })
+    // } else if (event.currentTarget.scrollTop !== 0 && this.state.scrolling !== true){
+    //   this.setState({
+    //     scrolling: !this.state.scrolling
+    //   })
+    // }
+
+    if (event.currentTarget.scrollTop + (event.currentTarget.offsetHeight + 120) >= event.currentTarget.scrollHeight && !this.state.loading && !this.state.allResults) {
+      this.getYoutubeLikes()
     }
   }
 
@@ -426,6 +437,11 @@ class LikedYoutube extends Component {
         </StyledPopupContainer>
         <VideoListContainer onScroll={this.handleScroll}>
           {this.state.videoItems}
+          <StyledLoading hide={this.state.allResults} >
+            <MuiThemeProvider>
+              <CircularProgress color="#fff" thickness={3} />
+            </MuiThemeProvider>
+          </StyledLoading>
         </VideoListContainer>
       </PlaylistContainer>
     )
