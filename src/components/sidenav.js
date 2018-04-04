@@ -56,6 +56,7 @@ const StyledBottomContainer = styled.div`
 `;
 const StyledUserInfo = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-top: 40px;
   margin-bottom: 20px;
 `;
 const StyledUserImg = styled.img`
@@ -72,7 +73,6 @@ const StyledUserName = styled.h4`
 const StyledLandingHeading = styled.div`
   display: flex;
   align-items: center;
-  margin-bottom: 80px;
 `;
 const StyledLandingLogo = styled.div`
   margin-right: 10px;
@@ -88,10 +88,14 @@ const StyledLogo = styled.img`
 const StyledLandingTitle = styled.h1`
   font-size: 12px;
   text-transform: uppercase;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: 2px;
+  span{
+    font-size: 9px;
+  }
 `;
 const StyledLandingDescription = styled.h3`
+  margin-top: 80px;
   margin-bottom: 80px;
 `;
 const StyledLogin = styled.a`
@@ -256,6 +260,12 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, importFromSpotify, o
       {(user) ? (
         <StyledContainer>
           <StyledTopContainer>
+            <StyledLandingHeading>
+              <StyledLandingLogo>
+                <StyledLogo src={logo} alt='VideoPlaylist Logo' />
+                <StyledLandingTitle>VideoPlaylists.tv<br /><span>Beta</span></StyledLandingTitle>
+              </StyledLandingLogo>
+            </StyledLandingHeading>
             <StyledUserInfo>
               <StyledUserImg width="100" src={user.photoURL} alt={user.displayName} />
               <p>Hola</p>
@@ -311,7 +321,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, importFromSpotify, o
             <StyledLandingHeading>
               <StyledLandingLogo>
                 <StyledLogo src={logo} alt='VideoPlaylist Logo' />
-                <StyledLandingTitle>VideoPlaylists.tv</StyledLandingTitle>
+                <StyledLandingTitle>VideoPlaylists.tv<br /><span>Beta</span></StyledLandingTitle>
               </StyledLandingLogo>
             </StyledLandingHeading>
             <StyledLandingDescription>Create, share and discover great video playlists.</StyledLandingDescription>
