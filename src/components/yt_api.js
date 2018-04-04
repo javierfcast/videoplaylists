@@ -64,47 +64,66 @@ const YTApi = {
                       }
                     })
                     .then(nextResponse => {
-                      response.data.items[0].playlistItems.items = [
-                        ...response.data.items[0].playlistItems.items,
-                        ...nextResponse.data.items
-                      ];
-                      getNext(nextResponse.data.nextPageToken);
+                      const ids = nextResponse.data.items
+                      .map(item => item.snippet.resourceId.videoId)
+                      .toString();
+
+                      //get  video length and append to response
+                      axios
+                        .get(ROOT_URL + "videos", {
+                          params: {
+                            part: "contentDetails",
+                            key: params.key,
+                            id: ids
+                          }
+                        })
+                        .then(contentResponse => {
+                          contentResponse.data.items.forEach((contentItem, i) => {
+                            nextResponse.data.items[i].contentDetails = contentItem.contentDetails;
+                          });
+
+                          response.data.items[0].playlistItems.items = [
+                            ...response.data.items[0].playlistItems.items,
+                            ...nextResponse.data.items
+                          ];
+
+                          getNext(nextResponse.data.nextPageToken);
+                        })
+                        .catch(e => {
+                          reject(e);
+                        });
                     })
                     .catch(e => {
                       reject(e);
                     });
                 } else {
-                  const ids = response.data.items[0].playlistItems.items
-                    .map(item => item.snippet.resourceId.videoId)
-                    .toString();
-
-                  //get  video length and append to response
-                  axios
-                    .get(ROOT_URL + "videos", {
-                      params: {
-                        part: "contentDetails",
-                        key: params.key,
-                        id: ids
-                      }
-                    })
-                    .then(contentResponse => {
-                      contentResponse.data.items.forEach((contentItem, i) => {
-                        response.data.items[0].playlistItems.items[
-                          i
-                        ].contentDetails =
-                          contentItem.contentDetails;
-                      });
-
-                      resolve(response.data.items[0]);
-                    })
-                    .catch(e => {
-                      reject(e);
-                    });
+                  resolve(response.data.items[0]);
                 }
               };
 
-              response.data.items[0].playlistItems = playlistItemsResponse.data;
-              getNext(playlistItemsResponse.data.nextPageToken);
+              const ids = playlistItemsResponse.data.items
+              .map(item => item.snippet.resourceId.videoId)
+              .toString();
+
+              axios
+                .get(ROOT_URL + "videos", {
+                  params: {
+                    part: "contentDetails",
+                    key: params.key,
+                    id: ids
+                  }
+                })
+                .then(contentResponse => {
+                  contentResponse.data.items.forEach((contentItem, i) => {
+                    playlistItemsResponse.data.items[i].contentDetails = contentItem.contentDetails;
+                  });
+
+                  response.data.items[0].playlistItems = playlistItemsResponse.data;
+                  getNext(playlistItemsResponse.data.nextPageToken);
+                })
+                .catch(e => {
+                  reject(e);
+                });
             })
             .catch(e => {
               reject(e);
