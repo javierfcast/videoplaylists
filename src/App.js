@@ -27,6 +27,8 @@ import AddTagsPopup from './components/add_tags_popup.js';
 import Playlist from './components/playlist';
 import Library from './components/library';
 import Browse from './components/browse';
+import Popular from './components/popular';
+import Recent from './components/recent';
 import Users from './components/users';
 import User from './components/user';
 import Video from './components/video';
@@ -1638,6 +1640,24 @@ class App extends Component {
               <Switch>
                 <Route exact path='/' render={({ match }) =>
                   <Browse
+                    user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
+                    popularPlaylists={this.state.popularPlaylists}
+                    featuredPlaylists={this.state.featuredPlaylists}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                  /> }
+                />
+                <Route exact path='/popular' render={({ match }) =>
+                  <Popular
+                    user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
+                    popularPlaylists={this.state.popularPlaylists}
+                    featuredPlaylists={this.state.featuredPlaylists}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                  /> }
+                />
+                <Route exact path='/recent' render={({ match }) =>
+                  <Recent
                     user={this.state.user}
                     browsePlaylists={this.state.browsePlaylists}
                     popularPlaylists={this.state.popularPlaylists}

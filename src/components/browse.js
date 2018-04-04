@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 
@@ -92,6 +91,38 @@ const PlaylistActionsNone = styled.span`
   overflow: hidden;
 `;
 
+//Tabs
+
+const StyledTabsList = styled.div`
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+  flex: 1 0 auto;
+  list-style: none;
+`;
+const StyledTabLink = styled(Link)`
+  width: 100%;
+  font-size: 10px;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 400;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 0;
+  cursor: pointer;
+  color: #fff;
+  text-decoration: none;
+  ${props => props.selected && `
+    font-weight: 700;
+    border-bottom: 1px solid white;
+  `}
+`;
+const StyledTabPanel = styled.div`
+  overflow-y: auto;
+  height: 100%;
+`;
+
 //Featured View Classes
 
 const StyledFeaturedContainer = styled.div`
@@ -167,160 +198,84 @@ const StyledFeaturedContent = styled.div`
   }
 `;
 
-
 class Browse extends Component {
   
   render() {
 
-    //Map Featured Playlists
-    const featuredplaylistItem = this.props.featuredPlaylists.map((playlist) => {
-      const UserId = this.props.user !== null ? this.props.user.uid : null;
-      let followButton = null;
-      if (UserId !== playlist.AuthorId) {
+    // //Map Featured Playlists
+    // const featuredplaylistItem = this.props.featuredPlaylists.map((playlist) => {
+    //   const UserId = this.props.user !== null ? this.props.user.uid : null;
+    //   let followButton = null;
+    //   if (UserId !== playlist.AuthorId) {
 
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
-          {playlist.followers} Followers
-        </PlaylistActions>
+    //     followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
+    //       {playlist.followers} Followers
+    //     </PlaylistActions>
 
-      } else {
+    //   } else {
 
-        followButton = <PlaylistActionsNone>
-          {playlist.followers} Followers
-        </PlaylistActionsNone>
+    //     followButton = <PlaylistActionsNone>
+    //       {playlist.followers} Followers
+    //     </PlaylistActionsNone>
 
-      }
+    //   }
 
-      return (
-        <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
-            <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
-          </PlaylistLink>
-          {followButton}
-        </PlaylistItem>
-      )
+    //   return (
+    //     <PlaylistItem key={playlist.playlistId}>
+    //       <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
+    //         <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
+    //         <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
+    //       </PlaylistLink>
+    //       {followButton}
+    //     </PlaylistItem>
+    //   )
 
-    })
-
-
-    //Map Popular Playlists
-    const popularplaylistItem = this.props.popularPlaylists.map((playlist) => {
-      const UserId = this.props.user !== null ? this.props.user.uid : null;
-      let followButton = null;
-      if (UserId !== playlist.AuthorId) {
-
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
-          {playlist.followers} Followers
-      </PlaylistActions>
-
-      } else {
-
-        followButton = <PlaylistActionsNone>
-          {playlist.followers} Followers
-      </PlaylistActionsNone>
-
-      }
-
-      return (
-        <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
-            <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
-          </PlaylistLink>
-          {followButton}
-        </PlaylistItem>
-      )
-
-    })
-
-    
-    //Map Recent Playlists 
-    const playlistItem = this.props.browsePlaylists.map((playlist) => {
-
-      //Set some basic variables for user Id and the follow button 
-      const UserId = this.props.user !== null ? this.props.user.uid : null;
-      let followButton = null;
-
-      if (UserId !== playlist.AuthorId) {
-
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
-          {playlist.followers} Followers
-        </PlaylistActions>
-
-      } else {
-        
-        followButton = <PlaylistActionsNone>
-          {playlist.followers} Followers
-        </PlaylistActionsNone>
-
-      }
-
-      return (
-        <PlaylistItem key={playlist.playlistId}>
-          <PlaylistLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>
-            <PlaylistTitle>{playlist.playlistName}</PlaylistTitle>
-            <PlaylistAuthor>{playlist.Author} | {playlist.videoCount} videos</PlaylistAuthor>
-          </PlaylistLink>
-          {followButton}
-        </PlaylistItem>
-      )
-
-    })
+    // })
 
     return (
       <PlaylistsContainer>
-        
         <h1>Discover</h1>
-        <Tabs>
-          <TabList>
-            <Tab>Featured</Tab>
-            <Tab>Popular</Tab>
-            <Tab>Recent</Tab>
-          </TabList>
-          <TabPanel>
-            <StyledFeaturedContainer>
-              <StyledFeaturedHero>
-                <StyledFeatured to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/ByIKvBLzGDm5ocQWQx37">
-                  <img src={imgCardi} alt="Cardi" />
-                  <StyledFeaturedContent>
-                    <h2>Pitchfork's 100 best songs of 2017</h2>
-                    <span>By Video Playlist</span>
-                  </StyledFeaturedContent>
-                </StyledFeatured>
-              </StyledFeaturedHero>
-              <StyledFeaturedGrid>
-                <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/6ix5h503yWLpliMrLRXN">
-                  <img src={imgQuavo} alt="Quavo" />
-                  <StyledFeaturedContent>
-                    <h2>Rap Caviar</h2>
-                    <span>By Video Playlist</span>
-                  </StyledFeaturedContent>
-                </StyledFeatured>
-                <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/oH5YlSYbpBTsZAf67mFa">
-                  <img src={imgOzuna} alt="Ozuna" />
-                  <StyledFeaturedContent>
-                    <h2>Fiesta Latina</h2>
-                    <span>By Video Playlist</span>
-                  </StyledFeaturedContent>
-                </StyledFeatured>
-                <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/a5lPRHrVGWVCW5zEocVF">
-                  <img src={imgArcadeFire} alt="Arcade Fire" />
-                  <StyledFeaturedContent>
-                    <h2>Indie Mornings</h2>
-                    <span>By Video Playlist</span>
-                  </StyledFeaturedContent>
-                </StyledFeatured>
-              </StyledFeaturedGrid>
-            </StyledFeaturedContainer>
-          </TabPanel>
-          <TabPanel>
-            {popularplaylistItem}
-          </TabPanel>
-          <TabPanel>
-            {playlistItem}
-          </TabPanel>
-        </Tabs>
-        
+        <StyledTabsList>
+          <StyledTabLink to="/" selected >Featured</StyledTabLink>
+          <StyledTabLink to="/popular" >Popular</StyledTabLink>
+          <StyledTabLink to="/recent" >Recent</StyledTabLink>
+        </StyledTabsList>
+        <StyledTabPanel>
+          <StyledFeaturedContainer>
+            <StyledFeaturedHero>
+              <StyledFeatured to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/ByIKvBLzGDm5ocQWQx37">
+                <img src={imgCardi} alt="Cardi" />
+                <StyledFeaturedContent>
+                  <h2>Pitchfork's 100 best songs of 2017</h2>
+                  <span>By Video Playlist</span>
+                </StyledFeaturedContent>
+              </StyledFeatured>
+            </StyledFeaturedHero>
+            <StyledFeaturedGrid>
+              <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/6ix5h503yWLpliMrLRXN">
+                <img src={imgQuavo} alt="Quavo" />
+                <StyledFeaturedContent>
+                  <h2>Rap Caviar</h2>
+                  <span>By Video Playlist</span>
+                </StyledFeaturedContent>
+              </StyledFeatured>
+              <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/oH5YlSYbpBTsZAf67mFa">
+                <img src={imgOzuna} alt="Ozuna" />
+                <StyledFeaturedContent>
+                  <h2>Fiesta Latina</h2>
+                  <span>By Video Playlist</span>
+                </StyledFeaturedContent>
+              </StyledFeatured>
+              <StyledFeatured className="col-33" to="/users/fIvaZ2KO14hWHHMUMChBpJ6LO1N2/a5lPRHrVGWVCW5zEocVF">
+                <img src={imgArcadeFire} alt="Arcade Fire" />
+                <StyledFeaturedContent>
+                  <h2>Indie Mornings</h2>
+                  <span>By Video Playlist</span>
+                </StyledFeaturedContent>
+              </StyledFeatured>
+            </StyledFeaturedGrid>
+          </StyledFeaturedContainer>
+        </StyledTabPanel>
       </PlaylistsContainer>
     );
   }
