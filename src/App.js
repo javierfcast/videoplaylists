@@ -1351,13 +1351,14 @@ class App extends Component {
 
     YTApi.playlistItems({ part: 'snippet', key: YT_API_KEY, id: playlistId })
     .then((playlistItems)=> {
+      console.log('playlistItems: ', playlistItems);
       
       if (isUpdate) {
-        self.batchAdd(playlist.playlistId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+        self.batchAdd(playlist.playlistId, playlistItems.playlistItems, isUpdate, 'YouTube');
       }
       else {
         self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
-          self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+          self.batchAdd(docRefId, playlistItems.playlistItems, isUpdate, 'YouTube');
         });
       }
       
