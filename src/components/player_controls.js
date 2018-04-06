@@ -148,7 +148,12 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   let addButton = null;
   let ytLink = null;
 
-  const ytUrl = video ? "https://www.youtube.com/watch?v=" + video.videoID : null;
+  const ytUrl = 
+    video 
+    ? video.videoID 
+      ? "https://www.youtube.com/watch?v=" + video.videoID 
+      : "https://www.youtube.com/watch?v=" + video.id.videoId  
+    : null;
 
   if (playerIsPlaying === true) {
     button = <MaterialIcon icon="pause" color='#fff' />;
