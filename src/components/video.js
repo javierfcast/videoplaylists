@@ -35,9 +35,18 @@ const StyledCurrentVideo = styled.div`
   display: flex;
 `;
 const StyledVideoInfo = styled.div``;
-const StyledNextVideoInfo = styled.div``;
-const StyledNextVideo = styled.div`
+const StyledNextVideo = styled.a`
   margin-bottom: 40px;
+  display: flex;
+  padding: 20px 0;
+  &:hover{
+    background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
+  }
+`;
+const StyledNextVideoInfo = styled.div`
+  width: 100%;
+`;
+const StyledNextVideoActions = styled.div`
   display: flex;
 `;
 const StyledRelatedVideos = styled.div`
@@ -58,7 +67,7 @@ const StyledHeroTitle = styled.h1`
   `}
 `;
 const StyledSectionTitle = styled.h2`
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   border-bottom: 1px solid rgba(255,255,255,0.2);
   padding-bottom: 10px;
 `;
@@ -94,6 +103,7 @@ const StyledActions = styled.div`
 `;
 const StyledActionButton = styled.a`
   padding: 10px 10px 10px 0;
+  margin-right: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
   font-size: 10px;
@@ -134,7 +144,7 @@ class Video extends Component {
     return (
       <StyledContainer>
         <StyledCurrentVideo>
-          <StyledLibraryButtonCheck onClick={() => this.props.onRemoveFromLibrary(this.video)}>
+          <StyledLibraryButtonCheck>
             <span>
               <MaterialIcon icon="check" color='#fff' />
               <MaterialIcon icon="close" color='#fff' />
@@ -152,7 +162,7 @@ class Video extends Component {
         </StyledCurrentVideo>
         <StyledSectionTitle>Playing next</StyledSectionTitle>
         <StyledNextVideo>
-          <StyledLibraryButtonCheck onClick={() => this.props.onRemoveFromLibrary(this.video)}>
+          <StyledLibraryButtonCheck>
             <span>
               <MaterialIcon icon="check" color='#fff' />
               <MaterialIcon icon="close" color='#fff' />
@@ -163,6 +173,10 @@ class Video extends Component {
             <h2>This is the title of the next video</h2>
             <StyledLabel>PUBLISHED: 2009-10-03 · DURATION: 03:18 </StyledLabel>
           </StyledNextVideoInfo>
+          <StyledNextVideoActions>
+            <StyledActionButton><MaterialIcon icon="playlist_add" color='#fff' /></StyledActionButton>
+            <StyledActionButton><MaterialIcon icon="share" color='#fff' /></StyledActionButton>
+          </StyledNextVideoActions>
         </StyledNextVideo>
         <StyledRelatedVideos>
           <StyledSectionTitle>Related videos</StyledSectionTitle>
