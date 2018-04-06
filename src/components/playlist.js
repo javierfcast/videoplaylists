@@ -9,6 +9,7 @@ import VideoItem from './video_item';
 import YTApi from './yt_api';
 import SortableComponent from './sortable_component';
 import _ from 'lodash';
+import MetaTags from 'react-meta-tags';
 
 const sizes = {
   small: 360,
@@ -917,6 +918,10 @@ class Playlist extends Component {
 
     return(
       <PlaylistContainer>
+        <MetaTags>
+          <meta id="og-url" property="og:url" content={window.location.href} />
+          <meta id="og-title" property="og:title" content={`${playlistName} - on VideoPlaylists.tv`} />
+        </MetaTags>
         <StyledHeaderContainer>
           <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton>
           <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
@@ -930,6 +935,10 @@ class Playlist extends Component {
               <StyledPlaylistActions>
                 {followButton}
                 <StyledButtonGroup>
+                  <StyledButton 
+                   onClick={() => window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURI(window.location.href), '', 'width=550, height=400')} >
+                    <MaterialIcon icon="share" color='#fff' />
+                  </StyledButton>
                   {reorderButton}
                   <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
                 </StyledButtonGroup>
