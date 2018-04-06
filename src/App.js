@@ -27,6 +27,8 @@ import AddTagsPopup from './components/add_tags_popup.js';
 import Playlist from './components/playlist';
 import Library from './components/library';
 import Browse from './components/browse';
+import Popular from './components/popular';
+import Recent from './components/recent';
 import Users from './components/users';
 import User from './components/user';
 import Video from './components/video';
@@ -224,11 +226,14 @@ class App extends Component {
 
   componentWillMount() {
 
-    this.loadYoutubeApi();
     
     //Handle login / logout
     firebase.auth().onAuthStateChanged(user => {
-      this.setState({ user })
+      
+      this.setState({ user }, () => {
+        this.loadYoutubeApi();
+      })
+
       if (this.state.user){
 
         //Load Playlists for Sidenav
@@ -342,41 +347,32 @@ class App extends Component {
 
         this.changeVideo(true);
       }
-      else if (event.data === 1) {
-        const self = this;
-        this.player.getDuration().then(playerTotalTime => this.setState({progressMax: playerTotalTime}))
-        clearInterval(updateProgressTimerId)
-
-        const progressUpdate = () => {
-          this.player.getCurrentTime().then(playerCurrentTime => {
-            let progressCount = playerCurrentTime
-            clearInterval(progressTimerId)
-  
-            progressTimerId = setInterval(() => {
-              progressCount = progressCount + 0.5
-              self.setState({progress: progressCount});
-            }, 500)
-          })
-        }
-
-        progressUpdate()
-        updateProgressTimerId = setInterval(progressUpdate, 6000)
-      }
       //video playling
-      /* else if (event.data === 1) {
-        const self = this;
-        this.player.getDuration().then(playerTotalTime => {
-          this.setState({progressMax: playerTotalTime});
-          clearInterval(progressTimerId);
-          progressTimerId = setInterval(function() {
-            self.player.getCurrentTime().then(playerCurrentTime=> {
-              self.setState({progress: playerCurrentTime});             
-            });
-          }, 1000);    
+      else if (event.data === 1) {
+        this.setState({playerIsPlaying: true}, () => {
+          const self = this;
+          this.player.getDuration().then(playerTotalTime => this.setState({progressMax: playerTotalTime}))
+          clearInterval(updateProgressTimerId)
+  
+          const progressUpdate = () => {
+            this.player.getCurrentTime().then(playerCurrentTime => {
+              let progressCount = playerCurrentTime
+              clearInterval(progressTimerId)
+    
+              progressTimerId = setInterval(() => {
+                progressCount = progressCount + 0.5
+                self.setState({progress: progressCount});
+              }, 500)
+            })
+          }
+  
+          progressUpdate()
+          updateProgressTimerId = setInterval(progressUpdate, 6000)
         });
-      } */
+      }
       //video paused
       else if (event.data === 2) {
+        this.setState({playerIsPlaying: false});
         clearInterval(updateProgressTimerId)               
         clearInterval(progressTimerId);
       }
@@ -534,7 +530,6 @@ class App extends Component {
 
   updateSigninStatus = (isSignedIn) => {
     if (isSignedIn) {
-
       this.setState({gapiReady: true});
 
       const idToken = window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
@@ -579,7 +574,8 @@ class App extends Component {
       window.gapi.auth2.getAuthInstance().signOut();
 
       this.setState({
-        user: null
+        user: null,
+        gapiReady: false
       });
       console.log(`Usuario ha salido`);
     })
@@ -1156,7 +1152,7 @@ class App extends Component {
       console.log('Got an error:', error);
     })
     
-    if (!typeof playlistUrl === "string") this.toggleClosePlaylistPopup();
+    if (typeof playlistUrl === "undefined") this.toggleClosePlaylistPopup();
   };
 
   toggleEditPlaylistPopup = (playlist) => {
@@ -1245,8 +1241,8 @@ class App extends Component {
       videoCount: playlistVideos.length,
     }
 
-    //Add a Spotify tag if it's a new playlist
-    if (!isUpdate && kind === 'Spotify') playlistItem.tags = ["Spotify"]
+    //Add a Spotify or YouTube tag if it's a new playlist
+    if (!isUpdate && kind) playlistItem.tags = [kind]
 
     publicPlaylistRef.update(playlistItem).catch((error) => {
       throw new Error(error); 
@@ -1403,77 +1399,6 @@ class App extends Component {
       console.error("Error removing document: ", error);
     });
   }
-
-  /* onDeletePlaylist = (playlist, batchSize) => {
-    const user = this.state.user;
-    const db = firebase.firestore();
-    const docRef = db.doc(`users/${user.uid}/playlists/${playlist.playlistId}`);
-    const collectionRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlist.playlistId).collection('videos');
-
-    let self = this;
-
-    if (batchSize !== 0) {
-
-      const query = collectionRef.orderBy('__name__').limit(batchSize);
-
-      return new Promise((resolve, reject) => {
-        deleteQueryBatch(db, query, batchSize, resolve, reject);
-        deletePlaylistDoc(docRef, playlist, self);
-      });
-    } else {
-      return new Promise((resolve, reject) => {
-        deletePlaylistDoc(docRef, playlist, self);
-      });
-    }
-
-    function deleteQueryBatch(db, query, batchSize, resolve, reject) {
-      query.get()
-        .then((snapshot) => {
-          // When there are no documents left, we are done
-          if (snapshot.size === 0) {
-            return 0;
-          }
-
-          // Delete documents in a batch
-          var batch = db.batch();
-          snapshot.docs.forEach(function (doc) {
-            batch.delete(doc.ref);
-          });
-
-          return batch.commit().then(function () {
-            return snapshot.size;
-          });
-        }).then(function (numDeleted) {
-          if (numDeleted <= batchSize) {
-            resolve();
-            return;
-          }
-          // Recurse on the next process tick, to avoid
-          // exploding the stack.
-          process.nextTick(function () {
-            deleteQueryBatch(db, query, batchSize, resolve, reject);
-          });
-        })
-        .catch(reject);
-    }
-
-    function deletePlaylistDoc(docRef, playlist, self) {
-      docRef.delete().then(() => {
-        const playlistsRef = firebase.firestore().doc(`playlists/${docRef.id}`);
-        playlistsRef.delete().then(function () {
-          console.log(`${docRef.id} Document successfully deleted!`);
-          self.props.history.push(`/users/${user.uid}`);
-          // self.setState({
-          //   playlistVideos: [],
-          // });
-        }).catch(function (error) {
-          console.error("Error removing document: ", error);
-        });
-      }).catch(function (error) {
-        console.error("Error removing document: ", error);
-      });
-    }
-  }; */
 
   onAddTag = (e) => {
     e.preventDefault();
@@ -1645,6 +1570,24 @@ class App extends Component {
                     onPlaylistFollow={this.onPlaylistFollow}
                   /> }
                 />
+                <Route exact path='/popular' render={({ match }) =>
+                  <Popular
+                    user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
+                    popularPlaylists={this.state.popularPlaylists}
+                    featuredPlaylists={this.state.featuredPlaylists}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                  /> }
+                />
+                <Route exact path='/recent' render={({ match }) =>
+                  <Recent
+                    user={this.state.user}
+                    browsePlaylists={this.state.browsePlaylists}
+                    popularPlaylists={this.state.popularPlaylists}
+                    featuredPlaylists={this.state.featuredPlaylists}
+                    onPlaylistFollow={this.onPlaylistFollow}
+                  /> }
+                />
                 <Route exact path='/watch/:videoId' render={({ match }) =>
                   <Video
                     match={match}
@@ -1691,6 +1634,7 @@ class App extends Component {
                     accessToken={this.state.accessToken}
                     YT_API_KEY={YT_API_KEY}
                     gapiReady={this.state.gapiReady}
+                    onLogin={this.onLogin}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>

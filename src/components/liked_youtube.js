@@ -176,8 +176,29 @@ const StyledLoading = styled.div`
   ${props => props.hide && `
     display: none;
   `}
-`
-
+`;
+const StyledLoginContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const StyledLogin = styled.a`
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: block;
+  padding: 10px 20px;
+  text-align: center;
+  transition: all .3s ease;
+  &:hover{
+    border: 1px solid rgba(255,255,255,1);
+  }
+`;
 class LikedYoutube extends Component {
 
   constructor(props) {
@@ -198,27 +219,32 @@ class LikedYoutube extends Component {
   };
 
   componentWillMount() {
-    if (!this.props.user) return
+    if (this.props.gapiReady) {
+      this.getYoutubeLikes()
+    }
+
+    // if (!this.props.user || !this.props.gapiReady) return
     
-    this.setState({
-      playlist: {
-        Author: this.props.user.displayName,
-        AuthorId: this.props.user.uid,
-        createdOn: new Date(),
-        featured: false,
-        followers: 0,
-        playlistName: 'Liked on YouTube',
-        playlistSlugName: 'liked-on-youtube',
-        videoCount: 0
-      }
-    }, () => {
-      if (this.props.gapiReady) {
-        this.getYoutubeLikes()
-      }
-    });
+    // this.setState({
+    //   playlist: {
+    //     // Author: this.props.user.displayName,
+    //     // AuthorId: this.props.user.uid,
+    //     createdOn: new Date(),
+    //     featured: false,
+    //     followers: 0,
+    //     playlistName: 'Liked on YouTube',
+    //     playlistSlugName: 'liked-on-youtube',
+    //     videoCount: 0
+    //   }
+    // }, () => {
+    //   if (this.props.gapiReady) {
+    //     this.getYoutubeLikes()
+    //   }
+    // });
   }
 
   componentWillUpdate(nextProps, nextState) {
+    
     if (nextProps.gapiReady && this.props.gapiReady !== nextProps.gapiReady) {
       this.getYoutubeLikes()
     }
@@ -375,20 +401,16 @@ class LikedYoutube extends Component {
   }
 
   render() {
-    if (!this.state.playlist) {
+    if (!this.props.user) {
       return null;
     }
-
-    //Basic constants
-    const playlist = this.state.playlist;
-    const playlistAuthor = this.state.playlist.Author;
 
     //Set Playlist options popup
     let playlistOptionsPopup = null;
     const arrow = this.state.orderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
 
     if (this.state.playlistOptionsIsOpen){
-      if (this.props.user) {
+      if (this.props.user && this.props.gapiReady) {
         
         playlistOptionsPopup = 
 
@@ -422,11 +444,13 @@ class LikedYoutube extends Component {
       <PlaylistContainer>
         <StyledHeaderContainer>
           <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
-            <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink>
+            <StyledAuthorLink to={`/users/${this.props.user.uid}`}>{this.props.user.displayName}'s</StyledAuthorLink>
             <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}>Liked on YouTube</StyledPlaylistName>
             <StyledHeaderActions scrolling={this.state.scrolling ? 1 : 0}>
               <StyledPlaylistInfo scrolling={this.state.scrolling ? 1 : 0}>
-                <StyledLabel scrolling={this.state.scrolling ? 1 : 0}>{playlist.videoCount} Videos in this playlist</StyledLabel>
+                <StyledLabel scrolling={this.state.scrolling ? 1 : 0}>
+                  {this.state.playlist ? this.state.playlist.videoCount : 0} Videos in this playlist
+                </StyledLabel>
                 <StyledButton scrolling={this.state.scrolling ? 1 : 0} onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               </StyledPlaylistInfo>
             </StyledHeaderActions>
@@ -435,14 +459,22 @@ class LikedYoutube extends Component {
         <StyledPopupContainer>
           {playlistOptionsPopup}
         </StyledPopupContainer>
-        <VideoListContainer onScroll={this.handleScroll}>
-          {this.state.videoItems}
-          <StyledLoading hide={this.state.allResults} >
-            <MuiThemeProvider>
-              <CircularProgress color="#fff" thickness={3} />
-            </MuiThemeProvider>
-          </StyledLoading>
-        </VideoListContainer>
+        {
+          this.props.gapiReady
+        ?
+          <VideoListContainer onScroll={this.handleScroll}>
+            {this.state.videoItems}
+            <StyledLoading hide={this.state.allResults} >
+              <MuiThemeProvider>
+                <CircularProgress color="#fff" thickness={3} />
+              </MuiThemeProvider>
+            </StyledLoading>
+          </VideoListContainer>
+        :
+          <StyledLoginContainer>
+            <StyledLogin onClick={() => this.props.onLogin('google')}>Login with Google</StyledLogin>
+          </StyledLoginContainer>
+        }
       </PlaylistContainer>
     )
   };
