@@ -378,24 +378,9 @@ class App extends Component {
       }
     });
     
-    // Hide inteface after 5 seconds of mouse inactivity
-
-    document.onmousemove = () => {
-
-      if (this.state.playerIsOpen !== false ){
-
-        document.getElementById("interface").classList.remove('hidden');
-
-        clearTimeout(mouseTimeout);
-
-        mouseTimeout = setTimeout( () => {
-          document.getElementById("interface").classList.add('hidden');
-          console.log('hidding interface after 5 seconds of mouse inactivity');
-        }, 5000);
-
-      }
-
-    }
+    document.onmousemove = this.hideInterface
+    document.onkeypress = this.hideInterface
+    document.onwheel = this.hideInterface
 
   };
 
@@ -412,6 +397,23 @@ class App extends Component {
   };
 
 //Methods
+  
+  // Hide inteface after 5 seconds of mouse inactivity
+  hideInterface = () => {
+    
+    if (this.state.playerIsOpen !== false ){
+
+      document.getElementById("interface").classList.remove('hidden');
+
+      clearTimeout(mouseTimeout);
+
+      mouseTimeout = setTimeout( () => {
+        document.getElementById("interface").classList.add('hidden');
+        console.log('hidding interface after 5 seconds of mouse inactivity');
+      }, 5000);
+
+    }
+  }
 
   changeVideo = (isNext = true) => {
 
