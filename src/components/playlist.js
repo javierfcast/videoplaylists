@@ -138,7 +138,10 @@ const StyledPlaylistActions = styled.div`
     margin-top: 0;
     justify-content: flex-end;
   `}
-`
+`;
+const StyledButtonGroup = styled.div`
+  display: flex;
+`;
 const StyledPlaylistTags = styled.div`
   width: 100%;
   display: flex;
@@ -926,8 +929,10 @@ class Playlist extends Component {
               </StyledPlaylistInfo>
               <StyledPlaylistActions>
                 {followButton}
-                {reorderButton}
-                <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+                <StyledButtonGroup>
+                  {reorderButton}
+                  <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+                </StyledButtonGroup>
               </StyledPlaylistActions>
             </StyledHeaderActions>
           </StyledHeader>
