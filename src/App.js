@@ -1648,6 +1648,7 @@ class App extends Component {
                 <Route exact path='/watch/:videoId' render={({ match }) =>
                   <Video
                     match={match}
+                    user={this.state.user}
                     toggleWatchPlayer={this.toggleWatchPlayer}
                   />} 
                   

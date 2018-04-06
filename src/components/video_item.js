@@ -12,7 +12,8 @@ const StyledVideoItem = styled.li`
     background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
   }
   &.active{
-    background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
+    background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.3) 100%);
+    border-bottom: 1px solid #fff;
   }
 `;
 const StyledContent = styled.div`
