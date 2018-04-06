@@ -226,11 +226,14 @@ class App extends Component {
 
   componentWillMount() {
 
-    this.loadYoutubeApi();
     
     //Handle login / logout
     firebase.auth().onAuthStateChanged(user => {
-      this.setState({ user })
+      
+      this.setState({ user }, () => {
+        this.loadYoutubeApi();
+      })
+
       if (this.state.user){
 
         //Load Playlists for Sidenav
@@ -527,7 +530,6 @@ class App extends Component {
 
   updateSigninStatus = (isSignedIn) => {
     if (isSignedIn) {
-
       this.setState({gapiReady: true});
 
       const idToken = window.gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().id_token;
@@ -572,7 +574,8 @@ class App extends Component {
       window.gapi.auth2.getAuthInstance().signOut();
 
       this.setState({
-        user: null
+        user: null,
+        gapiReady: false
       });
       console.log(`Usuario ha salido`);
     })
@@ -1351,14 +1354,13 @@ class App extends Component {
 
     YTApi.playlistItems({ part: 'snippet', key: YT_API_KEY, id: playlistId })
     .then((playlistItems)=> {
-      console.log('playlistItems: ', playlistItems);
       
       if (isUpdate) {
-        self.batchAdd(playlist.playlistId, playlistItems.playlistItems, isUpdate, 'YouTube');
+        self.batchAdd(playlist.playlistId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
       }
       else {
         self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
-          self.batchAdd(docRefId, playlistItems.playlistItems, isUpdate, 'YouTube');
+          self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
         });
       }
       
@@ -1631,6 +1633,7 @@ class App extends Component {
                     accessToken={this.state.accessToken}
                     YT_API_KEY={YT_API_KEY}
                     gapiReady={this.state.gapiReady}
+                    onLogin={this.onLogin}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
