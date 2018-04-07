@@ -218,9 +218,8 @@ class App extends Component {
       snackAction: "",
       //GoogleApi
       gapiReady: false,
-      //Watch states
-      onWatch: false,
-      prevWatchId: null,
+      //Video single
+      watchId: null
     }
 
     this.player = null;
@@ -432,8 +431,7 @@ class App extends Component {
 
       console.log('MyStateChange', nextVideo);
 
-      if (!this.state.onWatch) this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
-      else this.changeWatchVideo(nextVideo.videoID || nextVideo.id.videoId, isNext)
+      this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
 
       return {
         ...prevState,
@@ -445,24 +443,6 @@ class App extends Component {
       }
     });
   };
-
-  setOnWatch = (onWatch) => {
-    this.setState({onWatch});
-  }
-
-  changeWatchVideo = (videoId, isNext) => {
-    if (isNext || !this.state.prevWatchId) {
-      this.setState({
-        prevWatchId: this.state.videoId
-      }, () => this.props.history.push(`/watch/${videoId}`))
-    }
-    else {
-      this.props.history.push(`/watch/${this.state.prevWatchId}`)
-      this.setState({
-        prevWatchId: null
-      })
-    }
-  }
 
   toggleInterface = () => {
     this.setState({
@@ -756,6 +736,7 @@ class App extends Component {
       playlistVideos: playlistVideos,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
+      watchId: null,
       video,
       videoId,
       videoTitle,
@@ -772,17 +753,6 @@ class App extends Component {
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
 
-    // this.player = YouTubePlayer('video-player', {
-    //   videoId: video.videoID,
-    //   playerVars: {
-    //     controls: 0,
-    //     showinfo: 0,
-    //     rel: 0,
-    //   }
-    // });
-
-    // this.player.playVideo();
-
     this.player.loadVideoById(videoId);
 
     this.setState({
@@ -791,6 +761,7 @@ class App extends Component {
       playingFromSearch: false,
       playlistVideos: playlistVideos,
       currentVideoNumber: playlistVideos.indexOf(video),
+      watchId: videoId,
       video,
       videoId,
       videoTitle,
@@ -817,6 +788,7 @@ class App extends Component {
         playlist: null,
         currentVideoNumber: (index > -1 ) ? index : 0,
         playlistVideos: prevState.searchResults,
+        watchId: null,
         video,
         videoId,
         videoTitle,
@@ -1617,13 +1589,16 @@ class App extends Component {
                 <Route exact path='/watch/:videoId' render={({ match }) =>
                   <Video
                     match={match}
-                    setOnWatch={this.setOnWatch}
+                    history={this.props.history}
                     playerLoaded={this.player}
                     user={this.state.user}
                     toggleWatchPlayer={this.toggleWatchPlayer}
                     YT_API_KEY={YT_API_KEY}
-                    playerIsPlaying={this.state.playerIsPlaying}
-                    currentVideoId={this.state.videoId}
+                    currentVideo={this.state.video}
+                    currentPlaylist={this.state.playlistVideos}
+                    libraryVideos={this.state.libraryVideos}
+                    watchId={this.state.watchId}
+                    playNextVideo={this.playNextVideo}
                   />} 
                   
                 />
