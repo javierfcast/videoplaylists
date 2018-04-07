@@ -1358,11 +1358,11 @@ class App extends Component {
     .then((playlistItems)=> {
       
       if (isUpdate) {
-        self.batchAdd(playlist.playlistId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+        self.batchAdd(playlist.playlistId, playlistItems.playlistItems, isUpdate, 'YouTube');
       }
       else {
         self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
-          self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+          self.batchAdd(docRefId, playlistItems.playlistItems, isUpdate, 'YouTube');
         });
       }
       
