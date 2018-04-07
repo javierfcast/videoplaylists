@@ -629,7 +629,7 @@ class Playlist extends Component {
 
     if (playlistVideos.length > 0) {
       const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
-      YTApi.Search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
+      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
       .then((searchResults)=> {    
         const video = searchResults.map((result, index) => {
           return {
@@ -650,7 +650,7 @@ class Playlist extends Component {
     }
     
     else {
-      YTApi.Search({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
+      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
       .then((searchResults)=> {    
         const video = searchResults.map((result, index) => {
           return {

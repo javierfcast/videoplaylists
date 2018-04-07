@@ -463,7 +463,7 @@ class App extends Component {
       return null;
     }
 
-    YTApi.Search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
+    YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
     .then((searchResults)=> {    
       this.setState({
         searchResults: searchResults
@@ -1303,7 +1303,7 @@ class App extends Component {
 
           allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
-            promises.push(YTApi.Search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
+            promises.push(YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
           });
 
           Promise.all(promises)
