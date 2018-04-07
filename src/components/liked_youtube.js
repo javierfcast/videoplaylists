@@ -312,7 +312,7 @@ class LikedYoutube extends Component {
     this.setState({
       loading: true
     }, () => {
-      YTApi.videos({part: 'snippet,contentDetails', myRating: 'like', maxResults: 50, pageToken: this.state.nextPageToken})
+      YTApi.videosGapi({part: 'snippet,contentDetails', myRating: 'like', maxResults: 50, pageToken: this.state.nextPageToken})
         .then(data => {
   
           const playlist = {
