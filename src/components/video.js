@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
@@ -274,6 +273,7 @@ class Video extends Component {
             onRemoveFromLibrary={this.props.onRemoveFromLibrary} //p
             autoAdd={false} //p
             itsOnLibrary={itsOnLibrary}
+            fromWatch={true}
           />
         )
       });
@@ -284,10 +284,6 @@ class Video extends Component {
     .catch(e => {
       console.log('error: ', e);
     });
-  };
-
-  setNewVideo = (video, playlist, playlistVideos) => {
-    this.props.history.push(`/watch/${video.videoID}`)
   };
 
   render() {    
