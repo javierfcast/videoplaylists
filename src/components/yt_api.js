@@ -2,7 +2,7 @@ import axios from "axios";
 const ROOT_URL = "https://www.googleapis.com/youtube/v3/";
 
 const YTApi = {
-  Search: params => {
+  search: params => {
     //get search results
     return new Promise((resolve, reject) => {
       axios
@@ -103,6 +103,38 @@ const YTApi = {
   },
 
   videos: params => {
+    return new Promise((resolve, reject) => {
+      axios
+        .get(ROOT_URL + "videos", { params })
+        .then(response => {
+          const ids = response.data.items
+            .map(item => item.id.videoId)
+            .toString();
+
+          //get  video length and append to response
+          axios
+            .get(ROOT_URL + "videos", {
+              params: { part: "contentDetails", key: params.key, id: ids }
+            })
+            .then(contentResponse => {
+              contentResponse.data.items.forEach((contentItem, i) => {
+                response.data.items[i].contentDetails =
+                  contentItem.contentDetails;
+              });
+
+              resolve(response.data.items);
+            })
+            .catch(e => {
+              reject(e);
+            });
+        })
+        .catch(e => {
+          reject(e);
+        });
+    });
+  },
+
+  videosGapi: params => {
     return new Promise((resolve, reject) => {
       window.gapi.client.youtube.videos
         .list(params)
