@@ -252,7 +252,6 @@ class Video extends Component {
         return (
           <VideoItem
             user={this.props.user}
-            // playlist={this.state.playlist}
             playlistVideos={this.props.currentPlaylist}
             currentVideoId = {this.props.videoId} //p
             inSearchResults={false}
@@ -265,13 +264,12 @@ class Video extends Component {
             videoChannel={video.videoChannel}
             duration={video.duration}
             datePublished={year + '-' + month + '-' + dt}
-            togglePlayer={this.setNewVideo}
             togglePlaylistPopup={this.props.togglePlaylistPopup} //p
             onAddToPlaylist={this.props.onAddToPlaylist} //p
             onRemoveFromPlaylist={this.props.onRemoveFromPlaylist} //p
             onAddToLibrary={this.props.onAddToLibrary} //p
             onRemoveFromLibrary={this.props.onRemoveFromLibrary} //p
-            autoAdd={false} //p
+            autoAdd={false}
             itsOnLibrary={itsOnLibrary}
             fromWatch={true}
           />
