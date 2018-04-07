@@ -8,6 +8,11 @@ import MaterialIcon from 'material-icons-react';
 import moment from 'moment';
 import YTApi from './yt_api';
 import head from 'lodash/head'
+import findIndex from 'lodash/findIndex'
+import remove from 'lodash/remove'
+import map from 'lodash/map'
+
+import VideoItem from './video_item'
 
 const sizes = {
   small: 360,
@@ -41,6 +46,7 @@ const StyledNextVideo = styled.div`
   margin-bottom: 40px;
   display: flex;
   padding: 20px 0;
+  cursor: pointer;
   &:hover{
     background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
   }
@@ -113,7 +119,13 @@ const StyledActionButton = styled.a`
   align-items: center;
   cursor: pointer;
 `;
-
+const VideoListContainer = styled.ul`
+  list-style: none;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+`;
 
 class Video extends Component {
 
@@ -126,110 +138,85 @@ class Video extends Component {
     }
   };
 
-  componentWillMount() {
-    this.props.setOnWatch(true)
-
-    if (this.props.playerLoaded) {
-      //Shouldn't trigger if window reload
-      this.getVideoInfo(this.props.match.params.videoId)
-    }
-    // if (this.props.playerLoaded) {
-    //   this.getVideoInfo(this.props.match.params.videoId)
-    //   this.getRelated(this.props.match.params.videoId)
-    // }
-  };
-
-  componentDidMount() {
-
-  };
-
   componentWillReceiveProps(nextProps) {
-
     // Should only trigger if window reload
     if (nextProps.playerLoaded && nextProps.playerLoaded !== this.props.playerLoaded && !this.state.video.videoID) {
-      this.getVideoInfo(nextProps.match.params.videoId)
-    }
-    
-    // Should trigger only when changing video and user is on the video view
-    else if (this.props.match.params.videoId !== nextProps.match.params.videoId) {
-      this.getVideoInfo(nextProps.match.params.videoId)
+      this.startRadio(nextProps.match.params.videoId)
     }
 
+    else if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
+      this.startRadio(nextProps.match.params.videoId)
+    }
 
-    // else if (this.state.video.videoID !== nextProps.match.params.videoId) {
-    //   this.getVideoInfo(nextProps.match.params.videoId, false)
-    // }
+    else if (nextProps.currentVideo && this.state.video.videoID !== nextProps.currentVideo.videoID) {
+      this.updateInfo(nextProps.currentVideo, nextProps.currentPlaylist)
+    }
+  };
 
-    // if (this.state.video.videoID !== nextProps.match.params.videoId && nextProps.playerLoaded) {
-    //   this.getVideoInfo(nextProps.match.params.videoId)
-    //   this.getRelated(nextProps.match.params.videoId)
-    // }
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    // if (nextState.video && nextProps.playerLoaded) {
-    //   if (!nextProps.currentVideoId) nextProps.toggleWatchPlayer(nextState.video)
-    //   else if ( this.state.video.videoID !== this.props.match.params.videoId) nextProps.toggleWatchPlayer(nextState.video)
-
-    // }
-    // if video en state
-    // if video !playing
-    // if playerLoaded
-
-    // set video
-
-    
-
-    // if (nextProps.playerLoaded && this.props.playerLoaded !== nextProps.playerLoaded) {
-    //   const video = {
-    //     videoID: this.props.match.params.videoId,
-    //     videoTitle: 'Test',
-    //     videoChannel: 'Channel Test'
-    //   }
-
-      
-
-    //   // this.props.toggleWatchPlayer(video); //video, playlist, playlistvideos
-    // } 
-  }
-  
-  componentWillUnmount() {
-    this.props.setOnWatch(false)
-  }
-
-  getVideoInfo = (videoID) => {
+  startRadio = (videoID) => {
     YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
     .then(response => {
       response = head(response)
 
-      const durationFormated = moment.duration(response.contentDetails.duration).asMilliseconds() > 3600000
-      ? moment.utc(moment.duration(response.contentDetails.duration).asMilliseconds()).format("hh:mm:ss")
-      : moment.utc(moment.duration(response.contentDetails.duration).asMilliseconds()).format("mm:ss")
-
-      const video = {
+      return {
         timestamp: new Date(),
         videoEtag: response.etag,
         videoID: response.id,
         videoTitle: response.snippet.title,
         videoChannel: response.snippet.channelTitle,
         datePublished: response.snippet.publishedAt,
-        datePublishedFormated: moment(response.snippet.publishedAt).format('YYYY[-]MM[-]DD'),
         duration: response.contentDetails.duration,
-        durationFormated,
       }
+    })
+    .then(video => {
+      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: video.videoID, type: 'video', maxResults: 30 })
+      .then((searchResults)=> {
+        let relatedVideos = searchResults.map((result, index) => ({
+            datePublished: result.snippet.publishedAt,
+            videoChannel: result.snippet.channelTitle,
+            videoEtag: result.etag,
+            videoID: result.id.videoId,
+            videoTitle: result.snippet.title,
+            key: result.id.videoId,
+            duration: result.contentDetails.duration,
+        }));
 
-      this.setState({video}, () => this.getRelated(videoID));
+        relatedVideos = [video, ...relatedVideos]
 
+        this.props.toggleWatchPlayer(video, relatedVideos)
+  
+      })
+      .catch(e => {
+        console.log('error: ', e);
+      });
     })
     .catch(e => {
       console.log('error: ', e);
     });
-  }
+  };
+
+  updateInfo = (video, playlistVideos) => {
+    video.durationFormated = moment.duration(video.duration).asMilliseconds() > 3600000
+    ? moment.utc(moment.duration(video.duration).asMilliseconds()).format("hh:mm:ss")
+    : moment.utc(moment.duration(video.duration).asMilliseconds()).format("mm:ss")
+
+    video.datePublishedFormated = moment(video.publishedAt).format('YYYY[-]MM[-]DD')
+
+    const playingNext = playlistVideos[findIndex(playlistVideos, {videoID: video.videoID}) + 1]
+
+    playingNext.durationFormated = moment.duration(playingNext.duration).asMilliseconds() > 3600000
+    ? moment.utc(moment.duration(playingNext.duration).asMilliseconds()).format("hh:mm:ss")
+    : moment.utc(moment.duration(playingNext.duration).asMilliseconds()).format("mm:ss")
+
+    playingNext.datePublishedFormated = moment(playingNext.publishedAt).format('YYYY[-]MM[-]DD')
+
+    this.setState({video, playingNext}, () => this.getRelated(this.state.video.videoID));
+  };
 
   getRelated = (videoID) => {
     YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: videoID, type: 'video', maxResults: 10 })
     .then((searchResults)=> {
-      const relatedVideos = searchResults.map((result, index) => ({
+      let relatedVideos = searchResults.map((result, index) => ({
           datePublished: result.snippet.publishedAt,
           datePublishedFormated: moment(result.snippet.publishedAt).format('YYYY[-]MM[-]DD'),
           videoChannel: result.snippet.channelTitle,
@@ -242,18 +229,65 @@ class Video extends Component {
           ? moment.utc(moment.duration(result.contentDetails.duration).asMilliseconds()).format("hh:mm:ss")
           : moment.utc(moment.duration(result.contentDetails.duration).asMilliseconds()).format("mm:ss")
       }));
-      
-      this.setState({
-        playingNext: head(relatedVideos),
-        relatedVideos: [this.state.video, ...relatedVideos]
-      }, () => {
-        this.props.toggleWatchPlayer(this.state.video, this.state.relatedVideos)
+
+      relatedVideos = remove(relatedVideos, rv => rv.videoID !== this.state.playingNext.videoID)
+
+      relatedVideos = map(relatedVideos, video => {
+        let date = new Date(video.datePublished);
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1;
+        let dt = date.getDate();
+
+        if (dt < 10) {
+          dt = '0' + dt;
+        }
+        if (month < 10) {
+          month = '0' + month;
+        }
+
+        //check if video it's in library
+        const itsOnLibrary = this.props.libraryVideos.some((element) => {
+          return element.videoID === video.videoID
+        });
+
+        return (
+          <VideoItem
+            user={this.props.user}
+            // playlist={this.state.playlist}
+            playlistVideos={this.props.currentPlaylist}
+            currentVideoId = {this.props.videoId} //p
+            inSearchResults={false}
+            inRelatedVideos={true}
+            key={video.videoEtag}
+            video={video}
+            videoEtag={video.videoEtag}
+            videoTitle={video.videoTitle}
+            videoId={video.videoID}
+            videoChannel={video.videoChannel}
+            duration={video.duration}
+            datePublished={year + '-' + month + '-' + dt}
+            togglePlayer={this.setNewVideo}
+            togglePlaylistPopup={this.props.togglePlaylistPopup} //p
+            onAddToPlaylist={this.props.onAddToPlaylist} //p
+            onRemoveFromPlaylist={this.props.onRemoveFromPlaylist} //p
+            onAddToLibrary={this.props.onAddToLibrary} //p
+            onRemoveFromLibrary={this.props.onRemoveFromLibrary} //p
+            autoAdd={false} //p
+            itsOnLibrary={itsOnLibrary}
+          />
+        )
       });
+      
+      this.setState({relatedVideos})
       
     })
     .catch(e => {
       console.log('error: ', e);
     });
+  };
+
+  setNewVideo = (video, playlist, playlistVideos) => {
+    this.props.history.push(`/watch/${video.videoID}`)
   };
 
   render() {    
@@ -269,8 +303,8 @@ class Video extends Component {
           </StyledLibraryButtonCheck>
           <StyledVideoInfo>
             <StyledLabel>{this.state.video.videoChannel}</StyledLabel>
-            <StyledHeroTitle>"{this.state.video.videoTitle}"</StyledHeroTitle>
-            <StyledLabel>{`PUBLISHED: ${this.state.video.datePublishedFormated} · DURATION: ${this.state.video.durationFormated}`} </StyledLabel>
+            <StyledHeroTitle>{this.state.video.videoTitle}</StyledHeroTitle>
+            <StyledLabel>{`PUBLISHED: ${this.state.video.datePublishedFormated} · DURATION: ${this.state.video.durationFormated}`}</StyledLabel>
             <StyledActions>
               <StyledActionButton><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledActionButton>
               <StyledActionButton><MaterialIcon icon="share" color='#fff' /> Share</StyledActionButton>
@@ -285,10 +319,10 @@ class Video extends Component {
               <MaterialIcon icon="close" color='#fff' />
             </span>
           </StyledLibraryButtonCheck>
-          <StyledNextVideoInfo>
-            <StyledLabel>Channel of the video</StyledLabel>
-            <h2>This is the title of the next video</h2>
-            <StyledLabel>PUBLISHED: 2009-10-03 · DURATION: 03:18 </StyledLabel>
+          <StyledNextVideoInfo onClick={this.props.playNextVideo}>
+            <StyledLabel>{this.state.playingNext.videoChannel}</StyledLabel>
+            <h2>{this.state.playingNext.videoTitle}</h2>
+            <StyledLabel>{`PUBLISHED: ${this.state.playingNext.datePublishedFormated} · DURATION: ${this.state.playingNext.durationFormated}`}</StyledLabel>
           </StyledNextVideoInfo>
           <StyledNextVideoActions>
             <StyledActionButton><MaterialIcon icon="playlist_add" color='#fff' /></StyledActionButton>
@@ -297,7 +331,9 @@ class Video extends Component {
         </StyledNextVideo>
         <StyledRelatedVideos>
           <StyledSectionTitle>Related videos</StyledSectionTitle>
-          <p>Aquí va El listado de Video Items con unos 10 videos relacionados.</p>
+          <VideoListContainer>
+            {this.state.relatedVideos}
+          </VideoListContainer>
         </StyledRelatedVideos>
 
       </StyledContainer>
