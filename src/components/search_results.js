@@ -69,6 +69,7 @@ const SearchResults = (props) => {
         onAddToLibrary={props.onAddToLibrary}
         onRemoveFromLibrary={props.onRemoveFromLibrary}
         itsOnLibrary={itsOnLibrary}
+        fromWatch={/watch.*/.test(props.history.location.pathname)}
       />
     )
   });

@@ -1557,6 +1557,7 @@ class App extends Component {
                 libraryVideos={this.state.libraryVideos}
                 onAddToLibrary={this.onAddToLibrary}
                 onRemoveFromLibrary={this.onRemoveFromLibrary}
+                history={this.props.history}
               />     
               <Switch>
                 <Route exact path='/' render={({ match }) =>
