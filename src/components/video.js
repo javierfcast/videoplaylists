@@ -5,7 +5,9 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
-import Moment from 'moment';
+import moment from 'moment';
+import YTApi from './yt_api';
+import head from 'lodash/head'
 
 const sizes = {
   small: 360,
@@ -35,7 +37,7 @@ const StyledCurrentVideo = styled.div`
   display: flex;
 `;
 const StyledVideoInfo = styled.div``;
-const StyledNextVideo = styled.a`
+const StyledNextVideo = styled.div`
   margin-bottom: 40px;
   display: flex;
   padding: 20px 0;
@@ -117,27 +119,142 @@ class Video extends Component {
 
   constructor(props) {
     super(props);
-
+    this.state = {
+      video: {},
+      playingNext: {},
+      relatedVideos: []
+    }
   };
 
   componentWillMount() {
+    this.props.setOnWatch(true)
 
+    if (this.props.playerLoaded) {
+      //Shouldn't trigger if window reload
+      this.getVideoInfo(this.props.match.params.videoId)
+    }
+    // if (this.props.playerLoaded) {
+    //   this.getVideoInfo(this.props.match.params.videoId)
+    //   this.getRelated(this.props.match.params.videoId)
+    // }
   };
 
   componentDidMount() {
 
-    const video = {
-      videoID: this.props.match.params.videoId,
-      videoTitle: 'Test',
-      videoChannel: 'Channel Test'
-    }
-    
-    this.props.toggleWatchPlayer(video);
   };
 
-  componentWillUnmount() {
+  componentWillReceiveProps(nextProps) {
+
+    // Should only trigger if window reload
+    if (nextProps.playerLoaded && nextProps.playerLoaded !== this.props.playerLoaded && !this.state.video.videoID) {
+      this.getVideoInfo(nextProps.match.params.videoId)
+    }
     
+    // Should trigger only when changing video and user is on the video view
+    else if (this.props.match.params.videoId !== nextProps.match.params.videoId) {
+      this.getVideoInfo(nextProps.match.params.videoId)
+    }
+
+
+    // else if (this.state.video.videoID !== nextProps.match.params.videoId) {
+    //   this.getVideoInfo(nextProps.match.params.videoId, false)
+    // }
+
+    // if (this.state.video.videoID !== nextProps.match.params.videoId && nextProps.playerLoaded) {
+    //   this.getVideoInfo(nextProps.match.params.videoId)
+    //   this.getRelated(nextProps.match.params.videoId)
+    // }
   }
+
+  componentWillUpdate(nextProps, nextState) {
+    // if (nextState.video && nextProps.playerLoaded) {
+    //   if (!nextProps.currentVideoId) nextProps.toggleWatchPlayer(nextState.video)
+    //   else if ( this.state.video.videoID !== this.props.match.params.videoId) nextProps.toggleWatchPlayer(nextState.video)
+
+    // }
+    // if video en state
+    // if video !playing
+    // if playerLoaded
+
+    // set video
+
+    
+
+    // if (nextProps.playerLoaded && this.props.playerLoaded !== nextProps.playerLoaded) {
+    //   const video = {
+    //     videoID: this.props.match.params.videoId,
+    //     videoTitle: 'Test',
+    //     videoChannel: 'Channel Test'
+    //   }
+
+      
+
+    //   // this.props.toggleWatchPlayer(video); //video, playlist, playlistvideos
+    // } 
+  }
+  
+  componentWillUnmount() {
+    this.props.setOnWatch(false)
+  }
+
+  getVideoInfo = (videoID) => {
+    YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
+    .then(response => {
+      response = head(response)
+
+      const durationFormated = moment.duration(response.contentDetails.duration).asMilliseconds() > 3600000
+      ? moment.utc(moment.duration(response.contentDetails.duration).asMilliseconds()).format("hh:mm:ss")
+      : moment.utc(moment.duration(response.contentDetails.duration).asMilliseconds()).format("mm:ss")
+
+      const video = {
+        timestamp: new Date(),
+        videoEtag: response.etag,
+        videoID: response.id,
+        videoTitle: response.snippet.title,
+        videoChannel: response.snippet.channelTitle,
+        datePublished: response.snippet.publishedAt,
+        datePublishedFormated: moment(response.snippet.publishedAt).format('YYYY[-]MM[-]DD'),
+        duration: response.contentDetails.duration,
+        durationFormated,
+      }
+
+      this.setState({video}, () => this.getRelated(videoID));
+
+    })
+    .catch(e => {
+      console.log('error: ', e);
+    });
+  }
+
+  getRelated = (videoID) => {
+    YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: videoID, type: 'video', maxResults: 10 })
+    .then((searchResults)=> {
+      const relatedVideos = searchResults.map((result, index) => ({
+          datePublished: result.snippet.publishedAt,
+          datePublishedFormated: moment(result.snippet.publishedAt).format('YYYY[-]MM[-]DD'),
+          videoChannel: result.snippet.channelTitle,
+          videoEtag: result.etag,
+          videoID: result.id.videoId,
+          videoTitle: result.snippet.title,
+          key: result.id.videoId,
+          duration: result.contentDetails.duration,
+          durationFormated: moment.duration(result.contentDetails.duration).asMilliseconds() > 3600000
+          ? moment.utc(moment.duration(result.contentDetails.duration).asMilliseconds()).format("hh:mm:ss")
+          : moment.utc(moment.duration(result.contentDetails.duration).asMilliseconds()).format("mm:ss")
+      }));
+      
+      this.setState({
+        playingNext: head(relatedVideos),
+        relatedVideos: [this.state.video, ...relatedVideos]
+      }, () => {
+        this.props.toggleWatchPlayer(this.state.video, this.state.relatedVideos)
+      });
+      
+    })
+    .catch(e => {
+      console.log('error: ', e);
+    });
+  };
 
   render() {    
 
@@ -151,9 +268,9 @@ class Video extends Component {
             </span>
           </StyledLibraryButtonCheck>
           <StyledVideoInfo>
-            <StyledLabel>Channel of the video</StyledLabel>
-            <StyledHeroTitle>Title of the video {this.props.match.params.videoId}</StyledHeroTitle>
-            <StyledLabel>PUBLISHED: 2009-10-03 · DURATION: 03:18 </StyledLabel>
+            <StyledLabel>{this.state.video.videoChannel}</StyledLabel>
+            <StyledHeroTitle>"{this.state.video.videoTitle}"</StyledHeroTitle>
+            <StyledLabel>{`PUBLISHED: ${this.state.video.datePublishedFormated} · DURATION: ${this.state.video.durationFormated}`} </StyledLabel>
             <StyledActions>
               <StyledActionButton><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledActionButton>
               <StyledActionButton><MaterialIcon icon="share" color='#fff' /> Share</StyledActionButton>
