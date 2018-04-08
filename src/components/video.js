@@ -45,13 +45,13 @@ const StyledNextVideo = styled.div`
   margin-bottom: 40px;
   display: flex;
   padding: 20px 0;
-  cursor: pointer;
   &:hover{
     background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
   }
 `;
 const StyledNextVideoInfo = styled.div`
   width: 100%;
+  cursor: pointer;
 `;
 const StyledNextVideoActions = styled.div`
   display: flex;
