@@ -1673,6 +1673,7 @@ class App extends Component {
                     onTagClick={this.onTagSearch}
                     onRemoveTag={this.onRemoveTag}
                     YT_API_KEY={YT_API_KEY}
+                    setSnackbar={this.setSnackbar}
                   />}
                 />
                 <Route exact path='/tags/:query?' render={({ match }) =>

@@ -10,6 +10,7 @@ import YTApi from './yt_api';
 import SortableComponent from './sortable_component';
 import _ from 'lodash';
 import MetaTags from 'react-meta-tags';
+import SharePopup from './share_popup';
 
 const sizes = {
   small: 360,
@@ -323,7 +324,9 @@ class Playlist extends Component {
 
       videoItems: null,
       relatedVideoItems: null,
-      tagItems: null
+      tagItems: null,
+
+      shareOpen: false,
     };
   };
 
@@ -565,6 +568,16 @@ class Playlist extends Component {
       }
     });
   };
+
+  toggleShare = () => {
+    this.setState({
+      shareOpen: !this.state.shareOpen
+    }, () => {
+      if (document.getElementById("share-popup") !== null) {
+        document.getElementById("share-popup").focus();
+      }
+    });
+  }
 
   orderBy = (type) => {
 
@@ -935,11 +948,10 @@ class Playlist extends Component {
               <StyledPlaylistActions>
                 {followButton}
                 <StyledButtonGroup>
-                  <StyledButton 
-                   onClick={() => window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURI(window.location.href), '', 'width=550, height=400')} >
+                  {reorderButton}
+                  <StyledButton onClick={this.toggleShare} >
                     <MaterialIcon icon="share" color='#fff' />
                   </StyledButton>
-                  {reorderButton}
                   <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
                 </StyledButtonGroup>
               </StyledPlaylistActions>
@@ -947,6 +959,14 @@ class Playlist extends Component {
           </StyledHeader>
         </StyledHeaderContainer>
         <StyledPopupContainer>
+          <SharePopup
+            open={this.state.shareOpen}
+            name={playlistName}
+            url={`https://videoplaylists.tv/users/${playlist.AuthorId}/${playlist.playlistId}`}
+            onCopy={this.props.setSnackbar}
+            onClose={this.toggleShare}
+            id="share-popup"
+          />
           {playlistOptionsPopup}
         </StyledPopupContainer>
         {videoContainerComponent}
