@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import Moment from 'moment';
+import { Link } from 'react-router-dom';
 
 const StyledVideoItem = styled.li`
   padding: 20px 0;
@@ -25,6 +26,11 @@ const StyledContent = styled.div`
 `;
 const StyledVideoInfo = styled.a`
   cursor: pointer;
+`;
+const StyledVideoInfoLink = styled(Link)`
+  cursor: pointer;
+  text-decoration: none;
+  color: #fff;
 `;
 const VideoItemTitle = styled.span`
   display: block;
@@ -90,7 +96,7 @@ const StyledLibraryButtonCheck = styled.a`
   }
 `
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos, reorder}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos, reorder, fromWatch}) => {
   
   const durationFormated = Moment.duration(duration).asMilliseconds() > 3600000
     ? Moment.utc(Moment.duration(duration).asMilliseconds()).format("hh:mm:ss")
@@ -110,9 +116,17 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
 
   let videoTrigger = null;
 
-  if (inSearchResults === true) {
+  
+  if (fromWatch) {
     videoTrigger = 
-      <StyledVideoInfo onClick={() => toggleSearchPlayer(video)}>
+      <StyledVideoInfoLink to={`/watch/${videoId}`}>
+        <VideoMeta>{videoChannel}</VideoMeta>
+        <VideoItemTitle>{videoTitle}</VideoItemTitle>
+        <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>
+      </StyledVideoInfoLink>
+  } else if (inSearchResults === true) {
+    videoTrigger = 
+    <StyledVideoInfo onClick={() => toggleSearchPlayer(video)}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>

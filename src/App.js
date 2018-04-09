@@ -218,6 +218,8 @@ class App extends Component {
       snackAction: "",
       //GoogleApi
       gapiReady: false,
+      //Video single
+      watchId: null
     }
 
     this.player = null;
@@ -430,6 +432,7 @@ class App extends Component {
       console.log('MyStateChange', nextVideo);
 
       this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
+
       return {
         ...prevState,
         currentVideoNumber: nextVideoNumber,
@@ -733,6 +736,7 @@ class App extends Component {
       playlistVideos: playlistVideos,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
+      watchId: null,
       video,
       videoId,
       videoTitle,
@@ -743,30 +747,21 @@ class App extends Component {
 
   };
 
-  toggleWatchPlayer = (video) => {
+  toggleWatchPlayer = (video, playlistVideos) => {
 
     const videoId = video.videoID;
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
 
-    console.log(videoId);
-
-    this.player = YouTubePlayer('video-player', {
-      videoId: video.videoID,
-      playerVars: {
-        controls: 0,
-        showinfo: 0,
-        rel: 0,
-      }
-    });
-
-    this.player.playVideo();
-
+    this.player.loadVideoById(videoId);
 
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
       playingFromSearch: false,
+      playlistVideos: playlistVideos,
+      currentVideoNumber: playlistVideos.indexOf(video),
+      watchId: videoId,
       video,
       videoId,
       videoTitle,
@@ -793,6 +788,7 @@ class App extends Component {
         playlist: null,
         currentVideoNumber: (index > -1 ) ? index : 0,
         playlistVideos: prevState.searchResults,
+        watchId: null,
         video,
         videoId,
         videoTitle,
@@ -1561,6 +1557,7 @@ class App extends Component {
                 libraryVideos={this.state.libraryVideos}
                 onAddToLibrary={this.onAddToLibrary}
                 onRemoveFromLibrary={this.onRemoveFromLibrary}
+                history={this.props.history}
               />     
               <Switch>
                 <Route exact path='/' render={({ match }) =>
@@ -1593,8 +1590,22 @@ class App extends Component {
                 <Route exact path='/watch/:videoId' render={({ match }) =>
                   <Video
                     match={match}
+                    history={this.props.history}
+                    playerLoaded={this.player}
                     user={this.state.user}
+                    YT_API_KEY={YT_API_KEY}
+                    playNextVideo={this.playNextVideo}
+                    onAddToPlaylist={this.onAddToPlaylist}
+                    onRemoveFromPlaylist={this.onRemoveFromPlaylist}
+                    onAddToLibrary={this.onAddToLibrary}
+                    onRemoveFromLibrary={this.onRemoveFromLibrary}
+                    libraryVideos={this.state.libraryVideos}
                     toggleWatchPlayer={this.toggleWatchPlayer}
+                    togglePlaylistPopup={this.togglePlaylistPopup}
+                    currentVideo={this.state.video}
+                    currentPlaylist={this.state.playlistVideos}
+                    videoId={this.state.videoId}
+                    watchId={this.state.watchId}
                   />} 
                   
                 />

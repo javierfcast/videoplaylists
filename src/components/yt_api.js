@@ -107,26 +107,7 @@ const YTApi = {
       axios
         .get(ROOT_URL + "videos", { params })
         .then(response => {
-          const ids = response.data.items
-            .map(item => item.id.videoId)
-            .toString();
-
-          //get  video length and append to response
-          axios
-            .get(ROOT_URL + "videos", {
-              params: { part: "contentDetails", key: params.key, id: ids }
-            })
-            .then(contentResponse => {
-              contentResponse.data.items.forEach((contentItem, i) => {
-                response.data.items[i].contentDetails =
-                  contentItem.contentDetails;
-              });
-
-              resolve(response.data.items);
-            })
-            .catch(e => {
-              reject(e);
-            });
+          resolve(response.data.items);
         })
         .catch(e => {
           reject(e);
