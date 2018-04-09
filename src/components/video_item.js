@@ -96,7 +96,7 @@ const StyledLibraryButtonCheck = styled.a`
   }
 `
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos, reorder, fromWatch}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, inSearchResults, currentVideoId, autoAdd, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inRelatedVideos, inLibraryVideos, reorder, fromWatch, toggleVideoOptions}) => {
   
   const durationFormated = Moment.duration(duration).asMilliseconds() > 3600000
     ? Moment.utc(Moment.duration(duration).asMilliseconds()).format("hh:mm:ss")
@@ -184,7 +184,6 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
     }
   }
 
-
   return(
     <StyledVideoItem className={currentVideoId === videoId && 'active'}>
       {libraryButton}
@@ -192,7 +191,14 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
         {videoTrigger}
         <StyledActions>
           {addButton}
+          {/* {addButton}
           {deleteButton}
+          <StyledActionButton onClick={() => toggleShareVideo(video)}>
+            <MaterialIcon icon="share" color='#fff' />
+          </StyledActionButton> */}
+          <StyledActionButton onClick={() => toggleVideoOptions(video, !(inSearchResults === true || user.uid !== AuthorId || inRelatedVideos))}>
+            <MaterialIcon icon="more_horiz" color='#fff' />
+          </StyledActionButton>
         </StyledActions>
       </StyledContent>
     </StyledVideoItem>
