@@ -197,6 +197,49 @@ const StyledFeaturedContent = styled.div`
     font-size: 10px;
   }
 `;
+const StyledSectionTitle = styled.h2`
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+`;
+const StyledGenreContainer = styled.div`
+  margin: 40px 0;
+`;
+const StyledCardGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  width: calc(100% + 10px);
+  margin-left: -5px;
+`;
+const StyledCard = styled(Link)`
+  border: 1px solid rgba(255,255,255,0.1);
+  width: calc(50% - 10px);
+  margin: 5px;
+  padding: 10px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  transition: all .3s;
+  box-sizing: border-box;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  ${media.xmedium`
+    width: calc(33.333% - 10px);
+  `}
+  ${media.xlarge`
+    width: calc(25% - 10px);
+  `}
+  &:hover{
+    border: 1px solid white;
+  }
+`;
+
 
 class Browse extends Component {
   
@@ -275,6 +318,23 @@ class Browse extends Component {
               </StyledFeatured>
             </StyledFeaturedGrid>
           </StyledFeaturedContainer>
+          <StyledGenreContainer>
+            <StyledSectionTitle>Genres and moods</StyledSectionTitle>
+            <StyledCardGrid>
+              <StyledCard to="/tags/indie"> Indie </StyledCard>
+              <StyledCard to="/tags/rap"> Hip Hop/Rap </StyledCard>
+              <StyledCard to="/tags/dance"> Dance/EDM </StyledCard>
+              <StyledCard to="/tags/reggae"> Reggae </StyledCard>
+              <StyledCard to="/tags/rock"> Rock </StyledCard>
+              <StyledCard to="/tags/house"> House </StyledCard>
+              <StyledCard to="/tags/world"> World </StyledCard>
+              <StyledCard to="/tags/latin"> Latin </StyledCard>
+              <StyledCard to="/tags/reggaeton"> Reggaeton </StyledCard>
+              <StyledCard to="/tags/jazz"> Jazz </StyledCard>
+              <StyledCard to="/tags/classical"> Classical </StyledCard>
+              <StyledCard to="/tags/spotify"> Imported from spotify </StyledCard>
+            </StyledCardGrid>
+          </StyledGenreContainer>
         </StyledTabPanel>
       </PlaylistsContainer>
     );
