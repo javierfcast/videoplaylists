@@ -1593,13 +1593,19 @@ class App extends Component {
                     history={this.props.history}
                     playerLoaded={this.player}
                     user={this.state.user}
-                    toggleWatchPlayer={this.toggleWatchPlayer}
                     YT_API_KEY={YT_API_KEY}
+                    playNextVideo={this.playNextVideo}
+                    onAddToPlaylist={this.onAddToPlaylist}
+                    onRemoveFromPlaylist={this.onRemoveFromPlaylist}
+                    onAddToLibrary={this.onAddToLibrary}
+                    onRemoveFromLibrary={this.onRemoveFromLibrary}
+                    libraryVideos={this.state.libraryVideos}
+                    toggleWatchPlayer={this.toggleWatchPlayer}
+                    togglePlaylistPopup={this.togglePlaylistPopup}
                     currentVideo={this.state.video}
                     currentPlaylist={this.state.playlistVideos}
-                    libraryVideos={this.state.libraryVideos}
+                    videoId={this.state.videoId}
                     watchId={this.state.watchId}
-                    playNextVideo={this.playNextVideo}
                   />} 
                   
                 />
