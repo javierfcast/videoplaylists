@@ -218,6 +218,8 @@ class App extends Component {
       snackAction: "",
       //GoogleApi
       gapiReady: false,
+      //Video single
+      watchId: null
     }
 
     this.player = null;
@@ -378,24 +380,9 @@ class App extends Component {
       }
     });
     
-    // Hide inteface after 5 seconds of mouse inactivity
-
-    document.onmousemove = () => {
-
-      if (this.state.playerIsOpen !== false ){
-
-        document.getElementById("interface").classList.remove('hidden');
-
-        clearTimeout(mouseTimeout);
-
-        mouseTimeout = setTimeout( () => {
-          document.getElementById("interface").classList.add('hidden');
-          console.log('hidding interface after 5 seconds of mouse inactivity');
-        }, 5000);
-
-      }
-
-    }
+    document.onmousemove = this.hideInterface
+    document.onkeypress = this.hideInterface
+    document.onwheel = this.hideInterface
 
   };
 
@@ -412,6 +399,23 @@ class App extends Component {
   };
 
 //Methods
+  
+  // Hide inteface after 5 seconds of mouse inactivity
+  hideInterface = () => {
+    
+    if (this.state.playerIsOpen !== false ){
+
+      document.getElementById("interface").classList.remove('hidden');
+
+      clearTimeout(mouseTimeout);
+
+      mouseTimeout = setTimeout( () => {
+        document.getElementById("interface").classList.add('hidden');
+        console.log('hidding interface after 5 seconds of mouse inactivity');
+      }, 5000);
+
+    }
+  }
 
   changeVideo = (isNext = true) => {
 
@@ -428,6 +432,7 @@ class App extends Component {
       console.log('MyStateChange', nextVideo);
 
       this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
+
       return {
         ...prevState,
         currentVideoNumber: nextVideoNumber,
@@ -461,7 +466,7 @@ class App extends Component {
       return null;
     }
 
-    YTApi.Search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
+    YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 10, })
     .then((searchResults)=> {    
       this.setState({
         searchResults: searchResults
@@ -731,6 +736,7 @@ class App extends Component {
       playlistVideos: playlistVideos,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
+      watchId: null,
       video,
       videoId,
       videoTitle,
@@ -741,30 +747,21 @@ class App extends Component {
 
   };
 
-  toggleWatchPlayer = (video) => {
+  toggleWatchPlayer = (video, playlistVideos) => {
 
     const videoId = video.videoID;
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
 
-    console.log(videoId);
-
-    this.player = YouTubePlayer('video-player', {
-      videoId: video.videoID,
-      playerVars: {
-        controls: 0,
-        showinfo: 0,
-        rel: 0,
-      }
-    });
-
-    this.player.playVideo();
-
+    this.player.loadVideoById(videoId);
 
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
       playingFromSearch: false,
+      playlistVideos: playlistVideos,
+      currentVideoNumber: playlistVideos.indexOf(video),
+      watchId: videoId,
       video,
       videoId,
       videoTitle,
@@ -791,6 +788,7 @@ class App extends Component {
         playlist: null,
         currentVideoNumber: (index > -1 ) ? index : 0,
         playlistVideos: prevState.searchResults,
+        watchId: null,
         video,
         videoId,
         videoTitle,
@@ -1301,7 +1299,7 @@ class App extends Component {
 
           allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
-            promises.push(YTApi.Search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
+            promises.push(YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
           });
 
           Promise.all(promises)
@@ -1356,11 +1354,11 @@ class App extends Component {
     .then((playlistItems)=> {
       
       if (isUpdate) {
-        self.batchAdd(playlist.playlistId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+        self.batchAdd(playlist.playlistId, playlistItems.playlistItems, isUpdate, 'YouTube');
       }
       else {
         self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
-          self.batchAdd(docRefId, playlistItems.playlistItems.items, isUpdate, 'YouTube');
+          self.batchAdd(docRefId, playlistItems.playlistItems, isUpdate, 'YouTube');
         });
       }
       
@@ -1559,6 +1557,7 @@ class App extends Component {
                 libraryVideos={this.state.libraryVideos}
                 onAddToLibrary={this.onAddToLibrary}
                 onRemoveFromLibrary={this.onRemoveFromLibrary}
+                history={this.props.history}
               />     
               <Switch>
                 <Route exact path='/' render={({ match }) =>
@@ -1591,8 +1590,22 @@ class App extends Component {
                 <Route exact path='/watch/:videoId' render={({ match }) =>
                   <Video
                     match={match}
+                    history={this.props.history}
+                    playerLoaded={this.player}
                     user={this.state.user}
+                    YT_API_KEY={YT_API_KEY}
+                    playNextVideo={this.playNextVideo}
+                    onAddToPlaylist={this.onAddToPlaylist}
+                    onRemoveFromPlaylist={this.onRemoveFromPlaylist}
+                    onAddToLibrary={this.onAddToLibrary}
+                    onRemoveFromLibrary={this.onRemoveFromLibrary}
+                    libraryVideos={this.state.libraryVideos}
                     toggleWatchPlayer={this.toggleWatchPlayer}
+                    togglePlaylistPopup={this.togglePlaylistPopup}
+                    currentVideo={this.state.video}
+                    currentPlaylist={this.state.playlistVideos}
+                    videoId={this.state.videoId}
+                    watchId={this.state.watchId}
                   />} 
                   
                 />
