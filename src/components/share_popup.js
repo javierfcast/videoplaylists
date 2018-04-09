@@ -21,6 +21,10 @@ const StyledPopup = styled.div`
   &:focus{
     outline: none;
   }
+  ${props => props.center && `
+    left: 0px;
+    margin: auto;
+  `}
 `;
 const StyledContent = styled.div`
   margin: 0 auto;
@@ -64,7 +68,7 @@ const StyledButtonOption = styled.a`
     opacity: 1;
   }
 `;
-const SharePopup = ({ user, open, onClose, name, url, onCopy, id }) => {
+const SharePopup = ({ user, open, onClose, name, url, onCopy, id, center }) => {
 
   if (!open) {
     return null;
@@ -72,7 +76,7 @@ const SharePopup = ({ user, open, onClose, name, url, onCopy, id }) => {
 
   if (!user) {
     return(
-      <StyledPopup onBlur={onClose} id={id} tabIndex="0">
+      <StyledPopup onBlur={onClose} id={id} tabIndex="0" center={center}>
         <StyledContent>
           <StyledTitle>Share: {name}</StyledTitle>
             <StyledButtonOption
