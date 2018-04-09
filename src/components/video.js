@@ -6,10 +6,7 @@ import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import moment from 'moment';
 import YTApi from './yt_api';
-import head from 'lodash/head'
-import findIndex from 'lodash/findIndex'
-import remove from 'lodash/remove'
-import map from 'lodash/map'
+import {head, findIndex, remove, map, some} from 'lodash'
 
 import VideoItem from './video_item'
 
@@ -83,7 +80,12 @@ const StyledLabel = styled.span`
   text-transform: uppercase;
   font-size: 10px;
 `;
-const StyledLibraryButton = styled.a``;
+const StyledLibraryButton = styled.a`
+  cursor: pointer;
+  width: 24px;
+  flex: 0 1 auto;
+  margin-right: 12px;
+`;
 const StyledLibraryButtonCheck = styled.a`
   display: block;
   cursor: pointer;
@@ -133,24 +135,54 @@ class Video extends Component {
     this.state = {
       video: {},
       playingNext: {},
-      relatedVideos: []
+      relatedVideos: [],
+      relatedVideoItems: []
     }
   };
 
   componentWillReceiveProps(nextProps) {
-    // Should only trigger if window reload
-    if (nextProps.playerLoaded && nextProps.playerLoaded !== this.props.playerLoaded && !this.state.video.videoID) {
-      this.startRadio(nextProps.match.params.videoId)
-    }
-
-    else if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
-      this.startRadio(nextProps.match.params.videoId)
+    if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
+      if (nextProps.playerLoaded) {
+        this.startRadio(nextProps.match.params.videoId)
+      }
     }
 
     else if (nextProps.currentVideo && this.state.video.videoID !== nextProps.currentVideo.videoID) {
       this.updateInfo(nextProps.currentVideo, nextProps.currentPlaylist)
     }
   };
+
+  componentWillUpdate(nextProps, nextState) {
+    if (this.state.relatedVideos !== nextState.relatedVideos || this.props.libraryVideos !== nextProps.libraryVideos) {
+      const relatedVideoItems = map(nextState.relatedVideos, video => (
+        <VideoItem
+          user={nextProps.user}
+          playlistVideos={nextProps.currentPlaylist}
+          currentVideoId = {nextProps.videoId}
+          inSearchResults={false}
+          inRelatedVideos={true}
+          key={video.videoEtag}
+          video={video}
+          videoEtag={video.videoEtag}
+          videoTitle={video.videoTitle}
+          videoId={video.videoID}
+          videoChannel={video.videoChannel}
+          duration={video.duration}
+          datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
+          togglePlaylistPopup={nextProps.togglePlaylistPopup}
+          onAddToPlaylist={nextProps.onAddToPlaylist}
+          onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
+          onAddToLibrary={nextProps.onAddToLibrary}
+          onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
+          autoAdd={false}
+          itsOnLibrary={some(nextProps.libraryVideos, e => (e.videoID === video.videoID))}
+          fromWatch={true}
+        />
+      ));
+
+      this.setState({relatedVideoItems});
+    }
+  }
 
   startRadio = (videoID) => {
     YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
@@ -231,51 +263,6 @@ class Video extends Component {
 
       relatedVideos = remove(relatedVideos, rv => rv.videoID !== this.state.playingNext.videoID)
 
-      relatedVideos = map(relatedVideos, video => {
-        let date = new Date(video.datePublished);
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let dt = date.getDate();
-
-        if (dt < 10) {
-          dt = '0' + dt;
-        }
-        if (month < 10) {
-          month = '0' + month;
-        }
-
-        //check if video it's in library
-        const itsOnLibrary = this.props.libraryVideos.some((element) => {
-          return element.videoID === video.videoID
-        });
-
-        return (
-          <VideoItem
-            user={this.props.user}
-            playlistVideos={this.props.currentPlaylist}
-            currentVideoId = {this.props.videoId} //p
-            inSearchResults={false}
-            inRelatedVideos={true}
-            key={video.videoEtag}
-            video={video}
-            videoEtag={video.videoEtag}
-            videoTitle={video.videoTitle}
-            videoId={video.videoID}
-            videoChannel={video.videoChannel}
-            duration={video.duration}
-            datePublished={year + '-' + month + '-' + dt}
-            togglePlaylistPopup={this.props.togglePlaylistPopup} //p
-            onAddToPlaylist={this.props.onAddToPlaylist} //p
-            onRemoveFromPlaylist={this.props.onRemoveFromPlaylist} //p
-            onAddToLibrary={this.props.onAddToLibrary} //p
-            onRemoveFromLibrary={this.props.onRemoveFromLibrary} //p
-            autoAdd={false}
-            itsOnLibrary={itsOnLibrary}
-            fromWatch={true}
-          />
-        )
-      });
-      
       this.setState({relatedVideos})
       
     })
@@ -284,49 +271,67 @@ class Video extends Component {
     });
   };
 
-  render() {    
+  render() {
+
+    const currentLibraryButton =
+    some(this.props.libraryVideos, e => (e.videoID === this.state.video.videoID))
+    ? 
+      <StyledLibraryButtonCheck onClick={() => this.props.onRemoveFromLibrary(this.state.video)}>
+        <span>
+          <MaterialIcon icon="check" color='#fff' />
+          <MaterialIcon icon="close" color='#fff' />
+        </span>
+      </StyledLibraryButtonCheck>
+    :
+      <StyledLibraryButton onClick={() => this.props.onAddToLibrary(this.state.video, true)}>
+        <MaterialIcon icon="add" color='#fff' />
+      </StyledLibraryButton>
+
+    const nextLibraryButton =
+    some(this.props.libraryVideos, e => (e.videoID === this.state.playingNext.videoID))
+    ? 
+      <StyledLibraryButtonCheck onClick={() => this.props.onRemoveFromLibrary(this.state.playingNext)}>
+        <span>
+          <MaterialIcon icon="check" color='#fff' />
+          <MaterialIcon icon="close" color='#fff' />
+        </span>
+      </StyledLibraryButtonCheck>
+    :
+      <StyledLibraryButton onClick={() => this.props.onAddToLibrary(this.state.playingNext, true)}>
+        <MaterialIcon icon="add" color='#fff' />
+      </StyledLibraryButton>
 
     return (
       <StyledContainer>
         <StyledCurrentVideo>
-          <StyledLibraryButtonCheck>
-            <span>
-              <MaterialIcon icon="check" color='#fff' />
-              <MaterialIcon icon="close" color='#fff' />
-            </span>
-          </StyledLibraryButtonCheck>
+          {currentLibraryButton}
           <StyledVideoInfo>
             <StyledLabel>{this.state.video.videoChannel}</StyledLabel>
             <StyledHeroTitle>{this.state.video.videoTitle}</StyledHeroTitle>
             <StyledLabel>{`PUBLISHED: ${this.state.video.datePublishedFormated} · DURATION: ${this.state.video.durationFormated}`}</StyledLabel>
             <StyledActions>
-              <StyledActionButton><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledActionButton>
+              <StyledActionButton onClick={() => this.props.togglePlaylistPopup(this.state.video)} ><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledActionButton>
               <StyledActionButton><MaterialIcon icon="share" color='#fff' /> Share</StyledActionButton>
             </StyledActions>
           </StyledVideoInfo>
         </StyledCurrentVideo>
         <StyledSectionTitle>Playing next</StyledSectionTitle>
         <StyledNextVideo>
-          <StyledLibraryButtonCheck>
-            <span>
-              <MaterialIcon icon="check" color='#fff' />
-              <MaterialIcon icon="close" color='#fff' />
-            </span>
-          </StyledLibraryButtonCheck>
+          {nextLibraryButton}
           <StyledNextVideoInfo onClick={this.props.playNextVideo}>
             <StyledLabel>{this.state.playingNext.videoChannel}</StyledLabel>
             <h2>{this.state.playingNext.videoTitle}</h2>
             <StyledLabel>{`PUBLISHED: ${this.state.playingNext.datePublishedFormated} · DURATION: ${this.state.playingNext.durationFormated}`}</StyledLabel>
           </StyledNextVideoInfo>
           <StyledNextVideoActions>
-            <StyledActionButton><MaterialIcon icon="playlist_add" color='#fff' /></StyledActionButton>
+            <StyledActionButton onClick={() => this.props.togglePlaylistPopup(this.state.playingNext)} ><MaterialIcon icon="playlist_add" color='#fff' /></StyledActionButton>
             <StyledActionButton><MaterialIcon icon="share" color='#fff' /></StyledActionButton>
           </StyledNextVideoActions>
         </StyledNextVideo>
         <StyledRelatedVideos>
           <StyledSectionTitle>Related videos</StyledSectionTitle>
           <VideoListContainer>
-            {this.state.relatedVideos}
+            {this.state.relatedVideoItems}
           </VideoListContainer>
         </StyledRelatedVideos>
 
