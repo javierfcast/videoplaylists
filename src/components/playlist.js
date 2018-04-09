@@ -10,6 +10,7 @@ import YTApi from './yt_api';
 import SortableComponent from './sortable_component';
 import _ from 'lodash';
 import SharePopup from './share_popup';
+import VideoOptionsPopup from './video_options_popup';
 
 const sizes = {
   small: 360,
@@ -326,6 +327,10 @@ class Playlist extends Component {
       tagItems: null,
 
       shareOpen: false,
+      videoOptionsOpen: false,
+      videoOptions: {video: {}, remove: false}
+      // shareVideoOpen: false,
+      // shareVideo: {}
     };
   };
 
@@ -474,6 +479,7 @@ class Playlist extends Component {
             orderBy={nextState.orderBy}
             itsOnLibrary={itsOnLibrary}
             reorder={nextState.reorder}
+            toggleVideoOptions={this.toggleVideoOptions}
           />
         )
       })
@@ -526,6 +532,7 @@ class Playlist extends Component {
             onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
             autoAdd={true}
             itsOnLibrary={itsOnLibrary}
+            toggleVideoOptions={this.toggleVideoOptions}
           />
         )
       });
@@ -575,6 +582,13 @@ class Playlist extends Component {
       if (document.getElementById("share-popup") !== null) {
         document.getElementById("share-popup").focus();
       }
+    });
+  }
+
+  toggleVideoOptions = (video, remove) => {
+    this.setState({
+      videoOptionsOpen: !this.state.videoOptionsOpen,
+      videoOptions: {video, remove}
     });
   }
 
@@ -930,6 +944,12 @@ class Playlist extends Component {
 
     return(
       <PlaylistContainer>
+        <VideoOptionsPopup
+          open={this.state.videoOptionsOpen}
+          video={this.state.videoOptions.video}
+          remove={this.state.videoOptions.remove}
+          onClose={this.toggleVideoOptions}
+        />
         <StyledHeaderContainer>
           <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton>
           <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
