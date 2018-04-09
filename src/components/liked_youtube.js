@@ -208,8 +208,8 @@ class LikedYoutube extends Component {
       playlist: null,
       playlistVideos: [],
       playlistOptionsIsOpen: false,
-      orderBy: null,
-      orderDirection: null,
+      orderBy: 'custom',
+      orderDirection: 'desc',
       scrolling: false,
 
       videoItems: null,
@@ -250,6 +250,7 @@ class LikedYoutube extends Component {
     }
 
     if (this.state.orderBy !== nextState.orderBy || this.state.orderDirection !== nextState.orderDirection) {
+      console.log('nextState.orderDirection: ', nextState.orderDirection);
       this.setState({
         playlistVideos: _.orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
       })
@@ -335,14 +336,12 @@ class LikedYoutube extends Component {
             videoChannel: video.snippet.channelTitle,
             datePublished: video.snippet.publishedAt,
             duration: video.contentDetails.duration,
-          }))
-  
-          playlistVideos = _.orderBy(playlistVideos, 'datePublished', 'desc')
-  
+          }));
+          
           this.setState({
             playlist,
             playlistVideos: [...this.state.playlistVideos, ...playlistVideos],
-            orderBy: 'datePublished',
+            orderBy: 'custom',
             orderDirection: 'desc',
             nextPageToken: data.nextPageToken,
             allResults: data.nextPageToken ? false : true,
