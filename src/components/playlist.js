@@ -9,6 +9,8 @@ import VideoItem from './video_item';
 import YTApi from './yt_api';
 import SortableComponent from './sortable_component';
 import _ from 'lodash';
+import MetaTags from 'react-meta-tags';
+import SharePopup from './share_popup';
 
 const sizes = {
   small: 360,
@@ -322,7 +324,9 @@ class Playlist extends Component {
 
       videoItems: null,
       relatedVideoItems: null,
-      tagItems: null
+      tagItems: null,
+
+      shareOpen: false,
     };
   };
 
@@ -564,6 +568,16 @@ class Playlist extends Component {
       }
     });
   };
+
+  toggleShare = () => {
+    this.setState({
+      shareOpen: !this.state.shareOpen
+    }, () => {
+      if (document.getElementById("share-popup") !== null) {
+        document.getElementById("share-popup").focus();
+      }
+    });
+  }
 
   orderBy = (type) => {
 
@@ -917,6 +931,10 @@ class Playlist extends Component {
 
     return(
       <PlaylistContainer>
+        <MetaTags>
+          <meta id="og-url" property="og:url" content={window.location.href} />
+          <meta id="og-title" property="og:title" content={`${playlistName} - on VideoPlaylists.tv`} />
+        </MetaTags>
         <StyledHeaderContainer>
           <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton>
           <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
@@ -931,6 +949,9 @@ class Playlist extends Component {
                 {followButton}
                 <StyledButtonGroup>
                   {reorderButton}
+                  <StyledButton onClick={this.toggleShare} >
+                    <MaterialIcon icon="share" color='#fff' />
+                  </StyledButton>
                   <StyledButton onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
                 </StyledButtonGroup>
               </StyledPlaylistActions>
@@ -938,6 +959,14 @@ class Playlist extends Component {
           </StyledHeader>
         </StyledHeaderContainer>
         <StyledPopupContainer>
+          <SharePopup
+            open={this.state.shareOpen}
+            name={playlistName}
+            url={`https://videoplaylists.tv/users/${playlist.AuthorId}/${playlist.playlistId}`}
+            onCopy={this.props.setSnackbar}
+            onClose={this.toggleShare}
+            id="share-popup"
+          />
           {playlistOptionsPopup}
         </StyledPopupContainer>
         {videoContainerComponent}
