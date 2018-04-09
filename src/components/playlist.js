@@ -9,7 +9,6 @@ import VideoItem from './video_item';
 import YTApi from './yt_api';
 import SortableComponent from './sortable_component';
 import _ from 'lodash';
-import MetaTags from 'react-meta-tags';
 import SharePopup from './share_popup';
 
 const sizes = {
@@ -931,10 +930,6 @@ class Playlist extends Component {
 
     return(
       <PlaylistContainer>
-        <MetaTags>
-          <meta id="og-url" property="og:url" content={window.location.href} />
-          <meta id="og-title" property="og:title" content={`${playlistName} - on VideoPlaylists.tv`} />
-        </MetaTags>
         <StyledHeaderContainer>
           <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton>
           <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
