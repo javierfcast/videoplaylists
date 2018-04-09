@@ -74,10 +74,12 @@ const StyledLandingHeading = styled.div`
   display: flex;
   align-items: center;
 `;
-const StyledLandingLogo = styled.div`
+const StyledLandingLogo = styled(Link)`
   margin-right: 10px;
   display: flex;
   align-items: center;
+  color: white;
+  text-decoration: none;
 `;
 const StyledLogo = styled.img`
   width: 26px;
@@ -261,7 +263,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, importFromSpotify, o
         <StyledContainer>
           <StyledTopContainer>
             <StyledLandingHeading>
-              <StyledLandingLogo>
+              <StyledLandingLogo to="/">
                 <StyledLogo src={logo} alt='VideoPlaylist Logo' />
                 <StyledLandingTitle>VideoPlaylists.tv<br /><span>Beta</span></StyledLandingTitle>
               </StyledLandingLogo>
@@ -319,7 +321,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, toggleInterface, importFromSpotify, o
         <StyledContainer>
           <StyledTopContainer>
             <StyledLandingHeading>
-              <StyledLandingLogo>
+              <StyledLandingLogo to="/">
                 <StyledLogo src={logo} alt='VideoPlaylist Logo' />
                 <StyledLandingTitle>VideoPlaylists.tv<br /><span>Beta</span></StyledLandingTitle>
               </StyledLandingLogo>
