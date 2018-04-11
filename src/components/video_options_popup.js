@@ -1,6 +1,7 @@
-import React, { Component } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import MaterialIcon from 'material-icons-react'
+import MaterialIcon from 'material-icons-react';
+import { Link } from 'react-router-dom';
 
 const StyledPopup = styled.div`
   position: fixed;
@@ -54,7 +55,26 @@ const StyledButton = styled.a`
     border-bottom: 1px solid rgba(255,255,255,1);
   }
 `;
-const StyledLink = styled.a`
+const StyledAction = styled.a`
+  padding: 10px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px 0;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 2px;
+  opacity: .6;
+  transition: all .3s ease;
+  &:hover{
+    opacity: 1;
+  }
+  .material-icons{
+    margin-right: 10px;
+  }
+`;
+const StyledLink = styled(Link)`
   padding: 10px 0;
   cursor: pointer;
   display: flex;
@@ -74,7 +94,7 @@ const StyledLink = styled.a`
   }
 `;
 
-const VideoOptionsPopup = ({ open, video, remove, onClose }) => {
+const VideoOptionsPopup = ({ open, video, remove, onClose, playlist, togglePlaylistPopup, onRemoveFromPlaylist, onShare }) => {
 
   if (!open) {
     return null;
@@ -85,11 +105,11 @@ const VideoOptionsPopup = ({ open, video, remove, onClose }) => {
       <StyledContent>
         <StyledTitle>{video.videoTitle}</StyledTitle>
         <StyledTitleLabel>{video.videoChannel}</StyledTitleLabel>
-        <StyledLink><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledLink>
-        <StyledLink><MaterialIcon icon="music_video" color='#fff' /> Start radio</StyledLink>
-        <StyledLink><MaterialIcon icon="share" color='#fff' /> Share</StyledLink>
+        <StyledAction onClick={() => togglePlaylistPopup(video)}><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledAction>
+        <StyledLink to={`/watch/${video.videoID}`} ><MaterialIcon icon="music_video" color='#fff' /> Start radio</StyledLink>
+        <StyledAction onClick={() => onShare(video)} ><MaterialIcon icon="share" color='#fff' /> Share</StyledAction>
         <hr />
-        {remove ? <StyledLink><MaterialIcon icon="delete_forever" color='#fff' /> Remove</StyledLink> : null}
+        {remove ? <StyledAction onClick={() => onRemoveFromPlaylist(video.videoID, playlist)} ><MaterialIcon icon="delete_forever" color='#fff' /> Remove</StyledAction> : null}
         <StyledButton onClick={onClose}>
           Cancel
         </StyledButton>
