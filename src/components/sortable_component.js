@@ -46,6 +46,7 @@ const DragHandle = SortableHandle(() =>
   });
 
   const SortableList = SortableContainer(({ items, relatedSection, handleScroll}) => {
+    console.log('here')
     return (
       <VideoListContainer onScroll={handleScroll}>
         {items.map((value, index) => (
