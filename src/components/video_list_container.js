@@ -13,6 +13,11 @@ import VideoOptionsPopup from './video_options_popup';
 import SharePopup from './share_popup';
 import VideoItem from './video_item';
 
+const StyledScrollContainer = styled.div`
+  width: 100%;
+  overflow: hidden;
+  height: 100%;
+`;
 const StyledVideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
@@ -39,144 +44,114 @@ class VideoListContainer extends Component {
       optionsRemove: false,
       //Share popup
       shareOpen: false,
-      //Related videos
-      related: [],
+      //Sortable component
+      sortableComponent: null,
     }
   }
 
-  componentWillUpdate(nextProps, nextState) {
+  componentWillMount() {
+    this.mapVideoItems(this.props)
+  }
+
+  componentWillReceiveProps(nextProps) {
     if (nextProps.playlistVideos !== this.props.playlistVideos 
         || this.props.libraryVideos !== nextProps.libraryVideos
         || this.props.reorder !== nextProps.reorder) {
 
-      let videoItems = map(nextProps.playlistVideos, video => (
-        <VideoItem
-          user={nextProps.user}
-          playlist={nextProps.playlist}
-          playlistVideos={nextProps.playlistVideos}
-          currentVideoId = {nextProps.videoId}
-          inSearchResults={false}
-          key={video.videoEtag}
-          video={video}
-          videoEtag={video.videoEtag}
-          videoTitle={video.videoTitle}
-          videoId={video.videoID}
-          videoChannel={video.videoChannel}
-          duration={video.duration}
-          datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
-          togglePlayer={nextProps.togglePlayer}
-          togglePlaylistPopup={nextProps.togglePlaylistPopup}
-          onAddToPlaylist={nextProps.onAddToPlaylist}
-          onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
-          onAddToLibrary={nextProps.onAddToLibrary}
-          onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
-          orderBy={nextProps.orderBy}
-          itsOnLibrary={some(nextProps.libraryVideos, e => (e.videoID === video.videoID))}
-          reorder={nextProps.reorder}
-          toggleVideoOptions={this.toggleVideoOptions}
-        />
-      ));
-
-      if (nextProps.reorder) {
-        videoItems = <SortableComponent
-          videoItems={videoItems}
-          onSort={this.onSort}
-          orderBy={nextProps.orderBy}
-          handleScroll={nextProps.handleScroll}
-        />
-      }
-
-      this.setState({videoItems}, this.getRelated);
-
+      this.mapVideoItems(nextProps)
     }
 
-    if (!isEmpty(nextState.related) && nextState.related !== this.state.related 
+    if (!isEmpty(nextProps.relatedVideos) && nextProps.relatedVideos !== this.props.relatedVideos 
         || this.props.libraryVideos !== nextProps.libraryVideos) {
-        
-      const relatedVideoItems = map(nextState.related, video => (
-        <VideoItem
-          user={nextProps.user}
-          playlist={nextProps.playlist}
-          playlistVideos={nextProps.playlistVideos}
-          currentVideoId = {nextProps.videoId}
-          inSearchResults={false}
-          inRelatedVideos={true}
-          key={video.videoEtag}
-          video={video}
-          videoEtag={video.videoEtag}
-          videoTitle={video.videoTitle}
-          videoId={video.videoID}
-          videoChannel={video.videoChannel}
-          duration={video.duration}
-          datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
-          togglePlayer={nextProps.togglePlayer}
-          togglePlaylistPopup={nextProps.togglePlaylistPopup}
-          onAddToPlaylist={nextProps.onAddToPlaylist}
-          onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
-          onAddToLibrary={nextProps.onAddToLibrary}
-          onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
-          autoAdd={true}
-          itsOnLibrary={some(nextProps.libraryVideos, e => (e.videoID === video.videoID))}
-          toggleVideoOptions={this.toggleVideoOptions}
-        />
-      ))
 
-      this.setState({relatedVideoItems});
-      
+      this.mapRelatedVideoItems(nextProps)
     }
   }
 
-  getRelated = () => {
+  componentWillUpdate(nextProps, nextState) {
+    if (nextState.videoItems !== this.state.videoItems
+    || nextState.relatedVideos !== this.state.relatedVideos
+    || nextProps.reorder !== this.props.reorder) {
+      const sortableComponent =
+      nextProps.reorder
+      ? <SortableComponent
+          videoItems={this.state.videoItems}
+          // relatedSection={relatedSection}
+          onSort={this.onSort}
+          handleScroll={this.props.handleScroll}
+        />
+      : null
 
-    if (!this.props.getRelated) return
-
-    if (this.props.playlistVideos.length > 0) {
-      const lastVideoID = this.props.playlistVideos[this.props.playlistVideos.length-1].videoID;
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
-      .then((searchResults)=> {   
-
-        const related = map(searchResults, result => ({
-          datePublished: result.snippet.publishedAt,
-          order: this.props.playlistVideos.length + 1,
-          videoChannel: result.snippet.channelTitle,
-          videoEtag: result.etag,
-          videoID: result.id.videoId,
-          videoTitle: result.snippet.title,
-          key: result.id.videoId,
-          duration: result.contentDetails.duration
-        }));
-
-        this.setState({related});
-      });
+      this.setState({sortableComponent});
     }
-    
-    else {
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: this.props.playlist.playlistTitle, type: 'video', maxResults: 5 })
-      .then((searchResults)=> {
+  }
 
-        const related = map(searchResults, result => ({
-          datePublished: result.snippet.publishedAt,
-            order: 1,
-            videoChannel: result.snippet.channelTitle,
-            videoEtag: result.etag,
-            videoID: result.id.videoId,
-            videoTitle: result.snippet.title,
-            key: result.id.videoId,
-            duration: result.contentDetails.duration
-        }));
+  mapVideoItems = (nextProps) => {
+    let videoItems = map(nextProps.playlistVideos, video => (
+      <VideoItem
+        user={nextProps.user}
+        playlist={nextProps.playlist}
+        playlistVideos={nextProps.playlistVideos}
+        currentVideoId = {nextProps.videoId}
+        inSearchResults={false}
+        key={video.videoEtag}
+        video={video}
+        videoEtag={video.videoEtag}
+        videoTitle={video.videoTitle}
+        videoId={video.videoID}
+        videoChannel={video.videoChannel}
+        duration={video.duration}
+        datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
+        togglePlayer={nextProps.togglePlayer}
+        togglePlaylistPopup={nextProps.togglePlaylistPopup}
+        onAddToPlaylist={nextProps.onAddToPlaylist}
+        onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
+        onAddToLibrary={nextProps.onAddToLibrary}
+        onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
+        orderBy={nextProps.orderBy}
+        itsOnLibrary={some(nextProps.libraryVideos, e => (e.videoID === video.videoID))}
+        reorder={nextProps.reorder}
+        toggleVideoOptions={this.toggleVideoOptions}
+      />
+    ));
 
-        this.setState({related});
-      });
-    }
-  };
+    this.setState({videoItems});
+  }
+
+  mapRelatedVideoItems = (nextProps) => {
+    const relatedVideoItems = map(nextProps.relatedVideos, video => (
+      <VideoItem
+        user={nextProps.user}
+        playlist={nextProps.playlist}
+        playlistVideos={nextProps.playlistVideos}
+        currentVideoId = {nextProps.videoId}
+        inSearchResults={false}
+        inRelatedVideos={true}
+        key={video.videoEtag}
+        video={video}
+        videoEtag={video.videoEtag}
+        videoTitle={video.videoTitle}
+        videoId={video.videoID}
+        videoChannel={video.videoChannel}
+        duration={video.duration}
+        datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
+        togglePlayer={nextProps.togglePlayer}
+        togglePlaylistPopup={nextProps.togglePlaylistPopup}
+        onAddToPlaylist={nextProps.onAddToPlaylist}
+        onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
+        onAddToLibrary={nextProps.onAddToLibrary}
+        onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
+        autoAdd={true}
+        itsOnLibrary={some(nextProps.libraryVideos, e => (e.videoID === video.videoID))}
+        toggleVideoOptions={this.toggleVideoOptions}
+      />
+    ))
+
+    this.setState({relatedVideoItems});
+  }
 
   onSort = (items) => {
-    const docRef = firebase
-      .firestore()
-      .collection("users")
-      .doc(this.props.profileId)
-      .collection("playlists")
-      .doc(this.props.playlistId);
+    const docRef = firebase.firestore().collection("users").doc(this.props.profileId).collection("playlists").doc(this.props.playlistId);
     
     const newOrder = map(items, item => ({
       timestamp: item.props.video.timestamp,
@@ -207,10 +182,13 @@ class VideoListContainer extends Component {
     });
   }
 
+  onCloseVideoOptions = () => {
+    this.setState({optionsOpen: false});
+  }
+
   toggleShare = (optionsVideo) => {
     this.setState({
       shareOpen: !this.state.shareOpen,
-      optionsOpen: false,
       optionsVideo,
     }, () => {
       if (document.getElementById("share-video-popup") !== null) {
@@ -220,16 +198,28 @@ class VideoListContainer extends Component {
   }
   
   render() {
+
+    let relatedSection = null;
+
+    if (this.state.related) {
+      relatedSection =
+      <div>
+        <StyledRelatedHeader> Related videos </StyledRelatedHeader>
+        {this.state.relatedVideoItems} 
+      </div>
+    }
+
     return (
-      <div style={{height: '100%'}}>
+      <StyledScrollContainer>
         <VideoOptionsPopup
+          playlist={this.props.playlist}
           open={this.state.optionsOpen}
           video={this.state.optionsVideo}
           remove={this.state.optionsRemove}
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
           onShare={this.toggleShare}
-          onClose={this.toggleVideoOptions}
+          onClose={this.onCloseVideoOptions}
           />
         <SharePopup
           open={this.state.shareOpen}
@@ -240,12 +230,25 @@ class VideoListContainer extends Component {
           id="share-video-popup"
           center
         />
-        <StyledVideoListContainer onScroll={this.props.handleScroll}>
-          {this.state.videoItems}
-          {this.props.related ? <StyledRelatedHeader> Related videos </StyledRelatedHeader> : null}
-          {this.props.related ? this.state.relatedVideoItems : null}
-        </StyledVideoListContainer>
-      </div>
+        {
+          !this.props.reorder 
+          ?
+            <StyledVideoListContainer onScroll={this.props.handleScroll}>
+              {this.state.videoItems}
+              {!isEmpty(this.state.relatedVideoItems) ? <StyledRelatedHeader> Related videos </StyledRelatedHeader> : null}
+              {!isEmpty(this.state.relatedVideoItems) ? this.state.relatedVideoItems : null}
+            </StyledVideoListContainer>
+          : 
+            // <SortableComponent
+            //   videoItems={this.state.videoItems}
+            //   relatedSection={relatedSection}
+            //   onSort={this.onSort}
+            //   orderBy={this.props.orderBy}
+            //   handleScroll={this.props.handleScroll}
+            // />
+            this.state.sortableComponent
+        }
+      </StyledScrollContainer>
     );
   }
 }
