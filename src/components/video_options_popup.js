@@ -86,6 +86,8 @@ const StyledLink = styled(Link)`
   letter-spacing: 2px;
   opacity: .6;
   transition: all .3s ease;
+  text-decoration: none;
+  color: #fff;
   &:hover{
     opacity: 1;
   }
@@ -105,11 +107,11 @@ const VideoOptionsPopup = ({ open, video, remove, onClose, playlist, togglePlayl
       <StyledContent>
         <StyledTitle>{video.videoTitle}</StyledTitle>
         <StyledTitleLabel>{video.videoChannel}</StyledTitleLabel>
-        <StyledAction onClick={() => togglePlaylistPopup(video)}><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledAction>
+        <StyledAction onClick={() => {onClose(); togglePlaylistPopup(video)}}><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledAction>
         <StyledLink to={`/watch/${video.videoID}`} ><MaterialIcon icon="music_video" color='#fff' /> Start radio</StyledLink>
-        <StyledAction onClick={() => onShare(video)} ><MaterialIcon icon="share" color='#fff' /> Share</StyledAction>
+        <StyledAction onClick={() => {onClose(); onShare(video)}} ><MaterialIcon icon="share" color='#fff' /> Share</StyledAction>
         <hr />
-        {remove ? <StyledAction onClick={() => onRemoveFromPlaylist(video.videoID, playlist)} ><MaterialIcon icon="delete_forever" color='#fff' /> Remove</StyledAction> : null}
+        {remove ? <StyledAction onClick={() => {onClose(); onRemoveFromPlaylist(video.videoID, playlist)}} ><MaterialIcon icon="delete_forever" color='#fff' /> Remove</StyledAction> : null}
         <StyledButton onClick={onClose}>
           Cancel
         </StyledButton>
