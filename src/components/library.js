@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-import SortableComponent from './sortable_component';
+// import SortableComponent from './sortable_component';
 import _ from 'lodash';
 
 const sizes = {
@@ -348,10 +348,10 @@ class Library extends Component {
     </VideoListContainer>;
 
     if (this.props.user && this.state.libraryOrderBy === 'custom' && this.props.user.uid === this.state.profileId) {
-      videoContainerComponent = <SortableComponent
-        onSort={this.onSort}
-        videoItems={videoItems}
-      />
+      // videoContainerComponent = <SortableComponent
+      //   onSort={this.onSort}
+      //   videoItems={videoItems}
+      // />
     }
 
     //Set Library options popup
