@@ -7,7 +7,6 @@ import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
 import YTApi from './yt_api';
-import SortableComponent from './sortable_component';
 import _ from 'lodash';
 import SharePopup from './share_popup';
 import VideoListContainer from './video_list_container';
@@ -377,10 +376,6 @@ class Playlist extends Component {
           tags: doc.data().tags,
           playlistVideos: playlistVideos,
         })
-
-        //Get related videos
-        this.getRelated(playlistVideos, doc.data().playlistName);
-
       } 
       
       else {
@@ -444,48 +439,6 @@ class Playlist extends Component {
       this.setState({tagItems});
     }
   }
-
-  getRelated = (playlistVideos, playlistTitle) => {
-    
-    if (playlistVideos.length > 0) {
-      const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
-      .then((searchResults)=> {   
-        
-        const relatedVideos = _.map(searchResults, result => ({
-          datePublished: result.snippet.publishedAt,
-          order: playlistVideos.length + 1,
-          videoChannel: result.snippet.channelTitle,
-          videoEtag: result.etag,
-          videoID: result.id.videoId,
-          videoTitle: result.snippet.title,
-          key: result.id.videoId,
-          duration: result.contentDetails.duration
-        }));
-
-        this.setState({relatedVideos});
-      });
-    }
-    
-    else {
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
-      .then((searchResults)=> {
-
-        const relatedVideos = _.map(searchResults, result => ({
-          datePublished: result.snippet.publishedAt,
-            order: 1,
-            videoChannel: result.snippet.channelTitle,
-            videoEtag: result.etag,
-            videoID: result.id.videoId,
-            videoTitle: result.snippet.title,
-            key: result.id.videoId,
-            duration: result.contentDetails.duration
-        }));
-
-        this.setState({relatedVideos});
-      });
-    }
-  };
 
   //Playlists Methods
   togglePlaylistsOptions = () => {
@@ -557,6 +510,30 @@ class Playlist extends Component {
   onToggleReorder = () => {
     this.setState({reorder: !this.state.reorder})
   }
+
+  onSort = (items) => {
+    const docRef = firebase.firestore().collection("users").doc(this.state.profileId).collection("playlists").doc(this.state.playlistId);
+    
+    const newOrder = _.map(items, item => ({
+      timestamp: item.props.video.timestamp,
+        videoEtag: item.props.video.videoEtag,
+        videoID: item.props.video.videoID,
+        videoTitle: item.props.video.videoTitle,
+        videoChannel: item.props.video.videoChannel,
+        datePublished: item.props.video.datePublished,
+        duration: item.props.video.duration,
+    }))
+
+    if (this.state.orderDirection === 'desc') newOrder.reverse(); 
+
+    docRef.update({
+      playlistVideos: newOrder,
+    })
+    .then(() => console.log('Order updated'))
+    .catch(function(error) {
+      console.log(error)
+    });
+  };
 
   render() {
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
@@ -795,13 +772,15 @@ class Playlist extends Component {
         </StyledPopupContainer>
         <VideoListContainer 
           playlistVideos={this.state.playlistVideos}
-          relatedVideos={this.state.relatedVideos}
-
           user={this.props.user}
           playlist={this.state.playlist}
-          playlistVideos={this.state.playlistVideos}
           libraryVideos={this.props.libraryVideos}
           currentVideoId = {this.props.videoId}
+          related={true}
+
+          onSort={this.onSort}
+          origin="playlist"
+
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
