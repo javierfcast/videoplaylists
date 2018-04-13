@@ -688,7 +688,7 @@ class Playlist extends Component {
             toggleEditPlaylistPopup={this.props.toggleEditPlaylistPopup}
 
             ediatble={this.props.user.uid === this.state.playlist.AuthorId}
-            updatePlaylist={this.state.playlist.youtubeUrl || this.state.playlist.youtubeUrl}
+            updatePlaylist={this.state.playlist.spotifyUrl || this.state.playlist.youtubeUrl}
             options={
               this.props.user.uid === this.state.playlist.AuthorId 
               ? ["custom", "recent", "date", "title", "channel"] 
