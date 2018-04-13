@@ -8,8 +8,10 @@ import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
 import YTApi from './yt_api';
 import _ from 'lodash';
+
 import SharePopup from './share_popup';
 import VideoListContainer from './video_list_container';
+import PlaylistOptionsPopup from './playlist_options_popup';
 
 const sizes = {
   small: 360,
@@ -600,7 +602,6 @@ class Playlist extends Component {
     //Set Follow for playlists, related videos and sortable list
     let followButton = null;
     let relatedSection = null;
-    let updatePlaylist = null;
     let reorderButton = null;
 
     if (this.props.user !== null ) {
@@ -633,105 +634,10 @@ class Playlist extends Component {
             </StyledButton>
           }
         } 
-
-        if (playlist.spotifyUrl || playlist.youtubeUrl) {
-          updatePlaylist = 
-          <StyledButtonPopup onClick={() => {this.props.onUpdatePlaylist(playlist, batchSize); this.togglePlaylistsOptions()}}>
-            Update Playlist <MaterialIcon icon="cached" color='#fff' />
-          </StyledButtonPopup>
-        }       
       }
 
     } else {
       followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
-    }
-
-    //Set Playlist options popup
-    let playlistOptionsPopup = null;
-    const arrow = this.state.orderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
-
-    if (this.state.playlistOptionsIsOpen){
-      if (this.props.user !== null && this.props.user.uid === playlist.AuthorId) {
-        
-        playlistOptionsPopup = 
-
-        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={this.togglePlaylistsOptions} >
-          <StyledOptionsLabel>
-            Order by <MaterialIcon icon="sort" color='#fff' />
-          </StyledOptionsLabel>
-          <StyledButtonPopup onClick={() => this.orderBy('custom')}>
-            Custom Order 
-            <div style={{opacity: this.state.orderBy === 'custom' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
-            Recently Added 
-            <div style={{opacity: this.state.orderBy === 'timestamp' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
-            Video Date
-            <div style={{opacity: this.state.orderBy === 'datePublished' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
-            Video Title
-            <div style={{opacity: this.state.orderBy === 'videoTitle' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
-            Channel
-            <div style={{opacity: this.state.orderBy === 'videoChannel' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <hr />
-          <StyledButtonPopup onClick={() => this.props.toggleEditPlaylistPopup(playlist)}>
-            Edit Playlist's Name <MaterialIcon icon="edit" color='#fff' />
-          </StyledButtonPopup>
-          {updatePlaylist}
-          <StyledButtonPopup onClick={() => this.props.onDeletePlaylist(playlist, batchSize)}>
-            Delete Playlist <MaterialIcon icon="delete_forever" color='#fff' />
-          </StyledButtonPopup>
-        </StyledOptionsPopup>
-
-      } else if (this.props.user !== null) {
-        playlistOptionsPopup = 
-
-        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={this.togglePlaylistsOptions} >
-          <StyledOptionsLabel>
-            Order by <MaterialIcon icon="sort" color='#fff' />
-          </StyledOptionsLabel>
-          <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
-            Recently Added
-            <div style={{opacity: this.state.orderBy === 'timestamp' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
-            Video Date
-            <div style={{opacity: this.state.orderBy === 'datePublished' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
-            Video Title
-            <div style={{opacity: this.state.orderBy === 'videoTitle' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
-            Channel
-            <div style={{opacity: this.state.orderBy === 'videoChannel' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-        </StyledOptionsPopup>
-      }
     }
 
     return(
@@ -768,19 +674,37 @@ class Playlist extends Component {
             onClose={this.toggleShare}
             id="share-popup"
           />
-          {playlistOptionsPopup}
+          <PlaylistOptionsPopup 
+            open={this.state.playlistOptionsIsOpen && this.props.user !== null}
+            playlist={this.state.playlist}
+            orderBy={this.state.orderBy}
+            orderDirection={this.state.orderDirection}
+            
+            onOrderBy={this.orderBy}
+            onUpdatePlaylist={this.props.onUpdatePlaylist}
+            onDeletePlaylist={this.props.onDeletePlaylist}
+            
+            togglePlaylistsOptions={this.togglePlaylistsOptions}
+            toggleEditPlaylistPopup={this.props.toggleEditPlaylistPopup}
+
+            ediatble={this.props.user.uid === this.state.playlist.AuthorId}
+            updatePlaylist={this.state.playlist.youtubeUrl || this.state.playlist.youtubeUrl}
+            options={
+              this.props.user.uid === this.state.playlist.AuthorId 
+              ? ["custom", "recent", "date", "title", "channel"] 
+              : ["recent", "date", "title", "channel"]
+            }
+          />
         </StyledPopupContainer>
         <VideoListContainer 
+          origin="playlist"
           playlistVideos={this.state.playlistVideos}
           user={this.props.user}
           playlist={this.state.playlist}
           libraryVideos={this.props.libraryVideos}
           currentVideoId = {this.props.videoId}
-          related={true}
-
+          related={this.props.user.uid === this.state.playlist.AuthorId}
           onSort={this.onSort}
-          origin="playlist"
-
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}
           onAddToPlaylist={this.props.onAddToPlaylist}
@@ -789,7 +713,6 @@ class Playlist extends Component {
           onRemoveFromLibrary={this.props.onRemoveFromLibrary}
           orderBy={this.state.orderBy}
           reorder={this.state.reorder}
-
           setSnackbar={this.props.setSnackbar}
           handleScroll={this.handleScroll}
           YT_API_KEY={this.props.YT_API_KEY}
