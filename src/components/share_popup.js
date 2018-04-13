@@ -120,32 +120,30 @@ const SharePopup = ({ user, open, onClose, name, url, onCopy, id, center, large 
     return null;
   }
 
-  if (!user) {
-    return(
-      <StyledPopup onBlur={onClose} id={id} center={center} large={large} tabIndex={large ? null : "0"}>
-        <StyledContent large={large} >
-          <StyledTitle large={large} >Share: {name}</StyledTitle>
-            <StyledButtonOption
-              large={large}
-              onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURI(url)}`, '', 'width=550, height=400')} >
-              <i class="fab fa-facebook" /> Facebook
-            </StyledButtonOption>
-            <StyledButtonOption
-              large={large}
-              onClick={() => window.open(`https://twitter.com/intent/tweet?hashtags=VideoPlaylistsTv&text=${encodeURIComponent(name)}&url=${encodeURI(url)}`, '', 'width=550, height=400')} >
-              <i class="fab fa-twitter" /> Twitter
-            </StyledButtonOption>
-          <hr/>
-          <CopyToClipboard text={url} onCopy={() => onCopy('Copied to clipboard!')}>
-            <StyledButtonOption large={large}>
-              <MaterialIcon icon="link" color='#fff' /> Copy Link
-            </StyledButtonOption>
-          </CopyToClipboard>
-        </StyledContent>
-        <StyledClickOutside large={large} onClick={onClose} />
-      </StyledPopup>
-    );
-  }
+  return(
+    <StyledPopup onBlur={onClose} id={id} center={center} large={large} tabIndex={large ? null : "0"}>
+      <StyledContent large={large} >
+        <StyledTitle large={large} >Share: {name}</StyledTitle>
+          <StyledButtonOption
+            large={large}
+            onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURI(url)}`, '', 'width=550, height=400')} >
+            <i class="fab fa-facebook" /> Facebook
+          </StyledButtonOption>
+          <StyledButtonOption
+            large={large}
+            onClick={() => window.open(`https://twitter.com/intent/tweet?hashtags=VideoPlaylistsTv&text=${encodeURIComponent(name)}&url=${encodeURI(url)}`, '', 'width=550, height=400')} >
+            <i class="fab fa-twitter" /> Twitter
+          </StyledButtonOption>
+        <hr/>
+        <CopyToClipboard text={url} onCopy={() => onCopy('Copied to clipboard!')}>
+          <StyledButtonOption large={large}>
+            <MaterialIcon icon="link" color='#fff' /> Copy Link
+          </StyledButtonOption>
+        </CopyToClipboard>
+      </StyledContent>
+      <StyledClickOutside large={large} onClick={onClose} />
+    </StyledPopup>
+  );
 }
 
 export default SharePopup;
