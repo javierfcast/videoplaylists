@@ -8,6 +8,8 @@ import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
 import firebase from 'firebase';
 import '@firebase/firestore';
+import CircularProgress from 'material-ui/CircularProgress';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import YTApi from './yt_api';
 import VideoOptionsPopup from './video_options_popup';
@@ -31,15 +33,22 @@ const StyledRelatedHeader = styled.h2`
   padding-top: 20px;
   padding-bottom: 10px;
 `;
+const StyledLoading = styled.div`
+  margin: 40px 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`;
 
  //React sortable hoc
 
-const SortableList = SortableContainer(({ videoItems, relatedVideoItems, handleScroll}) => {
+const SortableList = SortableContainer(({ videoItems, relatedVideoItems, handleScroll, loadingItem}) => {
   return (
     <StyledVideoListContainer onScroll={handleScroll}>
       {videoItems}
-      {!isEmpty(relatedVideoItems) ? <StyledRelatedHeader> Related videos </StyledRelatedHeader> : null}
+      {!isEmpty(relatedVideoItems) ? <StyledRelatedHeader>Related videos</StyledRelatedHeader> : null}
       {!isEmpty(relatedVideoItems) ? relatedVideoItems : null}
+      {loadingItem}
     </StyledVideoListContainer>
   );
 });
@@ -221,7 +230,15 @@ class VideoListContainer extends Component {
     this.setState({
       videoItems: arrayMove(this.state.videoItems, oldIndex, newIndex),
     });
-  };
+  }
+
+  handleScroll = (event) => {
+    if (event.currentTarget.scrollTop + (event.currentTarget.offsetHeight + 120) >= event.currentTarget.scrollHeight && this.props.loadMore) {
+      this.props.onLoadMore()
+    }
+
+    if (this.props.handleScroll) this.props.handleScroll(event)
+  }
 
   render() {
 
@@ -233,6 +250,17 @@ class VideoListContainer extends Component {
         <StyledRelatedHeader> Related videos </StyledRelatedHeader>
         {this.state.relatedVideoItems} 
       </div>
+    }
+
+    let loadingItem = null;
+
+    if (this.props.loadMore) {
+      loadingItem = 
+      <StyledLoading>
+        <MuiThemeProvider>
+          <CircularProgress color="#fff" thickness={3} />
+        </MuiThemeProvider>
+      </StyledLoading>
     }
 
     return (
@@ -254,23 +282,25 @@ class VideoListContainer extends Component {
           onCopy={this.props.setSnackbar}
           onClose={this.toggleShare}
           id="share-video-popup"
-          center
+          large
         />
         {
           !this.props.reorder 
           ?
-            <StyledVideoListContainer onScroll={this.props.handleScroll}>
+            <StyledVideoListContainer onScroll={this.handleScroll}>
               {this.state.videoItems}
-              {!isEmpty(this.state.relatedVideoItems) ? <StyledRelatedHeader> Related videos </StyledRelatedHeader> : null}
+              {!isEmpty(this.state.relatedVideoItems) ? <StyledRelatedHeader>Related videos</StyledRelatedHeader> : null}
               {!isEmpty(this.state.relatedVideoItems) ? this.state.relatedVideoItems : null}
+              {loadingItem}
             </StyledVideoListContainer>
           : 
             <SortableList 
               videoItems={this.state.videoItems} 
               relatedVideoItems={this.state.relatedVideoItems} 
-              handleScroll={this.props.handleScroll}
+              handleScroll={this.handleScroll}
               useDragHandle={true}
               onSortEnd={this.onSortEnd}
+              loadingItem={loadingItem}
             />
         }
       </StyledScrollContainer>
