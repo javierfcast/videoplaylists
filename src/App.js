@@ -773,9 +773,9 @@ class App extends Component {
   toggleSearchPlayer = (video) => {
    
     //Play Selected Video from the search results
-    const videoId = video.id.videoId;
-    const videoTitle = video.snippet.title;
-    const videoChannel = video.snippet.channelTitle;
+    const videoId = video.videoID;
+    const videoTitle = video.videoTitle;
+    const videoChannel = video.videoChannel;
     
 
     this.setState((prevState) => {
