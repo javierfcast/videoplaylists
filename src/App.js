@@ -1650,6 +1650,7 @@ class App extends Component {
                     YT_API_KEY={YT_API_KEY}
                     gapiReady={this.state.gapiReady}
                     onLogin={this.onLogin}
+                    setSnackbar={this.setSnackbar}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>
