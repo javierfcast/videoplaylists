@@ -15,7 +15,16 @@ const StyledPopup = styled.div`
     border-top: 1px solid rgba(255,255,255,0.1);
   }
   .material-icons{
-    margin-left: 10px;
+    margin-right: 10px;
+  }
+  .fab {
+    font-size: 18px;
+    margin-right: 10px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   &:focus{
     outline: none;
@@ -43,8 +52,7 @@ const StyledContent = styled.div`
   ${props => props.large && `
     max-width: 480px;
     border: 1px solid rgba(255,255,255,0.1);
-    padding: 40px;
-    padding-bottom: 10px;
+    padding: 40px 0;
     margin: 0 auto;
     position: relative;
     z-index: 101;
@@ -57,7 +65,7 @@ const StyledTitle = styled.div`
   letter-spacing: 2px;
   line-height: 1.6em;
   ${props => props.large && `
-    margin: 0 0 40px 0;
+    margin: 0 40px 40px;
     font-size: 18px;
     font-weight: 100;
     text-transform: none;
@@ -78,10 +86,10 @@ const StyledButtonOption = styled.a`
   opacity: .6;
   cursor: pointer;
   transition: all .3s ease;
-  margin-left: 10px;
+  margin: 0 20px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 10px 0;
   text-transform: uppercase;
   font-size: 10px;
@@ -92,7 +100,7 @@ const StyledButtonOption = styled.a`
     opacity: 1;
   }
   ${props => props.large && `
-    padding: 15px 0;
+    margin: 0 40px;
   `}
 `;
 const StyledClickOutside = styled.div`
@@ -120,17 +128,17 @@ const SharePopup = ({ user, open, onClose, name, url, onCopy, id, center, large 
             <StyledButtonOption
               large={large}
               onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURI(url)}`, '', 'width=550, height=400')} >
-              Facebook
+              <i class="fab fa-facebook" /> Facebook
             </StyledButtonOption>
             <StyledButtonOption
               large={large}
               onClick={() => window.open(`https://twitter.com/intent/tweet?hashtags=VideoPlaylistsTv&text=${encodeURIComponent(name)}&url=${encodeURI(url)}`, '', 'width=550, height=400')} >
-              Twitter
+              <i class="fab fa-twitter" /> Twitter
             </StyledButtonOption>
           <hr/>
           <CopyToClipboard text={url} onCopy={() => onCopy('Copied to clipboard!')}>
             <StyledButtonOption large={large}>
-              Copy Link <MaterialIcon icon="link" color='#fff' />
+              <MaterialIcon icon="link" color='#fff' /> Copy Link
             </StyledButtonOption>
           </CopyToClipboard>
         </StyledContent>
