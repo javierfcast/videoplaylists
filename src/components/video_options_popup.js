@@ -18,6 +18,8 @@ const StyledContent = styled.div`
   padding: 40px;
   margin: 0 auto;
   background: rgba(0,0,0,0.9);
+  position: relative;
+  z-index: 101;
   p{
     margin-bottom: 40px;
   }
@@ -95,6 +97,14 @@ const StyledLink = styled(Link)`
     margin-right: 10px;
   }
 `;
+const StyledClickOutside = styled.div`
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+`;
 
 const VideoOptionsPopup = ({ open, video, remove, onClose, playlist, togglePlaylistPopup, onRemoveFromPlaylist, onShare }) => {
 
@@ -116,6 +126,7 @@ const VideoOptionsPopup = ({ open, video, remove, onClose, playlist, togglePlayl
           Cancel
         </StyledButton>
       </StyledContent>
+      <StyledClickOutside onClick={onClose} />
     </StyledPopup>
   );
 }
