@@ -7,9 +7,9 @@ import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
 import YTApi from './yt_api';
-import SortableComponent from './sortable_component';
 import _ from 'lodash';
 import SharePopup from './share_popup';
+import VideoListContainer from './video_list_container';
 
 const sizes = {
   small: 360,
@@ -289,13 +289,6 @@ const StyledButtonTagName = styled(Link)`
   text-decoration: none;
   color: #fff;
 `;
-const VideoListContainer = styled.ul`
-  list-style: none;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 100%;
-`;
 const StyledRelatedHeader = styled.h2`
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-top: 20px;
@@ -321,8 +314,6 @@ class Playlist extends Component {
       scrolling: false,
       reorder: false,
 
-      videoItems: null,
-      relatedVideoItems: null,
       tagItems: null,
 
       shareOpen: false,
@@ -385,10 +376,6 @@ class Playlist extends Component {
           tags: doc.data().tags,
           playlistVideos: playlistVideos,
         })
-
-        //Get related videos
-        this.getRelated(playlistVideos, doc.data().playlistName);
-
       } 
       
       else {
@@ -427,110 +414,6 @@ class Playlist extends Component {
           playlistVideos: _.orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
         })
       }
-    }
-
-    //Map videos inside playlist
-    if (this.state.playlistVideos !== nextState.playlistVideos || this.props.libraryVideos !== nextProps.libraryVideos || this.state.reorder !== nextState.reorder) {
-
-      const videoItems = nextState.playlistVideos.map((video) => {   
-        let date = new Date(video.datePublished);
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let dt = date.getDate();
-
-        if (dt < 10) {
-          dt = '0' + dt;
-        }
-        if (month < 10) {
-          month = '0' + month;
-        }
-
-        //check if video it's in library
-        const itsOnLibrary = nextProps.libraryVideos.some((element) => {
-          return element.videoID === video.videoID
-        });
-
-        return (
-          <VideoItem
-            user={nextProps.user}
-            playlist={nextState.playlist}
-            playlistVideos={nextState.playlistVideos}
-            currentVideoId = {nextProps.videoId}
-            inSearchResults={false}
-            key={video.videoEtag}
-            video={video}
-            videoEtag={video.videoEtag}
-            videoTitle={video.videoTitle}
-            videoId={video.videoID}
-            videoChannel={video.videoChannel}
-            duration={video.duration}
-            datePublished={year + '-' + month + '-' + dt}
-            togglePlayer={nextProps.togglePlayer}
-            togglePlaylistPopup={nextProps.togglePlaylistPopup}
-            onAddToPlaylist={nextProps.onAddToPlaylist}
-            onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
-            onAddToLibrary={nextProps.onAddToLibrary}
-            onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
-            orderBy={nextState.orderBy}
-            itsOnLibrary={itsOnLibrary}
-            reorder={nextState.reorder}
-          />
-        )
-      })
-
-      this.setState({videoItems});
-    }
-
-    if (this.state.relatedVideos !== nextState.relatedVideos || this.props.libraryVideos !== nextProps.libraryVideos) {
-
-      //Map related videos
-      const relatedVideoItems = nextState.relatedVideos.map((video) => { 
-        let date = new Date(video.datePublished);
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let dt = date.getDate();
-
-        if (dt < 10) {
-          dt = '0' + dt;
-        }
-        if (month < 10) {
-          month = '0' + month;
-        }
-
-        //check if video it's in library
-        const itsOnLibrary = nextProps.libraryVideos.some((element) => {
-          return element.videoID === video.videoID
-        });
-
-        return (
-          <VideoItem
-            user={nextProps.user}
-            playlist={nextState.playlist}
-            playlistVideos={nextState.playlistVideos}
-            currentVideoId = {nextProps.videoId}
-            inSearchResults={false}
-            inRelatedVideos={true}
-            key={video.videoEtag}
-            video={video}
-            videoEtag={video.videoEtag}
-            videoTitle={video.videoTitle}
-            videoId={video.videoID}
-            videoChannel={video.videoChannel}
-            duration={video.duration}
-            datePublished={year + '-' + month + '-' + dt}
-            togglePlayer={nextProps.togglePlayer}
-            togglePlaylistPopup={nextProps.togglePlaylistPopup}
-            onAddToPlaylist={nextProps.onAddToPlaylist}
-            onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
-            onAddToLibrary={nextProps.onAddToLibrary}
-            onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
-            autoAdd={true}
-            itsOnLibrary={itsOnLibrary}
-          />
-        )
-      });
-
-      this.setState({relatedVideoItems});
     }
 
     if (this.state.tags !== nextState.tags) {
@@ -612,78 +495,6 @@ class Playlist extends Component {
     }
   }
 
-  onSort = (items) => {
-    let docRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('playlists').doc(this.state.playlistId);
-    
-    let newOrder = items.map(item => {
-      return {
-        timestamp: item.props.video.timestamp,
-        videoEtag: item.props.video.videoEtag,
-        videoID: item.props.video.videoID,
-        videoTitle: item.props.video.videoTitle,
-        videoChannel: item.props.video.videoChannel,
-        datePublished: item.props.video.datePublished,
-        duration: item.props.video.duration,
-      }
-    })
-
-    if (this.state.orderDirection === 'desc') newOrder.reverse(); 
-
-    docRef.update({
-      playlistVideos: newOrder,
-    })
-    .then(() => console.log('Order updated'))
-    .catch(function(error) {
-      console.log(error)
-    });
-  };
-
-  getRelated = (playlistVideos, playlistTitle) => {
-
-    if (playlistVideos.length > 0) {
-      const lastVideoID = playlistVideos[playlistVideos.length-1].videoID;
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: lastVideoID, type: 'video', maxResults: 5 })
-      .then((searchResults)=> {    
-        const video = searchResults.map((result, index) => {
-          return {
-            datePublished: result.snippet.publishedAt,
-            order: playlistVideos.length + 1,
-            videoChannel: result.snippet.channelTitle,
-            videoEtag: result.etag,
-            videoID: result.id.videoId,
-            videoTitle: result.snippet.title,
-            key: result.id.videoId,
-            duration: result.contentDetails.duration
-          }
-        });
-        this.setState({
-          relatedVideos: video
-        })
-      });
-    }
-    
-    else {
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: playlistTitle, type: 'video', maxResults: 5 })
-      .then((searchResults)=> {    
-        const video = searchResults.map((result, index) => {
-          return {
-            datePublished: result.snippet.publishedAt,
-            order: 1,
-            videoChannel: result.snippet.channelTitle,
-            videoEtag: result.etag,
-            videoID: result.id.videoId,
-            videoTitle: result.snippet.title,
-            key: result.id.videoId,
-            duration: result.contentDetails.duration
-          }
-        });
-        this.setState({
-          relatedVideos: video
-        })
-      });
-    }
-  };
-
   handleScroll = (event) => {
     if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
       this.setState({
@@ -699,6 +510,30 @@ class Playlist extends Component {
   onToggleReorder = () => {
     this.setState({reorder: !this.state.reorder})
   }
+
+  onSort = (items) => {
+    const docRef = firebase.firestore().collection("users").doc(this.state.profileId).collection("playlists").doc(this.state.playlistId);
+    
+    const newOrder = _.map(items, item => ({
+      timestamp: item.props.video.timestamp,
+        videoEtag: item.props.video.videoEtag,
+        videoID: item.props.video.videoID,
+        videoTitle: item.props.video.videoTitle,
+        videoChannel: item.props.video.videoChannel,
+        datePublished: item.props.video.datePublished,
+        duration: item.props.video.duration,
+    }))
+
+    if (this.state.orderDirection === 'desc') newOrder.reverse(); 
+
+    docRef.update({
+      playlistVideos: newOrder,
+    })
+    .then(() => console.log('Order updated'))
+    .catch(function(error) {
+      console.log(error)
+    });
+  };
 
   render() {
     if (!this.state.playlist || !this.state.playlistPublicInfo) {
@@ -765,7 +600,6 @@ class Playlist extends Component {
     //Set Follow for playlists, related videos and sortable list
     let followButton = null;
     let relatedSection = null;
-    let videoContainerComponent = null;
     let updatePlaylist = null;
     let reorderButton = null;
 
@@ -775,11 +609,6 @@ class Playlist extends Component {
         <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlistFollowers)}>
           {playlistFollowers} Followers
         </PlaylistActions>
-
-        videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-          {this.state.videoItems}
-          {relatedSection}
-        </VideoListContainer>
 
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
@@ -795,14 +624,6 @@ class Playlist extends Component {
             <StyledButton onClick={this.onToggleReorder}>
               <MaterialIcon icon="done" color='#fff' />
             </StyledButton>
-
-            videoContainerComponent = <SortableComponent
-              videoItems={this.state.videoItems}
-              relatedSection={relatedSection}
-              onSort={this.onSort}
-              orderBy={this.state.orderBy}
-              handleScroll={this.handleScroll}
-            />
           } 
           
           else {
@@ -810,19 +631,8 @@ class Playlist extends Component {
             <StyledButton onClick={this.onToggleReorder}>
               <MaterialIcon icon="format_line_spacing" color='#fff' />
             </StyledButton>
-
-            videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-              {this.state.videoItems}
-              {relatedSection}
-            </VideoListContainer>
           }
         } 
-        else {
-          videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-            {this.state.videoItems}
-            {relatedSection}
-          </VideoListContainer>
-        }
 
         if (playlist.spotifyUrl || playlist.youtubeUrl) {
           updatePlaylist = 
@@ -834,10 +644,6 @@ class Playlist extends Component {
 
     } else {
       followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
-      videoContainerComponent = <VideoListContainer onScroll={this.handleScroll}>
-        {this.state.videoItems}
-        {relatedSection}
-      </VideoListContainer>
     }
 
     //Set Playlist options popup
@@ -964,7 +770,30 @@ class Playlist extends Component {
           />
           {playlistOptionsPopup}
         </StyledPopupContainer>
-        {videoContainerComponent}
+        <VideoListContainer 
+          playlistVideos={this.state.playlistVideos}
+          user={this.props.user}
+          playlist={this.state.playlist}
+          libraryVideos={this.props.libraryVideos}
+          currentVideoId = {this.props.videoId}
+          related={true}
+
+          onSort={this.onSort}
+          origin="playlist"
+
+          togglePlayer={this.props.togglePlayer}
+          togglePlaylistPopup={this.props.togglePlaylistPopup}
+          onAddToPlaylist={this.props.onAddToPlaylist}
+          onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          onAddToLibrary={this.props.onAddToLibrary}
+          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
+          orderBy={this.state.orderBy}
+          reorder={this.state.reorder}
+
+          setSnackbar={this.props.setSnackbar}
+          handleScroll={this.handleScroll}
+          YT_API_KEY={this.props.YT_API_KEY}
+        />
       </PlaylistContainer>
     )
   };

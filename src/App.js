@@ -773,9 +773,9 @@ class App extends Component {
   toggleSearchPlayer = (video) => {
    
     //Play Selected Video from the search results
-    const videoId = video.id.videoId;
-    const videoTitle = video.snippet.title;
-    const videoChannel = video.snippet.channelTitle;
+    const videoId = video.videoID;
+    const videoTitle = video.videoTitle;
+    const videoChannel = video.videoChannel;
     
 
     this.setState((prevState) => {
@@ -1558,6 +1558,7 @@ class App extends Component {
                 onAddToLibrary={this.onAddToLibrary}
                 onRemoveFromLibrary={this.onRemoveFromLibrary}
                 history={this.props.history}
+                setSnackbar={this.setSnackbar}
               />     
               <Switch>
                 <Route exact path='/' render={({ match }) =>
@@ -1606,6 +1607,7 @@ class App extends Component {
                     currentPlaylist={this.state.playlistVideos}
                     videoId={this.state.videoId}
                     watchId={this.state.watchId}
+                    setSnackbar={this.setSnackbar}
                   />} 
                   
                 />
@@ -1632,6 +1634,7 @@ class App extends Component {
                     onAddToLibrary={this.onAddToLibrary}
                     onRemoveFromLibrary={this.onRemoveFromLibrary}
                     togglePlaylistPopup={this.togglePlaylistPopup}
+                    setSnackbar={this.setSnackbar}
                   /> }
                 />
                 <Route exact path='/likedyoutube' render={({ match }) =>
@@ -1648,6 +1651,7 @@ class App extends Component {
                     YT_API_KEY={YT_API_KEY}
                     gapiReady={this.state.gapiReady}
                     onLogin={this.onLogin}
+                    setSnackbar={this.setSnackbar}
                   /> }
                 />
                 <Route exact path='/users/:profileId/:playlistId' render={({ match }) =>

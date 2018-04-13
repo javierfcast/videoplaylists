@@ -8,7 +8,9 @@ import moment from 'moment';
 import YTApi from './yt_api';
 import {head, findIndex, remove, map, some} from 'lodash'
 
-import VideoItem from './video_item'
+import VideoItem from './video_item';
+import VideoListContainer from './video_list_container';
+import SharePopup from './share_popup';
 
 const sizes = {
   small: 360,
@@ -90,6 +92,7 @@ const StyledLibraryButtonCheck = styled.a`
   display: block;
   cursor: pointer;
   width: 24px;
+  min-width: 24px;
   flex: 0 1 auto;
   margin-right: 12px;
   height: 24px;
@@ -119,13 +122,9 @@ const StyledActionButton = styled.a`
   display: flex;
   align-items: center;
   cursor: pointer;
-`;
-const VideoListContainer = styled.ul`
-  list-style: none;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 100%;
+  .material-icons{
+    margin-right: 10px;
+  }
 `;
 
 class Video extends Component {
@@ -136,9 +135,23 @@ class Video extends Component {
       video: {},
       playingNext: {},
       relatedVideos: [],
-      relatedVideoItems: []
+      loading: false,
+
+      shareOpen: false,
+      shareVideo: {},
     }
   };
+
+  componentWillMount() {
+    if (!this.props.watchId || this.props.watchId !== this.props.match.params.videoId) {
+      if (this.props.playerLoaded) {
+        this.startRadio(this.props.match.params.videoId)
+      }
+    }
+    else if (this.props.currentVideo && this.state.video.videoID !== this.props.currentVideo.videoID) {
+      this.updateInfo(this.props.currentVideo, this.props.currentPlaylist)
+    }
+  }
 
   componentWillReceiveProps(nextProps) {
     if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
@@ -152,77 +165,52 @@ class Video extends Component {
     }
   };
 
-  componentWillUpdate(nextProps, nextState) {
-    if (this.state.relatedVideos !== nextState.relatedVideos || this.props.libraryVideos !== nextProps.libraryVideos) {
-      const relatedVideoItems = map(nextState.relatedVideos, video => (
-        <VideoItem
-          user={nextProps.user}
-          playlistVideos={nextProps.currentPlaylist}
-          currentVideoId = {nextProps.videoId}
-          inSearchResults={false}
-          inRelatedVideos={true}
-          key={video.videoEtag}
-          video={video}
-          videoEtag={video.videoEtag}
-          videoTitle={video.videoTitle}
-          videoId={video.videoID}
-          videoChannel={video.videoChannel}
-          duration={video.duration}
-          datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
-          togglePlaylistPopup={nextProps.togglePlaylistPopup}
-          onAddToPlaylist={nextProps.onAddToPlaylist}
-          onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
-          onAddToLibrary={nextProps.onAddToLibrary}
-          onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
-          autoAdd={false}
-          itsOnLibrary={some(nextProps.libraryVideos, e => (e.videoID === video.videoID))}
-          fromWatch={true}
-        />
-      ));
-
-      this.setState({relatedVideoItems});
-    }
-  }
-
   startRadio = (videoID) => {
-    YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
-    .then(response => {
-      response = head(response)
+    if (this.state.loading) return
 
-      return {
-        timestamp: new Date(),
-        videoEtag: response.etag,
-        videoID: response.id,
-        videoTitle: response.snippet.title,
-        videoChannel: response.snippet.channelTitle,
-        datePublished: response.snippet.publishedAt,
-        duration: response.contentDetails.duration,
-      }
-    })
-    .then(video => {
-      YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: video.videoID, type: 'video', maxResults: 30 })
-      .then((searchResults)=> {
-        let relatedVideos = searchResults.map((result, index) => ({
-            datePublished: result.snippet.publishedAt,
-            videoChannel: result.snippet.channelTitle,
-            videoEtag: result.etag,
-            videoID: result.id.videoId,
-            videoTitle: result.snippet.title,
-            key: result.id.videoId,
-            duration: result.contentDetails.duration,
-        }));
-
-        relatedVideos = [video, ...relatedVideos]
-
-        this.props.toggleWatchPlayer(video, relatedVideos)
+    this.setState({loading: true}, () => {
+      YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
+      .then(response => {
+        response = head(response)
   
+        return {
+          timestamp: new Date(),
+          videoEtag: response.etag,
+          videoID: response.id,
+          videoTitle: response.snippet.title,
+          videoChannel: response.snippet.channelTitle,
+          datePublished: response.snippet.publishedAt,
+          duration: response.contentDetails.duration,
+        }
+      })
+      .then(video => {
+        YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: video.videoID, type: 'video', maxResults: 30 })
+        .then((searchResults)=> {
+          let relatedVideos = searchResults.map((result, index) => ({
+              datePublished: result.snippet.publishedAt,
+              videoChannel: result.snippet.channelTitle,
+              videoEtag: result.etag,
+              videoID: result.id.videoId,
+              videoTitle: result.snippet.title,
+              key: result.id.videoId,
+              duration: result.contentDetails.duration,
+          }));
+  
+          relatedVideos = [video, ...relatedVideos]
+  
+          this.props.toggleWatchPlayer(video, relatedVideos)
+
+          this.setState({loading: false});
+        })
+        .catch(e => {
+          this.props.setSnackbar(e)
+          console.log('error: ', e);
+        });
       })
       .catch(e => {
+        this.props.setSnackbar(e)
         console.log('error: ', e);
       });
-    })
-    .catch(e => {
-      console.log('error: ', e);
     });
   };
 
@@ -267,9 +255,17 @@ class Video extends Component {
       
     })
     .catch(e => {
+      this.props.setSnackbar(e)
       console.log('error: ', e);
     });
   };
+
+  toggleShare = (video) => {
+    this.setState({
+      shareOpen: !this.state.shareOpen,
+      shareVideo: video ? video : {}
+    });
+  }
 
   render() {
 
@@ -303,6 +299,15 @@ class Video extends Component {
 
     return (
       <StyledContainer>
+        <SharePopup
+          open={this.state.shareOpen}
+          name={this.state.shareVideo.videoTitle}
+          url={`https://videoplaylists.tv/watch/${this.state.shareVideo.videoID}`}
+          onCopy={this.props.setSnackbar}
+          onClose={this.toggleShare}
+          id="share-video-popup"
+          large
+        />
         <StyledCurrentVideo>
           {currentLibraryButton}
           <StyledVideoInfo>
@@ -311,7 +316,7 @@ class Video extends Component {
             <StyledLabel>{`PUBLISHED: ${this.state.video.datePublishedFormated} · DURATION: ${this.state.video.durationFormated}`}</StyledLabel>
             <StyledActions>
               <StyledActionButton onClick={() => this.props.togglePlaylistPopup(this.state.video)} ><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledActionButton>
-              <StyledActionButton><MaterialIcon icon="share" color='#fff' /> Share</StyledActionButton>
+              <StyledActionButton onClick={() => this.toggleShare(this.state.video)} ><MaterialIcon icon="share" color='#fff' /> Share</StyledActionButton>
             </StyledActions>
           </StyledVideoInfo>
         </StyledCurrentVideo>
@@ -325,14 +330,25 @@ class Video extends Component {
           </StyledNextVideoInfo>
           <StyledNextVideoActions>
             <StyledActionButton onClick={() => this.props.togglePlaylistPopup(this.state.playingNext)} ><MaterialIcon icon="playlist_add" color='#fff' /></StyledActionButton>
-            <StyledActionButton><MaterialIcon icon="share" color='#fff' /></StyledActionButton>
+            <StyledActionButton onClick={() => this.toggleShare(this.state.playingNext)} ><MaterialIcon icon="share" color='#fff' /></StyledActionButton>
           </StyledNextVideoActions>
         </StyledNextVideo>
         <StyledRelatedVideos>
           <StyledSectionTitle>Related videos</StyledSectionTitle>
-          <VideoListContainer>
-            {this.state.relatedVideoItems}
-          </VideoListContainer>
+          <VideoListContainer 
+            playlistVideos={this.state.relatedVideos}
+            user={this.props.user}
+            libraryVideos={this.props.libraryVideos}
+            currentVideoId = {this.props.videoId}
+            origin="radio"
+            togglePlayer={this.props.togglePlayer}
+            togglePlaylistPopup={this.props.togglePlaylistPopup}
+            onAddToPlaylist={this.props.onAddToPlaylist}
+            onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+            onAddToLibrary={this.props.onAddToLibrary}
+            onRemoveFromLibrary={this.props.onRemoveFromLibrary}
+            setSnackbar={this.props.setSnackbar}
+          />
         </StyledRelatedVideos>
 
       </StyledContainer>

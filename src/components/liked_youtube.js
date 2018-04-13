@@ -7,8 +7,8 @@ import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
 import YTApi from './yt_api';
 import _ from 'lodash';
-import CircularProgress from 'material-ui/CircularProgress';
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+
+import VideoListContainer from './video_list_container';
 
 const sizes = {
   small: 360,
@@ -161,22 +161,6 @@ const StyledButtonPopup = StyledButton.extend`
   font-size: 10px;
   letter-spacing: 2px;
 `;
-const VideoListContainer = styled.ul`
-  list-style: none;
-  width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  height: 100%;
-`;
-const StyledLoading = styled.div`
-  margin: 40px 0;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  ${props => props.hide && `
-    display: none;
-  `}
-`;
 const StyledLoginContainer = styled.div`
   width: 100%;
   height: 100%;
@@ -212,9 +196,9 @@ class LikedYoutube extends Component {
       orderDirection: 'desc',
       scrolling: false,
 
-      videoItems: null,
       nextPageToken: null,
       loading: false,
+      allResults: false,
     };
   };
 
@@ -222,25 +206,6 @@ class LikedYoutube extends Component {
     if (this.props.gapiReady) {
       this.getYoutubeLikes()
     }
-
-    // if (!this.props.user || !this.props.gapiReady) return
-    
-    // this.setState({
-    //   playlist: {
-    //     // Author: this.props.user.displayName,
-    //     // AuthorId: this.props.user.uid,
-    //     createdOn: new Date(),
-    //     featured: false,
-    //     followers: 0,
-    //     playlistName: 'Liked on YouTube',
-    //     playlistSlugName: 'liked-on-youtube',
-    //     videoCount: 0
-    //   }
-    // }, () => {
-    //   if (this.props.gapiReady) {
-    //     this.getYoutubeLikes()
-    //   }
-    // });
   }
 
   componentWillUpdate(nextProps, nextState) {
@@ -250,62 +215,9 @@ class LikedYoutube extends Component {
     }
 
     if (this.state.orderBy !== nextState.orderBy || this.state.orderDirection !== nextState.orderDirection) {
-      console.log('nextState.orderDirection: ', nextState.orderDirection);
       this.setState({
         playlistVideos: _.orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
       })
-    }
-
-    //Map videos inside playlist
-    if (this.state.playlistVideos !== nextState.playlistVideos || this.props.libraryVideos !== nextProps.libraryVideos || this.state.reorder !== nextState.reorder) {
-
-      const videoItems = nextState.playlistVideos.map((video) => {   
-        let date = new Date(video.datePublished);
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let dt = date.getDate();
-
-        if (dt < 10) {
-          dt = '0' + dt;
-        }
-        if (month < 10) {
-          month = '0' + month;
-        }
-
-        //check if video it's in library
-        const itsOnLibrary = nextProps.libraryVideos.some((element) => {
-          return element.videoID === video.videoID
-        });
-
-        return (
-          <VideoItem
-            user={nextProps.user}
-            playlist={nextState.playlist}
-            playlistVideos={nextState.playlistVideos}
-            currentVideoId = {nextProps.videoId}
-            inSearchResults={false}
-            key={video.videoEtag}
-            video={video}
-            videoEtag={video.videoEtag}
-            videoTitle={video.videoTitle}
-            videoId={video.videoID}
-            videoChannel={video.videoChannel}
-            duration={video.duration}
-            datePublished={year + '-' + month + '-' + dt}
-            togglePlayer={nextProps.togglePlayer}
-            togglePlaylistPopup={nextProps.togglePlaylistPopup}
-            onAddToPlaylist={nextProps.onAddToPlaylist}
-            onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
-            onAddToLibrary={nextProps.onAddToLibrary}
-            onRemoveFromLibrary={nextProps.onRemoveFromLibrary}
-            orderBy={nextState.orderBy}
-            itsOnLibrary={itsOnLibrary}
-            reorder={nextState.reorder}
-          />
-        )
-      })
-
-      this.setState({videoItems});
     }
   }
 
@@ -383,20 +295,8 @@ class LikedYoutube extends Component {
 
   }
 
-  handleScroll = (event) => {
-    // if(event.currentTarget.scrollTop === 0 && this.state.scrolling === true){
-    //   this.setState({
-    //     scrolling: !this.state.scrolling
-    //   })
-    // } else if (event.currentTarget.scrollTop !== 0 && this.state.scrolling !== true){
-    //   this.setState({
-    //     scrolling: !this.state.scrolling
-    //   })
-    // }
-
-    if (event.currentTarget.scrollTop + (event.currentTarget.offsetHeight + 120) >= event.currentTarget.scrollHeight && !this.state.loading && !this.state.allResults) {
-      this.getYoutubeLikes()
-    }
+  onLoadMore = () => {
+    if (!this.state.loading && !this.state.allResults) this.getYoutubeLikes()
   }
 
   render() {
@@ -461,14 +361,28 @@ class LikedYoutube extends Component {
         {
           this.props.gapiReady
         ?
-          <VideoListContainer onScroll={this.handleScroll}>
-            {this.state.videoItems}
-            <StyledLoading hide={this.state.allResults} >
-              <MuiThemeProvider>
-                <CircularProgress color="#fff" thickness={3} />
-              </MuiThemeProvider>
-            </StyledLoading>
-          </VideoListContainer>
+          // <VideoListContainer onScroll={this.handleScroll}>
+          //   {this.state.videoItems}
+          // </VideoListContainer>
+          <VideoListContainer 
+            playlistVideos={this.state.playlistVideos}
+            user={this.props.user}
+            playlist={this.state.playlist}
+            libraryVideos={this.props.libraryVideos}
+            currentVideoId = {this.props.videoId}
+            origin="likedYoutube"
+            togglePlayer={this.props.togglePlayer}
+            togglePlaylistPopup={this.props.togglePlaylistPopup}
+            onAddToPlaylist={this.props.onAddToPlaylist}
+            onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+            onAddToLibrary={this.props.onAddToLibrary}
+            onRemoveFromLibrary={this.props.onRemoveFromLibrary}
+            orderBy={this.state.orderBy}
+            setSnackbar={this.props.setSnackbar}
+
+            loadMore={!this.state.allResults}
+            onLoadMore={this.onLoadMore}
+          />
         :
           <StyledLoginContainer>
             <StyledLogin onClick={() => this.props.onLogin('google')}>Login with Google</StyledLogin>
