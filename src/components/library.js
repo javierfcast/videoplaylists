@@ -8,6 +8,7 @@ import VideoItem from './video_item';
 import orderBy from 'lodash/orderBy';
 
 import VideoListContainer from './video_list_container';
+import PlaylistOptionsPopup from './playlist_options_popup';
 
 const sizes = {
   small: 360,
@@ -35,9 +36,18 @@ const PlaylistContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
+const StyledHeaderContainer = styled.div`
+  display: flex;
+  flex: 1 0 auto;
+  position: relative;
+`;
 const StyledHeader = styled.div`
+  display: block;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 10px;
+  transition: all .5s ease-out;
+  width: 100%;
+  overflow: hidden;
 `;
 const StyledPlaylistName = styled.h1`
   white-space: nowrap;
@@ -78,6 +88,9 @@ const StyledPlaylistActions = styled.div`
     margin-top: 0;
     justify-content: flex-end;
   `}
+`;
+const StyledPopupContainer = styled.div`
+  position: relative;
 `;
 const StyledOptionsPopup = styled.div`
   position: absolute;
@@ -295,70 +308,32 @@ class Library extends Component {
 
     const library = this.state.library;
 
-    //Set Library options popup
-    let libraryOptionsPopup = null;
-    const arrow = this.state.libraryOrderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
-
-    if (this.state.libraryOptionsIsOpen){
-      if (this.props.user && this.props.user.uid) {
-        
-        libraryOptionsPopup = 
-
-        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={ () => this.toggleLibraryOptions() } >
-          <StyledOptionsLabel>
-            Order by <MaterialIcon icon="sort" color='#fff' />
-          </StyledOptionsLabel>
-          <StyledButtonPopup onClick={() => this.orderBy('custom')}>
-            Custom Order
-            <div style={{opacity: this.state.libraryOrderBy === 'custom' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('timestamp')}>
-            Recently Added
-            <div style={{opacity: this.state.libraryOrderBy === 'timestamp' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
-            Video Date
-            <div style={{opacity: this.state.libraryOrderBy === 'datePublished' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
-            Video Title
-            <div style={{opacity: this.state.libraryOrderBy === 'videoTitle' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
-            Channel
-            <div style={{opacity: this.state.libraryOrderBy === 'videoChannel' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-        </StyledOptionsPopup>
-
-      }
-    }
-
     return(
       <PlaylistContainer>
-        <StyledHeader>
-          {/* <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> */}
-          <StyledPlaylistName>Library</StyledPlaylistName>
-          <StyledHeaderActions>
-            <StyledPlaylistInfo>
-              <StyledLabel>{library.libraryVideoCount} Videos in library</StyledLabel>
-            </StyledPlaylistInfo>
-            <StyledPlaylistActions>
-              <StyledButton onClick={() => this.toggleLibraryOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
-              {libraryOptionsPopup}
-            </StyledPlaylistActions>
-          </StyledHeaderActions>
-        </StyledHeader>
-
+        <StyledHeaderContainer>
+          <StyledHeader>
+            {/* <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> */}
+            <StyledPlaylistName>Library</StyledPlaylistName>
+            <StyledHeaderActions>
+              <StyledPlaylistInfo>
+                <StyledLabel>{library.libraryVideoCount} Videos in library</StyledLabel>
+              </StyledPlaylistInfo>
+              <StyledPlaylistActions>
+                <StyledButton onClick={() => this.toggleLibraryOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
+              </StyledPlaylistActions>
+            </StyledHeaderActions>
+          </StyledHeader>
+        </StyledHeaderContainer>
+        <StyledPopupContainer>
+          <PlaylistOptionsPopup 
+            open={this.state.libraryOptionsIsOpen && this.props.user && this.props.user.uid}
+            orderBy={this.state.libraryOrderBy}
+            orderDirection={this.state.libraryOrderDirection}
+            onOrderBy={this.orderBy}
+            togglePlaylistsOptions={this.toggleLibraryOptions}
+            options={["custom", "recent", "date", "title", "channel"] }
+          />
+        </StyledPopupContainer>
         <VideoListContainer 
           playlistVideos={this.state.libraryVideos}
           user={this.props.user}
