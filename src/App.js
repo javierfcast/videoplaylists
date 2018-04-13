@@ -1607,6 +1607,7 @@ class App extends Component {
                     currentPlaylist={this.state.playlistVideos}
                     videoId={this.state.videoId}
                     watchId={this.state.watchId}
+                    setSnackbar={this.setSnackbar}
                   />} 
                   
                 />
