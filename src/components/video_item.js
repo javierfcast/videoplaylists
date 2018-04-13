@@ -116,7 +116,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   
   let videoTrigger = null;
   
-  if (origin === "watch") {
+  if (origin === "radio") {
     videoTrigger = 
       <StyledVideoInfoLink to={`/watch/${videoId}`}>
         <VideoMeta>{videoChannel}</VideoMeta>
@@ -147,6 +147,13 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
     //Auto add if user owns the playlist
     quickActionButton = 
     <StyledActionButton onClick={() => onAddToPlaylist(video, playlist, user.uid === AuthorId)}>
+      <MaterialIcon icon="playlist_add" color='#fff' />
+    </StyledActionButton>
+  }
+  
+  else if (origin === "radio") {
+    quickActionButton = 
+    <StyledActionButton onClick={() => togglePlaylistPopup(video)}>
       <MaterialIcon icon="playlist_add" color='#fff' />
     </StyledActionButton>
   }

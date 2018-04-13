@@ -46,7 +46,7 @@ const SearchResults = (props) => {
         libraryVideos={props.libraryVideos}
         currentVideoId = {props.videoId}
 
-        origin="search"
+        origin={/watch.*/.test(props.history.location.pathname) ? "radio" : "search"}
 
         togglePlayer={props.togglePlayer}
         togglePlaylistPopup={props.togglePlaylistPopup}
