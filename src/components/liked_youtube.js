@@ -9,6 +9,7 @@ import YTApi from './yt_api';
 import _ from 'lodash';
 
 import VideoListContainer from './video_list_container';
+import PlaylistOptionsPopup from './playlist_options_popup';
 
 const sizes = {
   small: 360,
@@ -356,14 +357,18 @@ class LikedYoutube extends Component {
           </StyledHeader>
         </StyledHeaderContainer>
         <StyledPopupContainer>
-          {playlistOptionsPopup}
+          <PlaylistOptionsPopup 
+            open={this.state.playlistOptionsIsOpen && this.props.user && this.props.gapiReady}
+            orderBy={this.state.orderBy}
+            orderDirection={this.state.orderDirection}
+            onOrderBy={this.orderBy}
+            togglePlaylistsOptions={this.togglePlaylistsOptions}
+            options={["date", "title", "channel"] }
+          />
         </StyledPopupContainer>
         {
           this.props.gapiReady
         ?
-          // <VideoListContainer onScroll={this.handleScroll}>
-          //   {this.state.videoItems}
-          // </VideoListContainer>
           <VideoListContainer 
             playlistVideos={this.state.playlistVideos}
             user={this.props.user}
