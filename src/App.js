@@ -1558,6 +1558,7 @@ class App extends Component {
                 onAddToLibrary={this.onAddToLibrary}
                 onRemoveFromLibrary={this.onRemoveFromLibrary}
                 history={this.props.history}
+                setSnackbar={this.setSnackbar}
               />     
               <Switch>
                 <Route exact path='/' render={({ match }) =>
@@ -1632,6 +1633,7 @@ class App extends Component {
                     onAddToLibrary={this.onAddToLibrary}
                     onRemoveFromLibrary={this.onRemoveFromLibrary}
                     togglePlaylistPopup={this.togglePlaylistPopup}
+                    setSnackbar={this.setSnackbar}
                   /> }
                 />
                 <Route exact path='/likedyoutube' render={({ match }) =>

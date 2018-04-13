@@ -793,8 +793,6 @@ class Playlist extends Component {
           setSnackbar={this.props.setSnackbar}
           handleScroll={this.handleScroll}
           YT_API_KEY={this.props.YT_API_KEY}
-          profileId={this.state.profileId}
-          playlistId={this.state.playlistId}
         />
       </PlaylistContainer>
     )

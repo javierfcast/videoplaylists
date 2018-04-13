@@ -5,8 +5,9 @@ import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import VideoItem from './video_item';
-// import SortableComponent from './sortable_component';
-import _ from 'lodash';
+import orderBy from 'lodash/orderBy';
+
+import VideoListContainer from './video_list_container';
 
 const sizes = {
   small: 360,
@@ -33,11 +34,6 @@ const PlaylistContainer = styled.div`
   height: calc(100vh - 100px);
   display: flex;
   flex-direction: column;
-`;
-const VideoListContainer = styled.ul`
-  list-style: none;
-  width: 100%;
-  overflow-y: auto;
 `;
 const StyledHeader = styled.div`
   border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -178,7 +174,7 @@ class Library extends Component {
           libraryVideos = libraryVideos.reverse();
         }
         else if (doc.data().libraryOrderBy !== 'custom') {
-          libraryVideos = _.orderBy(libraryVideos, [doc.data().libraryOrderBy], [doc.data().libraryOrderDirection])
+          libraryVideos = orderBy(libraryVideos, [doc.data().libraryOrderBy], [doc.data().libraryOrderDirection])
         }
         this.setState({
           library: doc.data(),
@@ -299,61 +295,6 @@ class Library extends Component {
 
     const library = this.state.library;
 
-    //Map videos inside library
-    const videoItems = this.state.libraryVideos.map((video) => { 
-      
-      let date = new Date(video.datePublished);
-      let year = date.getFullYear();
-      let month = date.getMonth() + 1;
-      let dt = date.getDate();
-
-      if (dt < 10) {
-        dt = '0' + dt;
-      }
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      return (
-        <VideoItem
-          user={this.props.user}
-          playlist={this.state.library}
-          playlistVideos={this.state.libraryVideos}
-          currentVideoId = {this.props.videoId}
-          inSearchResults={false}
-          key={video.videoEtag}
-          video={video}
-          videoEtag={video.videoEtag}
-          videoTitle={video.videoTitle}
-          videoId={video.videoID}
-          videoChannel={video.videoChannel}
-          duration={video.duration}
-          datePublished={year + '-' + month + '-' + dt}
-          togglePlayer={this.props.togglePlayer}
-          togglePlaylistPopup={this.props.togglePlaylistPopup}
-          onAddToPlaylist={this.props.onAddToPlaylist}
-          onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
-          onAddToLibrary={this.props.onAddToLibrary}
-          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
-          itsOnLibrary={true}
-          orderBy={this.state.libraryOrderBy}
-          inLibraryVideos={true}
-        />
-      )
-    });
-
-    let videoContainerComponent =
-    <VideoListContainer>
-      {videoItems}
-    </VideoListContainer>;
-
-    if (this.props.user && this.state.libraryOrderBy === 'custom' && this.props.user.uid === this.state.profileId) {
-      // videoContainerComponent = <SortableComponent
-      //   onSort={this.onSort}
-      //   videoItems={videoItems}
-      // />
-    }
-
     //Set Library options popup
     let libraryOptionsPopup = null;
     const arrow = this.state.libraryOrderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
@@ -417,7 +358,29 @@ class Library extends Component {
             </StyledPlaylistActions>
           </StyledHeaderActions>
         </StyledHeader>
-        {videoContainerComponent}
+
+        <VideoListContainer 
+          playlistVideos={this.state.libraryVideos}
+          user={this.props.user}
+          playlist={this.state.library}
+          libraryVideos={this.state.libraryVideos}
+          currentVideoId = {this.props.videoId}
+
+          onSort={this.onSort}
+          origin="library"
+
+          togglePlayer={this.props.togglePlayer}
+          togglePlaylistPopup={this.props.togglePlaylistPopup}
+          onAddToPlaylist={this.props.onAddToPlaylist}
+          onRemoveFromPlaylist={this.props.onRemoveFromPlaylist}
+          onAddToLibrary={this.props.onAddToLibrary}
+          onRemoveFromLibrary={this.props.onRemoveFromLibrary}
+          orderBy={this.state.libraryOrderBy}
+          setSnackbar={this.props.setSnackbar}
+
+          // reorder={this.state.reorder}
+
+        />
       </PlaylistContainer>
     )
   };
