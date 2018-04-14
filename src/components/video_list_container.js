@@ -79,7 +79,8 @@ class VideoListContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.playlistVideos !== this.props.playlistVideos 
         || this.props.libraryVideos !== nextProps.libraryVideos
-        || this.props.reorder !== nextProps.reorder) {
+        || this.props.reorder !== nextProps.reorder
+        || this.props.currentVideoId !== nextProps.currentVideoId) {
 
       this.mapVideoItems(nextProps)
       if (nextProps.related) this.getRelatedVideos(nextProps)
@@ -87,10 +88,11 @@ class VideoListContainer extends Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if (!isEmpty(nextState.relatedVideos) && nextState.relatedVideos !== this.state.relatedVideos 
-    || this.props.libraryVideos !== nextProps.libraryVideos) {
-      
-      this.mapRelatedVideoItems(nextProps, nextState)
+    if (!isEmpty(nextState.relatedVideos)) {
+      if (nextState.relatedVideos !== this.state.relatedVideos 
+        || this.props.libraryVideos !== nextProps.libraryVideos) {
+        this.mapRelatedVideoItems(nextProps, nextState)
+      }
     }
   }
 
@@ -100,7 +102,7 @@ class VideoListContainer extends Component {
         user={nextProps.user}
         playlist={nextProps.playlist}
         playlistVideos={nextProps.playlistVideos}
-        currentVideoId = {nextProps.videoId}
+        currentVideoId = {nextProps.currentVideoId}
         key={video.videoEtag}
         video={video}
         videoEtag={video.videoEtag}
@@ -176,7 +178,7 @@ class VideoListContainer extends Component {
         user={nextProps.user}
         playlist={nextProps.playlist}
         playlistVideos={nextProps.playlistVideos}
-        currentVideoId = {nextProps.videoId}
+        currentVideoId = {nextProps.currentVideoId}
         key={video.videoEtag}
         video={video}
         videoEtag={video.videoEtag}
