@@ -19,6 +19,7 @@ import axios from 'axios';
 import SearchBar from './components/search_bar';
 import SearchResults from './components/search_results';
 import Sidenav from './components/sidenav';
+import UserNav from './components/user_nav';
 import PlayerControls from './components/player_controls';
 import VideoPlayer from './components/video_player';
 import EditPlaylistPopup from './components/edit_playlist_popup.js';
@@ -1545,6 +1546,11 @@ class App extends Component {
                 <MaterialIcon icon="menu" color='#fff' />
               </StyledSidenavTrigger>
               <SearchBar onVideoSearch={onVideoSearch}/>
+              <UserNav 
+                onLogout={this.onLogout}
+                user={this.state.user}
+                toggleInterface={this.toggleInterface}
+              />
             </StyledMainHeading>
             <StyledMainContainer>
               <SearchResults
