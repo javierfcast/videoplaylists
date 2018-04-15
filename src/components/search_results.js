@@ -1,10 +1,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import map from 'lodash/map';
-import moment from 'moment';
 
 //custom components
-import VideoItem from './video_item';
 import VideoListContainer from './video_list_container';
 
 const SearchResultsContainer = styled.div`

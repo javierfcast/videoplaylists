@@ -1,24 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-// import MaterialIcon from 'material-icons-react';
-
-const sizes = {
-  small: 360,
-  xmedium: 720,
-  xlarge: 1200
-}
-
-// Iterate through the sizes and create a media template
-const media = Object.keys(sizes).reduce((acc, label) => {
-  acc[label] = (...args) => css`
-		@media (min-width: ${sizes[label] / 16}em) {
-			${css(...args)}
-		}
-	`
-
-  return acc
-}, {})
 
 const StyledUserNavLink = styled.a`
   cursor: pointer;

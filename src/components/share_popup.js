@@ -73,15 +73,6 @@ const StyledTitle = styled.div`
     line-height: normal;
   `}
 `;
-const StyledOptionsLabel = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 2px;
-`;
 const StyledButtonOption = styled.a`
   opacity: .6;
   cursor: pointer;

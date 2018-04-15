@@ -6,8 +6,6 @@ import some from 'lodash/some';
 import map from 'lodash/map';
 import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
-import firebase from 'firebase';
-import '@firebase/firestore';
 import CircularProgress from 'material-ui/CircularProgress';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
@@ -244,16 +242,6 @@ class VideoListContainer extends Component {
   }
 
   render() {
-
-    let relatedSection = null;
-
-    if (this.state.related) {
-      relatedSection =
-      <div>
-        <StyledRelatedHeader> Related videos </StyledRelatedHeader>
-        {this.state.relatedVideoItems} 
-      </div>
-    }
 
     let loadingItem = null;
 
