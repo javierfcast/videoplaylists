@@ -327,6 +327,8 @@ class Playlist extends Component {
     const playlistName = this.state.playlist.playlistName;
     const playlistAuthor = this.state.playlist.Author;
     const playlistFollowers = this.state.playlistPublicInfo.followers;
+    const playlistDescription = this.state.playlist.playlistDescription;
+    const playlistHtml = this.state.playlist.playlistHtml;
     
     return(
       <PlaylistContainer>
@@ -341,6 +343,8 @@ class Playlist extends Component {
           playlist={playlist}
           playlistName={playlist.playlistName}
           playlistAuthor={playlistAuthor}
+          playlistDescription={playlistDescription}
+          playlistHtml={playlistHtml}
           playlistFollowers={playlistFollowers}
           onPlaylistFollow={this.props.onPlaylistFollow}
           togglePlaylistsOptions={this.togglePlaylistsOptions}
@@ -373,10 +377,10 @@ class Playlist extends Component {
             togglePlaylistsOptions={this.togglePlaylistsOptions}
             toggleEditPlaylistPopup={this.props.toggleEditPlaylistPopup}
 
-            ediatble={this.props.user.uid === this.state.playlist.AuthorId}
+            editable={this.props.user && this.props.user.uid === this.state.playlist.AuthorId}
             updatePlaylist={this.state.playlist.spotifyUrl || this.state.playlist.youtubeUrl}
             options={
-              this.props.user.uid === this.state.playlist.AuthorId 
+              this.props.user && this.props.user.uid === this.state.playlist.AuthorId 
               ? ["custom", "recent", "date", "title", "channel"] 
               : ["recent", "date", "title", "channel"]
             }
@@ -389,7 +393,7 @@ class Playlist extends Component {
           playlist={this.state.playlist}
           libraryVideos={this.props.libraryVideos}
           currentVideoId = {this.props.videoId}
-          related={this.props.user.uid === this.state.playlist.AuthorId}
+          related={this.props.user && this.props.user.uid === this.state.playlist.AuthorId}
           onSort={this.onSort}
           togglePlayer={this.props.togglePlayer}
           togglePlaylistPopup={this.props.togglePlaylistPopup}

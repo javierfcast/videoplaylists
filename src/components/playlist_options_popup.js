@@ -51,7 +51,7 @@ const StyledButtonPopup = StyledButton.extend`
   letter-spacing: 2px;
 `;
 
-const PlaylistOptionsPopup = ({ open, togglePlaylistsOptions, orderBy, orderDirection, onOrderBy, toggleEditPlaylistPopup, playlist, updatePlaylist, onUpdatePlaylist, ediatble, onDeletePlaylist, options }) => {
+const PlaylistOptionsPopup = ({ open, togglePlaylistsOptions, orderBy, orderDirection, onOrderBy, toggleEditPlaylistPopup, playlist, updatePlaylist, onUpdatePlaylist, editable, onDeletePlaylist, options }) => {
 
   if (!open) {
     return null;
@@ -115,12 +115,12 @@ const PlaylistOptionsPopup = ({ open, togglePlaylistsOptions, orderBy, orderDire
         : null
       }
       {
-        ediatble 
+        editable 
         ? <div>
             <hr />
             <StyledButtonPopup onClick={() => toggleEditPlaylistPopup(playlist)}>
               <MaterialIcon icon="edit" color='#fff' />
-              Edit Playlist's Name
+              Edit Playlist
             </StyledButtonPopup>
             {
               updatePlaylist 
