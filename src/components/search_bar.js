@@ -7,7 +7,7 @@ const StyledSearchInputContainer = styled.div`
   height: 40px;
   display: flex;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 10px 0 20px;
   position: relative;
 `;
 
@@ -40,7 +40,7 @@ const Input = styled.input`
 
 const SearchBarIcon = styled.a`
   position: absolute;
-  right: 20px;
+  right: 10px;
   top: 10px;
   cursor: pointer;
   z-index: 10;

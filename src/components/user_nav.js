@@ -2,6 +2,23 @@ import React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+
+  return acc
+}, {})
+
 const StyledUserNavLink = styled.a`
   cursor: pointer;
   display: block;
@@ -20,6 +37,10 @@ const StyledUserTrigger = styled.div`
     font-size: 14px;  
     margin-right: 10px;
     white-space: nowrap;
+    display: none;
+    ${media.xmedium`
+      display: block;
+    `}
   }
 `; 
 const StyledUserDropodwn = styled.div`
