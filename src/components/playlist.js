@@ -328,6 +328,7 @@ class Playlist extends Component {
     const playlistAuthor = this.state.playlist.Author;
     const playlistFollowers = this.state.playlistPublicInfo.followers;
     const playlistDescription = this.state.playlist.playlistDescription;
+    const playlistHtml = this.state.playlist.playlistHtml;
     
     return(
       <PlaylistContainer>
@@ -343,6 +344,7 @@ class Playlist extends Component {
           playlistName={playlist.playlistName}
           playlistAuthor={playlistAuthor}
           playlistDescription={playlistDescription}
+          playlistHtml={playlistHtml}
           playlistFollowers={playlistFollowers}
           onPlaylistFollow={this.props.onPlaylistFollow}
           togglePlaylistsOptions={this.togglePlaylistsOptions}
