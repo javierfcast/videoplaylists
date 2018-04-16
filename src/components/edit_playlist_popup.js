@@ -66,6 +66,35 @@ const StyledInput = styled.input`
     border-bottom: 1px solid rgba(255,255,255,1);
   }
 `;
+const StyledTextArea = styled.textarea`
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  padding: 10px 0;
+  width: 100%;
+  font-size: 14px;
+  color: #fff;
+  background: none;
+  transition: all .3s ease;
+  resize: vertical;
+  margin-top: 20px;
+  max-height: 176px;
+  &::-webkit-input-placeholder{
+    color: rgba(255,255,255,.6);
+  }
+  &::-moz-placeholder { 
+    color: rgba(255,255,255,.6);
+  }
+  &:-ms-input-placeholder {
+    color: rgba(255,255,255,.6);
+  }
+  &:-moz-placeholder {
+    color: rgba(255,255,255,.6);
+  }
+  &:focus{
+    outline: none;
+    border-bottom: 1px solid rgba(255,255,255,1);
+  }
+`;
 const StyledActions = styled.div`
   display: flex;
   justify-content: flex-end;
@@ -166,7 +195,7 @@ const StyledOptionsButton = styled.a`
   `}
 `;
 
-const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, onImportFromYoutube, playlistName, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, importingType, toggleImportPlaylistPopup, onImportPlaylistDrop}) => {
+const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, onImportFromYoutube, playlistName, playlistDescription, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, importingType, toggleImportPlaylistPopup, onImportPlaylistDrop}) => {
 
   if (!open) {
     return null;
@@ -195,11 +224,20 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
       </StyledOptionsActions>
     </StyledContent>;
 
+  let textArea = 
+    <StyledTextArea
+      name="playlistDescription"
+      placeholder="Playlist Description"
+      rows="2"
+      maxLength={500}
+      defaultValue={playlistDescription}
+    />
+
   if (addingNewPlaylist === true){
 
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>;
     callToAction = <StyledButtonSubmit form="popup-form" value="Create">Create</StyledButtonSubmit>;
-    formAction = e => {e.preventDefault(); onAddPlaylist(e.target.playlistInput.value)};
+    formAction = e => {e.preventDefault(); onAddPlaylist(e.target.playlistInput.value, null, null, e.target.playlistDescription.value)};
     textInput = <StyledInput
       name="playlistInput"
       id="input-playlist-popup"
@@ -218,8 +256,6 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
       importingType === 'Spotify'
       ? e => {e.preventDefault(); onImportPlaylist(e.target.playlistInput.value)} 
       : e => {e.preventDefault(); onImportFromYoutube(e.target.playlistInput.value)};
-    separator = null;
-    options = null;
     textInput = <StyledInput
       name="playlistInput"
       id="input-playlist-popup"
@@ -230,12 +266,15 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
       autoComplete = "off"
       required
     />
+    separator = null;
+    options = null;
+    textArea = null;
 
   } else {
 
     modalTitle = <StyledTitle>Edit playlist</StyledTitle>
     callToAction = <StyledButtonSubmit form="popup-form" value="Update">Update</StyledButtonSubmit>
-    formAction = e => {e.preventDefault(); onEditPlaylist(e.target.playlistInput.value)};
+    formAction = e => {e.preventDefault(); onEditPlaylist(e.target.playlistInput.value, e.target.playlistDescription.value)};
     textInput = <StyledInput
       name="playlistInput"
       id="input-playlist-popup"
@@ -246,10 +285,9 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
       autoComplete = "off"
       required
     />
-
+    separator = null;
+    options = null;
   }
-    // console.log(this.props.user);
-    // console.log(this.props.selectedPlaylist);
 
   return (
     <StyledPopup>
@@ -257,6 +295,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
         <StyledContent id="popup-form" onSubmit={formAction}>
           {modalTitle}
           {textInput}
+          {textArea}
           <StyledActions>
             <StyledButton onClick={onClose}>
               Cancel
