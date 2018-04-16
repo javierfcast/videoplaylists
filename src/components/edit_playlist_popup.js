@@ -237,7 +237,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
 
     modalTitle = <StyledTitle>Add new playlist</StyledTitle>;
     callToAction = <StyledButtonSubmit form="popup-form" value="Create">Create</StyledButtonSubmit>;
-    formAction = e => {e.preventDefault(); onAddPlaylist(e.target.playlistInput.value, null, null, e.target.playlistDescription.value)};
+    formAction = e => {e.preventDefault(); onAddPlaylist(e.target.playlistInput.value, e.target.playlistDescription.value)};
     textInput = <StyledInput
       name="playlistInput"
       id="input-playlist-popup"
