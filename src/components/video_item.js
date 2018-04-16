@@ -164,7 +164,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   if (origin === "playlist" || origin === "library") {
     //Remove button only if user owns the playlist
     optionsButton =
-    <StyledActionButton onClick={() => toggleVideoOptions(video, user.uid === AuthorId)}> 
+    <StyledActionButton onClick={() => toggleVideoOptions(video, user && user.uid === AuthorId)}> 
       <MaterialIcon icon="more_horiz" color='#fff' />
     </StyledActionButton>
   }
