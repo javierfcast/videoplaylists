@@ -4,7 +4,6 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
-import VideoItem from './video_item';
 import YTApi from './yt_api';
 import _ from 'lodash';
 
@@ -110,35 +109,6 @@ const StyledLabel = styled.h3`
 const StyledPopupContainer = styled.div`
   position: relative;
 `;
-const StyledOptionsPopup = styled.div`
-  position: absolute;
-  right: 0px;
-  width: 220px;
-  background: rgba(0,0,0,0.9);
-  color: #fff;
-  padding: 10px 0;
-  z-index: 100;
-  hr{
-    background: none;
-    border: none;
-    border-top: 1px solid rgba(255,255,255,0.1);
-  }
-  .material-icons{
-    margin-left: 10px;
-  }
-  &:focus{
-    outline: none;
-  }
-`;
-const StyledOptionsLabel = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 2px;
-`;
 const StyledButton = styled.a`
   opacity: .6;
   cursor: pointer;
@@ -152,15 +122,6 @@ const StyledButton = styled.a`
     opacity: 0;
     visibility: hidden;
   `}
-`;
-const StyledButtonPopup = StyledButton.extend`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 10px;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 2px;
 `;
 const StyledLoginContainer = styled.div`
   width: 100%;
@@ -303,41 +264,6 @@ class LikedYoutube extends Component {
   render() {
     if (!this.props.user) {
       return null;
-    }
-
-    //Set Playlist options popup
-    let playlistOptionsPopup = null;
-    const arrow = this.state.orderDirection === 'asc' ?  "arrow_downward" : "arrow_upward";
-
-    if (this.state.playlistOptionsIsOpen){
-      if (this.props.user && this.props.gapiReady) {
-        
-        playlistOptionsPopup = 
-
-        <StyledOptionsPopup id="playlist-options-popup" tabIndex="0" onBlur={this.togglePlaylistsOptions} >
-          <StyledOptionsLabel>
-            Order by <MaterialIcon icon="sort" color='#fff' />
-          </StyledOptionsLabel>
-          <StyledButtonPopup onClick={() => this.orderBy('datePublished')}>
-            Video Date
-            <div style={{opacity: this.state.orderBy === 'datePublished' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoTitle')}>
-            Video Title
-            <div style={{opacity: this.state.orderBy === 'videoTitle' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-          <StyledButtonPopup onClick={() => this.orderBy('videoChannel')}>
-            Channel
-            <div style={{opacity: this.state.orderBy === 'videoChannel' ? 1 : 0}} >
-              <MaterialIcon icon={arrow} color='#fff' size='20px' />
-            </div>
-          </StyledButtonPopup>
-        </StyledOptionsPopup>
-      }
     }
 
     return(

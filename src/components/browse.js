@@ -35,61 +35,6 @@ const PlaylistsContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
-const PlaylistItem = styled.li`
-  padding: 20px 0;
-  width: 100%;
-  transition: all .3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  &:hover{
-    background: linear-gradient(45deg, rgba(255,255,255,0) 0%,rgba(255,255,255,0.1) 100%);
-  }
-`;
-const PlaylistLink = styled(Link)`
-  cursor: pointer;
-  color: #fff;
-  text-decoration: none;
-`;
-const PlaylistTitle = styled.span`
-  display: block;
-  width: 100%;
-  margin-bottom: 10px;
-`;
-const PlaylistAuthor = styled.span`
-  display: inline-block;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-size: 10px;
-  margin-right: 20px;
-`;
-const PlaylistActions = styled.a`
-  position: relative;
-  display: inline-block;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-size: 10px;
-  margin-right: 20px;
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 10px;
-  cursor: pointer;
-  transition: all .3s ease;
-  overflow: hidden;
-  &:hover{
-    border: 1px solid rgba(255,255,255,1);
-  }
-`;
-const PlaylistActionsNone = styled.span`
-  position: relative;
-  display: inline-block;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-size: 10px;
-  margin-right: 20px;
-  padding: 10px;
-  transition: all .3s ease;
-  overflow: hidden;
-`;
 
 //Tabs
 

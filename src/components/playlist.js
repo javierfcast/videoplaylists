@@ -5,8 +5,6 @@ import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
-import VideoItem from './video_item';
-import YTApi from './yt_api';
 import _ from 'lodash';
 
 import SharePopup from './share_popup';
@@ -190,35 +188,6 @@ const PlaylistActionsNone = styled.span`
 const StyledPopupContainer = styled.div`
   position: relative;
 `;
-const StyledOptionsPopup = styled.div`
-  position: absolute;
-  right: 0px;
-  width: 220px;
-  background: rgba(0,0,0,0.9);
-  color: #fff;
-  padding: 10px 0;
-  z-index: 100;
-  hr{
-    background: none;
-    border: none;
-    border-top: 1px solid rgba(255,255,255,0.1);
-  }
-  .material-icons{
-    margin-left: 10px;
-  }
-  &:focus{
-    outline: none;
-  }
-`;
-const StyledOptionsLabel = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 2px;
-`;
 const StyledButton = styled.a`
   opacity: .6;
   cursor: pointer;
@@ -228,15 +197,6 @@ const StyledButton = styled.a`
   &:hover{
     opacity: 1;
   }
-`;
-const StyledButtonPopup = StyledButton.extend`
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 10px;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 2px;
 `;
 const StyledButtonTagMore = styled.a`
   display: flex;
@@ -290,11 +250,6 @@ const StyledButtonTagName = styled(Link)`
   padding: 12px 8px;
   text-decoration: none;
   color: #fff;
-`;
-const StyledRelatedHeader = styled.h2`
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-top: 20px;
-  padding-bottom: 10px;
 `;
 
 class Playlist extends Component {
@@ -574,7 +529,6 @@ class Playlist extends Component {
     const playlistName = this.state.playlist.playlistName;
     const playlistAuthor = this.state.playlist.Author;
     const playlistFollowers = this.state.playlistPublicInfo.followers;
-    const batchSize = this.state.playlistVideos.length;
     
     //Set tags
     let addTags = null;
@@ -601,7 +555,6 @@ class Playlist extends Component {
 
     //Set Follow for playlists, related videos and sortable list
     let followButton = null;
-    let relatedSection = null;
     let reorderButton = null;
 
     if (this.props.user !== null ) {
@@ -614,10 +567,6 @@ class Playlist extends Component {
       } else {
         followButton = <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
         
-        relatedSection = <div><StyledRelatedHeader> Related videos </StyledRelatedHeader>
-          {this.state.relatedVideoItems}
-        </div>
-
         if (this.state.orderBy === 'custom') {
 
           if (this.state.reorder) {

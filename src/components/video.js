@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
-import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import moment from 'moment';
 import YTApi from './yt_api';
-import {head, findIndex, remove, map, some} from 'lodash'
+import {head, findIndex, remove, some} from 'lodash'
 
-import VideoItem from './video_item';
 import VideoListContainer from './video_list_container';
 import SharePopup from './share_popup';
 

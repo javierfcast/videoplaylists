@@ -73,15 +73,6 @@ const StyledTitle = styled.div`
     line-height: normal;
   `}
 `;
-const StyledOptionsLabel = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 2px;
-`;
 const StyledButtonOption = styled.a`
   opacity: .6;
   cursor: pointer;
@@ -127,12 +118,12 @@ const SharePopup = ({ user, open, onClose, name, url, onCopy, id, center, large 
           <StyledButtonOption
             large={large}
             onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURI(url)}`, '', 'width=550, height=400')} >
-            <i class="fab fa-facebook" /> Facebook
+            <i className="fab fa-facebook" /> Facebook
           </StyledButtonOption>
           <StyledButtonOption
             large={large}
             onClick={() => window.open(`https://twitter.com/intent/tweet?hashtags=VideoPlaylistsTv&text=${encodeURIComponent(name)}&url=${encodeURI(url)}`, '', 'width=550, height=400')} >
-            <i class="fab fa-twitter" /> Twitter
+            <i className="fab fa-twitter" /> Twitter
           </StyledButtonOption>
         <hr/>
         <CopyToClipboard text={url} onCopy={() => onCopy('Copied to clipboard!')}>

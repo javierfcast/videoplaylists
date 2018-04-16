@@ -6,8 +6,6 @@ import some from 'lodash/some';
 import map from 'lodash/map';
 import isEmpty from 'lodash/isEmpty';
 import last from 'lodash/last';
-import firebase from 'firebase';
-import '@firebase/firestore';
 import CircularProgress from 'material-ui/CircularProgress';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
@@ -79,7 +77,8 @@ class VideoListContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (nextProps.playlistVideos !== this.props.playlistVideos 
         || this.props.libraryVideos !== nextProps.libraryVideos
-        || this.props.reorder !== nextProps.reorder) {
+        || this.props.reorder !== nextProps.reorder
+        || this.props.currentVideoId !== nextProps.currentVideoId) {
 
       this.mapVideoItems(nextProps)
       if (nextProps.related) this.getRelatedVideos(nextProps)
@@ -87,10 +86,11 @@ class VideoListContainer extends Component {
   }
 
   componentWillUpdate(nextProps, nextState) {
-    if (!isEmpty(nextState.relatedVideos) && nextState.relatedVideos !== this.state.relatedVideos 
-    || this.props.libraryVideos !== nextProps.libraryVideos) {
-      
-      this.mapRelatedVideoItems(nextProps, nextState)
+    if (!isEmpty(nextState.relatedVideos)) {
+      if (nextState.relatedVideos !== this.state.relatedVideos 
+        || this.props.libraryVideos !== nextProps.libraryVideos) {
+        this.mapRelatedVideoItems(nextProps, nextState)
+      }
     }
   }
 
@@ -100,7 +100,7 @@ class VideoListContainer extends Component {
         user={nextProps.user}
         playlist={nextProps.playlist}
         playlistVideos={nextProps.playlistVideos}
-        currentVideoId = {nextProps.videoId}
+        currentVideoId = {nextProps.currentVideoId}
         key={video.videoEtag}
         video={video}
         videoEtag={video.videoEtag}
@@ -176,7 +176,7 @@ class VideoListContainer extends Component {
         user={nextProps.user}
         playlist={nextProps.playlist}
         playlistVideos={nextProps.playlistVideos}
-        currentVideoId = {nextProps.videoId}
+        currentVideoId = {nextProps.currentVideoId}
         key={video.videoEtag}
         video={video}
         videoEtag={video.videoEtag}
@@ -242,16 +242,6 @@ class VideoListContainer extends Component {
   }
 
   render() {
-
-    let relatedSection = null;
-
-    if (this.state.related) {
-      relatedSection =
-      <div>
-        <StyledRelatedHeader> Related videos </StyledRelatedHeader>
-        {this.state.relatedVideoItems} 
-      </div>
-    }
 
     let loadingItem = null;
 
