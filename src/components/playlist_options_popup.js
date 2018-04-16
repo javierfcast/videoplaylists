@@ -120,7 +120,7 @@ const PlaylistOptionsPopup = ({ open, togglePlaylistsOptions, orderBy, orderDire
             <hr />
             <StyledButtonPopup onClick={() => toggleEditPlaylistPopup(playlist)}>
               <MaterialIcon icon="edit" color='#fff' />
-              Edit Playlist's Name
+              Edit Playlist's Info
             </StyledButtonPopup>
             {
               updatePlaylist 
