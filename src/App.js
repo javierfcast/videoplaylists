@@ -182,6 +182,7 @@ class App extends Component {
       addingNewPlaylist: false,
       playlistId: '',
       playlistName: '',
+      playlistDescription: '',
       playlistSlug: '',
       //Playlist Popup States
       playlistPopupIsOpen: false,
@@ -681,6 +682,7 @@ class App extends Component {
                   followedOn: firebase.firestore.FieldValue.serverTimestamp(),
                   playlistId: playlist.playlistId,
                   playlistName: playlist.playlistName,
+                  playlistDescription: playlist.playlistDescription,
                   playlistSlug: playlist.playlistSlugName,
                   Author: playlist.Author,
                   AuthorId: playlist.AuthorId
@@ -1071,6 +1073,7 @@ class App extends Component {
       previousPlaylistName: '',
       previousPlaylistSlug: '',
       playlistName: '',
+      playlistDescription: '',
       playlistSlug: '',
       editPlaylistPopupIsOpen: !this.state.editPlaylistPopupIsOpen
     });
@@ -1086,13 +1089,14 @@ class App extends Component {
       previousPlaylistName: '',
       previousPlaylistSlug: '',
       playlistName: '',
+      playlistDescription: '',
       playlistSlug: '',
       playlistUrl: '',
       editPlaylistPopupIsOpen: toggle
     });
   };
 
-  onAddPlaylist = (playlistName, playlistUrl, callback) => {
+  onAddPlaylist = (playlistName, playlistUrl, callback, playlistDescription) => {
     const user = this.state.user;
     const playlistSlugName = this.slugify(playlistName);
 
@@ -1114,6 +1118,7 @@ class App extends Component {
     docRef.add({
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: playlistName,
+      playlistDescription: playlistDescription,
       playlistSlugName: playlistSlugName,
       Author: user.displayName,
       AuthorId: user.uid,
@@ -1134,6 +1139,7 @@ class App extends Component {
       playlistsRef.set({
         createdOn: firebase.firestore.FieldValue.serverTimestamp(),
         playlistName: playlistName,
+        playlistDescription: playlistDescription,
         playlistSlugName: playlistSlugName,
         playlistId: docRef.id,
         Author: user.displayName,
@@ -1157,6 +1163,7 @@ class App extends Component {
   toggleEditPlaylistPopup = (playlist) => {
     this.setState({
       playlistName: playlist.playlistName,
+      playlistDescription: playlist.playlistDescription,
       playlistSlug: playlist.playlistSlugName,
       playlistId: playlist.playlistId,
       playlistUrl: playlist.playlistUrl,
@@ -1166,7 +1173,7 @@ class App extends Component {
     });
   };
 
-  onEditPlaylist = (playlistName) => {
+  onEditPlaylist = (playlistName, playlistDescription) => {
     const user = this.state.user;
     const playlistSlugName = this.slugify(playlistName);
     
@@ -1177,7 +1184,8 @@ class App extends Component {
     //Update User Playlist
     docRef.update({
       playlistName: playlistName,
-      playlistSlugName: playlistSlugName
+      playlistSlugName: playlistSlugName,
+      playlistDescription: playlistDescription,
     }).then(() => {
       this.setState({
         currentPlaylistName: playlistName
@@ -1190,7 +1198,8 @@ class App extends Component {
     //Update Public Playlists
     playlistRef.update({
       playlistName: playlistName,
-      playlistSlugName: playlistSlugName
+      playlistSlugName: playlistSlugName,
+      playlistDescription: playlistDescription,
     }).then(() => {
       console.log('Public Playlist updated!');
     }).catch(function (error) {
@@ -1744,6 +1753,7 @@ class App extends Component {
           onImportPlaylist={this.onImportPlaylist}
           onImportFromYoutube={this.onImportFromYoutube}
           playlistName={this.state.playlistName}
+          playlistDescription={this.state.playlistDescription}
           playlistSlug={this.state.playlistSlug}
           selectedPlaylist={this.state.selectedPlaylist}
           addingNewPlaylist={this.state.addingNewPlaylist}
