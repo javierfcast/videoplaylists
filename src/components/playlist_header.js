@@ -218,7 +218,7 @@ const StyledButtonTagName = styled(Link)`
   color: #fff;
 `;
 
-const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, tags, playlistFollowers, author, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
+const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
 
   //Reorder button
   
@@ -282,7 +282,7 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, tags, 
     <StyledHeaderContainer>
       {back ? <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton> : null}
       <StyledHeader scrolling={scrolling ? 1 : 0}>
-        {playlist.Author ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlist.Author}'s</StyledAuthorLink> : null}
+        {playlistAuthor ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> : null}
         <StyledPlaylistName scrolling={scrolling ? 1 : 0}>{playlistName}</StyledPlaylistName>
         { toggleAddTagPopup ?
           <StyledPlaylistTags scrolling={scrolling ? 1 : 0}>
