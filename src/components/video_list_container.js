@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {SortableContainer, arrayMove} from 'react-sortable-hoc';
 import styled from 'styled-components';
+import { css } from 'styled-components';
 import moment from 'moment';
 import some from 'lodash/some';
 import map from 'lodash/map';
@@ -14,6 +15,22 @@ import VideoOptionsPopup from './video_options_popup';
 import SharePopup from './share_popup';
 import VideoItem from './video_item';
 
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+  return acc
+}, {})
+
 const StyledScrollContainer = styled.div`
   width: 100%;
   overflow: hidden;
@@ -22,9 +39,13 @@ const StyledScrollContainer = styled.div`
 const StyledVideoListContainer = styled.ul`
   list-style: none;
   width: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
   height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  ${media.small`
+    overflow-y: auto;
+  `}
 `;
 const StyledRelatedHeader = styled.h2`
   border-bottom: 1px solid rgba(255,255,255,0.1);
