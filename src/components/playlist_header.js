@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import {map, filter} from 'lodash';
+import {map, filter, isEmpty} from 'lodash';
 import { Link } from 'react-router-dom';
 import MaterialIcon from 'material-icons-react';
 
@@ -71,7 +71,7 @@ const StyledHeaderActions = styled.div`
     flex-direction: row;
   `}
   ${props => props.scrolling && `
-    margin-top: -80px;
+    margin-top: -25px;
   `}
 `;
 const StyledPlaylistInfo = styled.div`
@@ -89,12 +89,16 @@ const StyledPlaylistInfo = styled.div`
 const StyledPlaylistDescription = styled.p`
   padding-right: 20px;
   margin: 10px 0 20px;
+  max-height: 50px;
+  overflow-y: auto;
   a {
     color: #fff;
   }
+  ${media.xmedium`
+    max-height: none;
+  `}
   ${props => props.scrolling && `
-    opacity: 0;
-    visibility: hidden;
+    display: none;
   `}
 `;
 const StyledLabel = styled.h3`
@@ -171,8 +175,7 @@ const StyledPlaylistTags = styled.div`
     padding-top: 0;
   `}
   ${props => props.scrolling && `
-    opacity: 0;
-    visibility: hidden;
+    display: none;
   `}
 `;
 const StyledButtonTagMore = styled.a`
@@ -310,7 +313,7 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
         {playlistAuthor ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> : null}
         <StyledPlaylistName scrolling={scrolling ? 1 : 0}>{playlistName}</StyledPlaylistName>
         {description}
-        { toggleAddTagPopup ?
+        { toggleAddTagPopup && !isEmpty(tags) ?
           <StyledPlaylistTags scrolling={scrolling ? 1 : 0}>
             {tagItem}
             {owner ?
