@@ -89,6 +89,9 @@ const StyledPlaylistInfo = styled.div`
 const StyledPlaylistDescription = styled.p`
   padding-right: 20px;
   margin: 10px 0 20px;
+  a {
+    color: #fff;
+  }
   ${props => props.scrolling && `
     opacity: 0;
     visibility: hidden;
@@ -226,7 +229,7 @@ const StyledButtonTagName = styled(Link)`
   color: #fff;
 `;
 
-const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playlistDescription, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
+const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playlistDescription, playlistHtml, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
 
   //Reorder button
   
@@ -286,17 +289,27 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
     </StyledDivTag>
   )) : null;
 
+  //Description
+  let description = null;
+
+  if (playlistDescription) {
+    description =
+    <StyledPlaylistDescription scrolling={scrolling ? 1 : 0}>
+      {playlistDescription}
+    </StyledPlaylistDescription>
+  }
+  else if (playlistHtml) {
+    description =
+    <StyledPlaylistDescription scrolling={scrolling ? 1 : 0} dangerouslySetInnerHTML={{__html: playlistHtml}} />
+  }
+
   return(
     <StyledHeaderContainer>
       {back ? <StyledBackButton onClick={() => window.history.back()}><MaterialIcon icon="arrow_back" color='#fff' /></StyledBackButton> : null}
       <StyledHeader scrolling={scrolling ? 1 : 0}>
         {playlistAuthor ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> : null}
         <StyledPlaylistName scrolling={scrolling ? 1 : 0}>{playlistName}</StyledPlaylistName>
-        { playlistDescription ?
-          <StyledPlaylistDescription scrolling={scrolling ? 1 : 0}>
-            {playlistDescription}
-          </StyledPlaylistDescription>
-        :null }
+        {description}
         { toggleAddTagPopup ?
           <StyledPlaylistTags scrolling={scrolling ? 1 : 0}>
             {tagItem}
