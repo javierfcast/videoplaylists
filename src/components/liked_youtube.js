@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import MaterialIcon from 'material-icons-react';
 import YTApi from './yt_api';
 import _ from 'lodash';
 
@@ -45,84 +43,8 @@ const StyledHeaderContainer = styled.div`
   flex: 1 0 auto;
   position: relative;
 `;
-const StyledHeader = styled.div`
-  display: block;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 10px;
-  transition: all .5s ease-out;
-  width: 100%;
-  overflow: hidden;
-  ${props => props.scrolling && `
-    height: 60px;
-  `}
-`;
-const StyledPlaylistName = styled.h1`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: all .5s ease;
-  ${props => props.scrolling && `
-    font-size: 24px;
-  `}
-`;
-const StyledAuthorLink = styled(Link)`
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 400;  
-  margin-bottom: 6px;
-  color: #fff;
-  text-decoration: none;
-`;
-const StyledHeaderActions = styled.div`
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-  transition: all .5s ease-out;
-  ${media.xmedium`
-    flex-direction: row;
-  `}
-  ${props => props.scrolling && `
-    margin-top: -80px;
-  `}
-`;
-const StyledPlaylistInfo = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding-top: 10px;
-  justify-content: space-between;
-  ${media.xmedium`
-    padding-top: 0;
-  `}
-`;
-const StyledLabel = styled.h3`
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 400;
-  transition: all .3s;
-  ${props => props.scrolling && `
-    opacity: 0;
-    visibility: hidden;
-  `}
-`;
 const StyledPopupContainer = styled.div`
   position: relative;
-`;
-const StyledButton = styled.a`
-  opacity: .6;
-  cursor: pointer;
-  transition: all .3s ease;
-  margin-left: 10px;
-  display: block;
-  &:hover{
-    opacity: 1;
-  }
-  ${props => props.scrolling && `
-    opacity: 0;
-    visibility: hidden;
-  `}
 `;
 const StyledLoginContainer = styled.div`
   width: 100%;
@@ -273,18 +195,6 @@ class LikedYoutube extends Component {
     return(
       <PlaylistContainer>
         <StyledHeaderContainer>
-          {/* <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
-            <StyledAuthorLink to={`/users/${this.props.user.uid}`}>{this.props.user.displayName}'s</StyledAuthorLink>
-            <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}>Liked on YouTube</StyledPlaylistName>
-            <StyledHeaderActions scrolling={this.state.scrolling ? 1 : 0}>
-              <StyledPlaylistInfo scrolling={this.state.scrolling ? 1 : 0}>
-                <StyledLabel scrolling={this.state.scrolling ? 1 : 0}>
-                  {this.state.playlist ? this.state.playlist.videoCount : 0} Videos in this playlist
-                </StyledLabel>
-                <StyledButton scrolling={this.state.scrolling ? 1 : 0} onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
-              </StyledPlaylistInfo>
-            </StyledHeaderActions>
-          </StyledHeader> */}
           <PlaylistHeader 
             type="playlist"
             owner={this.props.user !== null && this.props.user.uid === playlist.AuthorId}
