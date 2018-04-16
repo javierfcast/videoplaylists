@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
@@ -40,7 +40,7 @@ const Aside = styled.div`
   `}
 `;
 const StyledContainer = styled.div`
-  padding: 30px 20px;
+  padding: 30px 0 30px 20px;
   height: 100vh;
   overflow-y: auto;
   display: flex;
@@ -89,6 +89,7 @@ const StyledLogin = styled.a`
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
+  width: calc(100% - 20px);
   cursor: pointer;
   border: 1px solid rgba(255,255,255,0.1);
   display: block;
@@ -104,12 +105,19 @@ const StyledLogin = styled.a`
 const StyledNavList = styled.ul`
   margin: 30px 0;
 `;
-const StyledNavItemLink = styled(Link)`
+const StyledNavItemLink = styled(NavLink)`
   padding: 10px 0;
   cursor: pointer;
   color: #fff;
   display: block;
   text-decoration: none;
+  &:hover{
+    font-weight: 700;
+  }
+  &.active{
+    font-weight: 700;
+    border-right: 2px solid white;
+  }
 `;
 const StyledPlaylistContainer = styled.div`
 `;
@@ -118,7 +126,7 @@ const StyledList = styled.ul`
 `;
 const StyledButton = styled.a`
   height: 40px;
-  width: 100%;
+  width: calc(100% - 20px);
   display: flex;
   margin-bottom: 40px;
   align-items: center;
@@ -140,7 +148,7 @@ const StyledTitleLabel = styled.h3`
   font-weight: 400;
   margin-bottom: 10px;
 `;
-const StyledLabelLink = styled(Link)`
+const StyledLabelLink = styled(NavLink)`
   letter-spacing: 2px;
   text-transform: uppercase;
   font-size: 10px;
@@ -148,6 +156,13 @@ const StyledLabelLink = styled(Link)`
   margin-bottom: 10px;
   display: block;
   text-decoration: none;
+  &:hover{
+    font-weight: 700;
+  }
+  &.active{
+    font-weight: 700;
+    border-right: 2px solid white;
+  }
 `;
 const StyledLabel = styled.p`
   letter-spacing: 2px;
@@ -171,7 +186,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
   const MyPlaylists = myPlaylists.map((playlist) => {
     return (
       <li key = {playlist.playlistId}>
-        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`}>{playlist.playlistName}</StyledNavItemLink>
+        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`} exact activeClassName="active">{playlist.playlistName}</StyledNavItemLink>
       </li>
     )
   });
@@ -179,7 +194,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
   const FollowingPlaylists = followingPlaylists.map((playlist) => {
     return (
       <li key={playlist.playlistId}>
-        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}?following=true`}>{playlist.playlistName}</StyledNavItemLink>
+        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}?following=true`} activeClassName="active">{playlist.playlistName}</StyledNavItemLink>
       </li>
     )
   });
@@ -195,26 +210,13 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
                 <StyledLandingTitle>VideoPlaylists.tv<br /><span>Beta</span></StyledLandingTitle>
               </StyledLandingLogo>
             </StyledLandingHeading>
-            {/* <StyledUserInfo>
-              <StyledUserImg width="100" src={user.photoURL} alt={user.displayName} />
-              
-              <StyledUserName>{user.displayName || user.email}!</StyledUserName>
-              <StyledLogout onClick={onLogout}>Logout</StyledLogout>
-              <StyledOptions>
-                <StyledInterfaceSwitch>
-                  <span className="switch-label">UI Always On</span>
-                  <input type="checkbox" onClick={toggleInterface}/>
-                  <div className="switch-slider"></div>
-                </StyledInterfaceSwitch>
-              </StyledOptions>
-            </StyledUserInfo> */}
             <StyledPlaylistContainer>
               <StyledNavList>
-                <StyledNavItemLink to="/">Discover</StyledNavItemLink>
-                <StyledNavItemLink to="/tags">Search By Tag</StyledNavItemLink>
-                <StyledNavItemLink to={`/users/${user.uid}/library`}>My Library</StyledNavItemLink>
-                <StyledNavItemLink to={`/likedyoutube`}>Liked on YouTube</StyledNavItemLink>
-                <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
+                <StyledNavItemLink to="/" exact activeClassName="active">Discover</StyledNavItemLink>
+                <StyledNavItemLink to="/tags" exact activeClassName="active">Search By Tag</StyledNavItemLink>
+                <StyledNavItemLink to={`/users/${user.uid}/library`} exact activeClassName="active">My Library</StyledNavItemLink>
+                <StyledNavItemLink to={`/likedyoutube`} exact activeClassName="active">Liked on YouTube</StyledNavItemLink>
+                <StyledNavItemLink to="/users" exact activeClassName="active">Recently Active</StyledNavItemLink>
               </StyledNavList>
               <StyledButton onClick={toggleAddPlaylistPopup}
                 onDrop={(event) => {onImportPlaylistDrop(event)}}
@@ -233,9 +235,9 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
             </StyledPlaylistContainer>
           </StyledTopContainer>
           <StyledBottomContainer>
-            <StyledLabelLink to="/about">About</StyledLabelLink>
-            <StyledLabelLink to="/terms">Terms of Service</StyledLabelLink>
-            <StyledLabelLink to="/privacy">Privacy Policy</StyledLabelLink>
+            <StyledLabelLink to="/about" exact activeClassName="active">About</StyledLabelLink>
+            <StyledLabelLink to="/terms" exact activeClassName="active">Terms of Service</StyledLabelLink>
+            <StyledLabelLink to="/privacy" exact activeClassName="active">Privacy Policy</StyledLabelLink>
             <StyledLabel>Follow Us</StyledLabel>
             <StyledSocialList>
               <StyledSocialLink href="https://facebook.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoFacebook} alt='Logo Facebook' /></StyledSocialLink>
