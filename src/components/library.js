@@ -2,28 +2,11 @@ import React, { Component } from 'react';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
-import { css } from 'styled-components';
-import MaterialIcon from 'material-icons-react';
 import orderBy from 'lodash/orderBy';
 
 import VideoListContainer from './video_list_container';
 import PlaylistOptionsPopup from './playlist_options_popup';
-
-const sizes = {
-  small: 360,
-  xmedium: 720,
-  xlarge: 1200
-}
-
-// Iterate through the sizes and create a media template
-const media = Object.keys(sizes).reduce((acc, label) => {
-  acc[label] = (...args) => css`
-		@media (min-width: ${sizes[label] / 16}em) {
-			${css(...args)}
-		}
-	`
-  return acc
-}, {})
+import PlaylistHeader from './playlist_header';
 
 //custom components
 
@@ -35,71 +18,8 @@ const PlaylistContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
-const StyledHeaderContainer = styled.div`
-  display: flex;
-  flex: 1 0 auto;
-  position: relative;
-`;
-const StyledHeader = styled.div`
-  display: block;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 10px;
-  transition: all .5s ease-out;
-  width: 100%;
-  overflow: hidden;
-`;
-const StyledPlaylistName = styled.h1`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-const StyledHeaderActions = styled.div`
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-  ${media.xmedium`
-    flex-direction: row;
-  `}
-`;
-const StyledPlaylistInfo = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding-top: 10px;
-  ${media.xmedium`
-    padding-top: 0;
-  `}
-`;
-const StyledLabel = styled.h3`
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: 400;
-`;
-const StyledPlaylistActions = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  position: relative;
-  ${media.xmedium`
-    margin-top: 0;
-    justify-content: flex-end;
-  `}
-`;
 const StyledPopupContainer = styled.div`
   position: relative;
-`;
-const StyledButton = styled.a`
-  opacity: .6;
-  cursor: pointer;
-  transition: all .3s ease;
-  margin-left: 10px;
-  display: block;
-  &:hover{
-    opacity: 1;
-  }
 `;
 
 class Library extends Component {
@@ -113,6 +33,8 @@ class Library extends Component {
       libraryOptionsIsOpen: false,
       libraryOrderBy: null,
       libraryOrderDirection: null,
+
+      reorder: false,
     };
   };
 
@@ -163,23 +85,6 @@ class Library extends Component {
         console.log("No such document!");
       }
     });
-
-    //Get videos inside library
-    // if (!this.state.library){
-    //   return null;
-    // }
-    // let videosRef = firebase.firestore().collection('users').doc(this.state.profileId).collection('library');
-    // videosRef = videosRef.orderBy(this.state.libraryOrderBy, this.state.libraryOrderDirection);
-
-    // videosRef.onSnapshot(querySnapshot => {
-    //   const libraryVideos = [];
-    //   querySnapshot.forEach(function (doc) {
-    //     libraryVideos.push(doc.data());
-    //   });
-    //   this.setState({
-    //     libraryVideos: libraryVideos,
-    //   });
-    // });
   }
   
   componentWillUnmount() {
@@ -233,6 +138,10 @@ class Library extends Component {
 
   }
 
+  onToggleReorder = () => {
+    this.setState({reorder: !this.state.reorder})
+  }
+
   onSort = (items) => {
     let docRef = firebase.firestore().collection('users').doc(this.state.profileId);
     
@@ -266,25 +175,20 @@ class Library extends Component {
     }
 
     //Basic constants
-
     const library = this.state.library;
 
     return(
       <PlaylistContainer>
-        <StyledHeaderContainer>
-          <StyledHeader>
-            {/* <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> */}
-            <StyledPlaylistName>Library</StyledPlaylistName>
-            <StyledHeaderActions>
-              <StyledPlaylistInfo>
-                <StyledLabel>{library.libraryVideoCount} Videos in library</StyledLabel>
-              </StyledPlaylistInfo>
-              <StyledPlaylistActions>
-                <StyledButton onClick={() => this.toggleLibraryOptions()}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
-              </StyledPlaylistActions>
-            </StyledHeaderActions>
-          </StyledHeader>
-        </StyledHeaderContainer>
+        <PlaylistHeader
+          type="library"
+          owner={this.props.user !== null && this.props.user.uid === library.uid}
+          reorder={this.state.libraryOrderBy === "custom" ? this.state.reorder : null}
+
+          playlist={library}
+          playlistName={"Library"}
+          togglePlaylistsOptions={this.toggleLibraryOptions}
+          onToggleReorder={this.onToggleReorder}
+        />
         <StyledPopupContainer>
           <PlaylistOptionsPopup 
             open={this.state.libraryOptionsIsOpen && this.props.user && this.props.user.uid}
@@ -314,8 +218,7 @@ class Library extends Component {
           orderBy={this.state.libraryOrderBy}
           setSnackbar={this.props.setSnackbar}
 
-          // reorder={this.state.reorder}
-
+          reorder={this.state.reorder}
         />
       </PlaylistContainer>
     )
