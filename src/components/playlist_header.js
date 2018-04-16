@@ -86,6 +86,14 @@ const StyledPlaylistInfo = styled.div`
     justify-content: space-between;
   `}
 `;
+const StyledPlaylistDescription = styled.p`
+  padding-right: 20px;
+  margin: 10px 0 20px;
+  ${props => props.scrolling && `
+    opacity: 0;
+    visibility: hidden;
+  `}
+`;
 const StyledLabel = styled.h3`
   font-size: 10px;
   text-transform: uppercase;
@@ -218,7 +226,7 @@ const StyledButtonTagName = styled(Link)`
   color: #fff;
 `;
 
-const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
+const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playlistDescription, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
 
   //Reorder button
   
@@ -284,6 +292,11 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, tags, 
       <StyledHeader scrolling={scrolling ? 1 : 0}>
         {playlistAuthor ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> : null}
         <StyledPlaylistName scrolling={scrolling ? 1 : 0}>{playlistName}</StyledPlaylistName>
+        { playlistDescription ?
+          <StyledPlaylistDescription scrolling={scrolling ? 1 : 0}>
+            {playlistDescription}
+          </StyledPlaylistDescription>
+        :null }
         { toggleAddTagPopup ?
           <StyledPlaylistTags scrolling={scrolling ? 1 : 0}>
             {tagItem}
