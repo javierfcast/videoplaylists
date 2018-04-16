@@ -40,7 +40,7 @@ const Aside = styled.div`
   `}
 `;
 const StyledContainer = styled.div`
-  padding: 30px 0 30px 20px;
+  padding: 20px;
   height: 100vh;
   overflow-y: auto;
   display: flex;
@@ -89,7 +89,7 @@ const StyledLogin = styled.a`
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  width: calc(100% - 20px);
+  width: 100%;
   cursor: pointer;
   border: 1px solid rgba(255,255,255,0.1);
   display: block;
@@ -108,15 +108,28 @@ const StyledNavList = styled.ul`
 const StyledNavItemLink = styled(NavLink)`
   padding: 10px 0;
   cursor: pointer;
-  color: #fff;
   display: block;
   text-decoration: none;
+  transition: all .3s;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  &:after{
+    content: '';
+    display: block;
+    border-top: 1px solid white;
+    width: 16px;
+    margin-top: -8px;
+    margin-left: -40px;
+    transition: all .3s;
+  }
   &:hover{
-    font-weight: 700;
+    color: white;
   }
   &.active{
-    font-weight: 700;
-    border-right: 2px solid white;
+    color: white;
+    &:after{
+      margin-left: -20px;
+    }
   }
 `;
 const StyledPlaylistContainer = styled.div`
@@ -126,7 +139,7 @@ const StyledList = styled.ul`
 `;
 const StyledButton = styled.a`
   height: 40px;
-  width: calc(100% - 20px);
+  width: 100%;
   display: flex;
   margin-bottom: 40px;
   align-items: center;
@@ -152,17 +165,31 @@ const StyledLabelLink = styled(NavLink)`
   letter-spacing: 2px;
   text-transform: uppercase;
   font-size: 10px;
-  color: #fff;
   margin-bottom: 10px;
   display: block;
   text-decoration: none;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  &:after{
+    content: '';
+    display: block;
+    border-top: 1px solid white;
+    width: 16px;
+    margin-top: -6px;
+    margin-left: -40px;
+    transition: all .3s;
+  }
   &:hover{
-    font-weight: 700;
+    color: white;
   }
   &.active{
-    font-weight: 700;
-    border-right: 2px solid white;
+    &:after{
+      margin-left: -20px;
+    }
   }
+  ${props => props.last && css`
+    margin-bottom: 40px;
+  `}
 `;
 const StyledLabel = styled.p`
   letter-spacing: 2px;
@@ -179,6 +206,11 @@ const StyledSocialLogo = styled.img`
 const StyledSocialLink = styled.a`
   display: inline-block;
   margin-right: 10px;
+  opacity: .6;
+  transition: all .3s;
+  &:hover{
+    opacity: 1;
+  }
 `;
 
 const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDrop, myPlaylists, followingPlaylists, onLogin, user}) => {
@@ -237,7 +269,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
           <StyledBottomContainer>
             <StyledLabelLink to="/about" exact activeClassName="active">About</StyledLabelLink>
             <StyledLabelLink to="/terms" exact activeClassName="active">Terms of Service</StyledLabelLink>
-            <StyledLabelLink to="/privacy" exact activeClassName="active">Privacy Policy</StyledLabelLink>
+            <StyledLabelLink last to="/privacy" exact activeClassName="active">Privacy Policy</StyledLabelLink>
             <StyledLabel>Follow Us</StyledLabel>
             <StyledSocialList>
               <StyledSocialLink href="https://facebook.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoFacebook} alt='Logo Facebook' /></StyledSocialLink>
