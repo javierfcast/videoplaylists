@@ -1096,7 +1096,7 @@ class App extends Component {
     });
   };
 
-  onAddPlaylist = (playlistName, playlistUrl, callback, playlistDescription) => {
+  onAddPlaylist = (playlistName, playlistDescription, playlistUrl, callback) => {
     const user = this.state.user;
     const playlistSlugName = this.slugify(playlistName);
 
@@ -1118,7 +1118,7 @@ class App extends Component {
     docRef.add({
       createdOn: firebase.firestore.FieldValue.serverTimestamp(),
       playlistName: playlistName,
-      playlistDescription: playlistDescription,
+      [spotifyUrl || youtubeUrl ? "playlistHtml" : "playlistDescription"]: playlistDescription,
       playlistSlugName: playlistSlugName,
       Author: user.displayName,
       AuthorId: user.uid,
@@ -1139,7 +1139,7 @@ class App extends Component {
       playlistsRef.set({
         createdOn: firebase.firestore.FieldValue.serverTimestamp(),
         playlistName: playlistName,
-        playlistDescription: playlistDescription,
+        [spotifyUrl || youtubeUrl ? "playlistHtml" : "playlistDescription"]: playlistDescription,
         playlistSlugName: playlistSlugName,
         playlistId: docRef.id,
         Author: user.displayName,
@@ -1163,7 +1163,7 @@ class App extends Component {
   toggleEditPlaylistPopup = (playlist) => {
     this.setState({
       playlistName: playlist.playlistName,
-      playlistDescription: playlist.playlistDescription,
+      playlistDescription: playlist.playlistDescription || playlist.playlistHtml,
       playlistSlug: playlist.playlistSlugName,
       playlistId: playlist.playlistId,
       playlistUrl: playlist.playlistUrl,
@@ -1319,7 +1319,7 @@ class App extends Component {
               self.batchAdd(playlist.playlistId, results, isUpdate, 'Spotify');
             }
             else {
-              self.onAddPlaylist(prevData.name, playlistUrl, (docRefId) => {
+              self.onAddPlaylist(prevData.name, prevData.description, playlistUrl, (docRefId) => {
                 self.batchAdd(docRefId, results, isUpdate, 'Spotify');
               });
             }
@@ -1367,7 +1367,7 @@ class App extends Component {
         self.batchAdd(playlist.playlistId, playlistItems.playlistItems, isUpdate, 'YouTube');
       }
       else {
-        self.onAddPlaylist(playlistItems.snippet.title, playlistUrl, (docRefId) => {
+        self.onAddPlaylist(playlistItems.snippet.title, playlistItems.snippet.description, playlistUrl, (docRefId) => {
           self.batchAdd(docRefId, playlistItems.playlistItems, isUpdate, 'YouTube');
         });
       }
