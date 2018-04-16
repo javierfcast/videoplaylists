@@ -10,6 +10,8 @@ const StyledPopup = styled.div`
   padding: 20px;
 `;
 const StyledContent = styled.form`
+  position: relative;
+  z-index: 101;
   max-width: 480px;
   border: 1px solid rgba(255,255,255,0.1);
   padding: 40px;
@@ -87,6 +89,14 @@ const StyledButtonSubmit = styled.button`
     border: 1px solid rgba(255,255,255,1);
   }
 `;
+const StyledClickOutside = styled.div`
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+`;
 
 const addTagsPopup = ({ user, open, onClose, onAddTag, isTagSearch, onAddTagSearch}) => {
 
@@ -114,6 +124,7 @@ const addTagsPopup = ({ user, open, onClose, onAddTag, isTagSearch, onAddTagSear
           <StyledButtonSubmit form="popup-form" value="Add">Add</StyledButtonSubmit>
         </StyledActions>
       </StyledContent>
+      <StyledClickOutside onClick={onClose} />
     </StyledPopup>
   );
 

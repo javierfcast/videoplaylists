@@ -34,6 +34,8 @@ const StyledContainer = styled.div`
   position: relative;
 `;
 const StyledContent = styled.form`
+  position: relative;
+  z-index: 101;  
   padding: 40px;
 `;
 const StyledTitle = styled.h2`
@@ -194,6 +196,14 @@ const StyledOptionsButton = styled.a`
     margin: 0 10px;
   `}
 `;
+const StyledClickOutside = styled.div`
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+`;
 
 const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputChange, onImportPlaylistInputChange, onAddPlaylist, onEditPlaylist, onImportPlaylist, onImportFromYoutube, playlistName, playlistDescription, playlistUrl, playlistSlug, selectedPlaylist, addingNewPlaylist, importingNewPlaylist, importingType, toggleImportPlaylistPopup, onImportPlaylistDrop}) => {
 
@@ -306,6 +316,7 @@ const EditPlaylistPopup = ({ user, open, onClose, slugify, onEditPlaylistInputCh
         {separator}
         {options}
       </StyledContainer>
+      <StyledClickOutside onClick={onClose} />
     </StyledPopup>
   );
 
