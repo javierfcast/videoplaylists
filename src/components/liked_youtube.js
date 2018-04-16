@@ -9,6 +9,7 @@ import _ from 'lodash';
 
 import VideoListContainer from './video_list_container';
 import PlaylistOptionsPopup from './playlist_options_popup';
+import PlaylistHeader from './playlist_header';
 
 const sizes = {
   small: 360,
@@ -151,7 +152,7 @@ class LikedYoutube extends Component {
     super(props);
     this.state = {
       profileId: this.props.match.params.profileId,
-      playlist: null,
+      playlist: {},
       playlistVideos: [],
       playlistOptionsIsOpen: false,
       orderBy: 'custom',
@@ -266,10 +267,13 @@ class LikedYoutube extends Component {
       return null;
     }
 
+    //Basic constants
+    const playlist = this.state.playlist;
+
     return(
       <PlaylistContainer>
         <StyledHeaderContainer>
-          <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
+          {/* <StyledHeader scrolling={this.state.scrolling ? 1 : 0}>
             <StyledAuthorLink to={`/users/${this.props.user.uid}`}>{this.props.user.displayName}'s</StyledAuthorLink>
             <StyledPlaylistName scrolling={this.state.scrolling ? 1 : 0}>Liked on YouTube</StyledPlaylistName>
             <StyledHeaderActions scrolling={this.state.scrolling ? 1 : 0}>
@@ -280,7 +284,15 @@ class LikedYoutube extends Component {
                 <StyledButton scrolling={this.state.scrolling ? 1 : 0} onClick={this.togglePlaylistsOptions}><MaterialIcon icon="more_vert" color='#fff' /></StyledButton>
               </StyledPlaylistInfo>
             </StyledHeaderActions>
-          </StyledHeader>
+          </StyledHeader> */}
+          <PlaylistHeader 
+            type="playlist"
+            owner={this.props.user !== null && this.props.user.uid === playlist.AuthorId}
+  
+            playlist={playlist}
+            playlistName={"Liked on YouTube"}
+            togglePlaylistsOptions={this.togglePlaylistsOptions}
+          />
         </StyledHeaderContainer>
         <StyledPopupContainer>
           <PlaylistOptionsPopup 
