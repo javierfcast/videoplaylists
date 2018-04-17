@@ -333,7 +333,7 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
         {playlistAuthor ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> : null}
         <StyledPlaylistName scrolling={scrolling ? 1 : 0}>{playlistName}</StyledPlaylistName>
         {description}
-        { toggleAddTagPopup && !isEmpty(tags) ?
+        { toggleAddTagPopup && (!isEmpty(tags) || owner) ?
           <StyledPlaylistTags scrolling={scrolling ? 1 : 0}>
             {tagItem}
             {owner ?
@@ -346,7 +346,7 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
         <StyledHeaderActions scrolling={scrolling ? 1 : 0}>
           <StyledPlaylistInfo spaceBetween={followButton === null} >
             <StyledLabel scrolling={scrolling ? 1 : 0}>
-              {playlist.videoCount || playlist.libraryVideoCount} Videos in {type === "playlist" ? "this playlist" : type}
+              {playlist.videoCount || playlist.libraryVideoCount || "0"} Videos in {type === "playlist" ? "this playlist" : type}
             </StyledLabel>
             {followButton !== null ? null : actionsGroup}
           </StyledPlaylistInfo>
