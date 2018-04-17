@@ -682,7 +682,7 @@ class App extends Component {
                   followedOn: firebase.firestore.FieldValue.serverTimestamp(),
                   playlistId: playlist.playlistId,
                   playlistName: playlist.playlistName,
-                  playlistDescription: playlist.playlistDescription,
+                  playlistDescription: playlist.playlistDescription || "",
                   playlistSlug: playlist.playlistSlugName,
                   Author: playlist.Author,
                   AuthorId: playlist.AuthorId
@@ -1592,6 +1592,7 @@ class App extends Component {
                     popularPlaylists={this.state.popularPlaylists}
                     featuredPlaylists={this.state.featuredPlaylists}
                     onPlaylistFollow={this.onPlaylistFollow}
+                    followingPlaylists={this.state.followingPlaylists}
                   /> }
                 />
                 <Route exact path='/recent' render={({ match }) =>
@@ -1601,6 +1602,7 @@ class App extends Component {
                     popularPlaylists={this.state.popularPlaylists}
                     featuredPlaylists={this.state.featuredPlaylists}
                     onPlaylistFollow={this.onPlaylistFollow}
+                    followingPlaylists={this.state.followingPlaylists}
                   /> }
                 />
                 <Route exact path='/watch/:videoId' render={({ match }) =>
@@ -1676,6 +1678,7 @@ class App extends Component {
                     user={this.state.user}
                     playlistVideos={this.state.playlistVideos}
                     libraryVideos={this.state.libraryVideos}
+                    followingPlaylists={this.state.followingPlaylists}
                     videoId={this.state.videoId}
                     togglePlayer={this.togglePlayer}
                     togglePlaylistPopup={this.togglePlaylistPopup}
