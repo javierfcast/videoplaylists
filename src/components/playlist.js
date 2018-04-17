@@ -335,10 +335,11 @@ class Playlist extends Component {
         <PlaylistHeader
           type="playlist"
           owner={this.props.user !== null && this.props.user.uid === playlist.AuthorId}
-          follow={true}
           reorder={this.state.orderBy === "custom" ? this.state.reorder : null}
-          back={true}
           scrolling={this.state.scrolling}
+          follow={true}
+          back={true}
+          share={true}
 
           playlist={playlist}
           playlistName={playlist.playlistName}
