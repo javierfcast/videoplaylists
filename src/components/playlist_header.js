@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import {map, filter, isEmpty} from 'lodash';
+import {map, filter, isEmpty, some} from 'lodash';
 import { Link } from 'react-router-dom';
 import MaterialIcon from 'material-icons-react';
 
@@ -131,12 +131,26 @@ const PlaylistActions = styled.a`
   text-transform: uppercase;
   font-size: 10px;
   border: 1px solid rgba(255,255,255,0.1);
-  padding: 10px;
   cursor: pointer;
   transition: all .3s ease;
   overflow: hidden;
+  span{
+    display: block;
+    padding: 10px;
+    transition: all .3s;
+    will-change: transform;
+  }
+  span:nth-child(2){
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+  }
   &:hover{
     border: 1px solid rgba(255,255,255,1);
+    span{
+      transform: translateY(-30px);
+    }
   }
 `;
 const PlaylistActionsNone = styled.span`
@@ -232,7 +246,7 @@ const StyledButtonTagName = styled(Link)`
   color: #fff;
 `;
 
-const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playlistDescription, playlistHtml, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, follow, reorder, share, onRemoveTag, toggleAddTagPopup }) => {
+const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playlistDescription, playlistHtml, tags, playlistFollowers, playlistAuthor, type, togglePlaylistsOptions, toggleShare, onToggleReorder, onPlaylistFollow, reorder, share, onRemoveTag, toggleAddTagPopup, followingPlaylists }) => {
 
   //Reorder button
   
@@ -255,19 +269,25 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
 
   let followButton = null
 
-  if (follow) {
-    if (!owner) {
+  if (followingPlaylists) {
+    if (owner) {
       followButton =
-      <PlaylistActions onClick={() => onPlaylistFollow(playlist, playlistFollowers)}>
-        {playlistFollowers} Followers
-      </PlaylistActions>
+      <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
     }
 
     else {
       followButton =
-      <PlaylistActionsNone> {playlistFollowers} Followers </PlaylistActionsNone>
+      <PlaylistActions onClick={() => onPlaylistFollow(playlist, playlistFollowers)}>
+        <span>
+          {playlistFollowers} Followers
+        </span>
+        <span>
+          {some(followingPlaylists, {playlistId: playlist.playlistId}) ? "Unfollow" : "Follow"}
+        </span>
+      </PlaylistActions>
     }
   }
+
 
   //Actions group
 
@@ -313,7 +333,7 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
         {playlistAuthor ? <StyledAuthorLink to={`/users/${playlist.AuthorId}`}>{playlistAuthor}'s</StyledAuthorLink> : null}
         <StyledPlaylistName scrolling={scrolling ? 1 : 0}>{playlistName}</StyledPlaylistName>
         {description}
-        { toggleAddTagPopup && !isEmpty(tags) ?
+        { toggleAddTagPopup && (!isEmpty(tags) || owner) ?
           <StyledPlaylistTags scrolling={scrolling ? 1 : 0}>
             {tagItem}
             {owner ?
@@ -326,7 +346,7 @@ const PlaylistHeader = ({ owner, back, scrolling, playlist, playlistName, playli
         <StyledHeaderActions scrolling={scrolling ? 1 : 0}>
           <StyledPlaylistInfo spaceBetween={followButton === null} >
             <StyledLabel scrolling={scrolling ? 1 : 0}>
-              {playlist.videoCount || playlist.libraryVideoCount} Videos in {type === "playlist" ? "this playlist" : type}
+              {playlist.videoCount || playlist.libraryVideoCount || "0"} Videos in {type === "playlist" ? "this playlist" : type}
             </StyledLabel>
             {followButton !== null ? null : actionsGroup}
           </StyledPlaylistInfo>

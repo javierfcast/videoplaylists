@@ -296,29 +296,20 @@ class Playlist extends Component {
     }
 
     if (this.state.playlist === 'not found'){
-      
-      const originFollowing = window.location.search.split('following=')[1];
-
-      if (originFollowing === 'true'){
-        return (
-          <PlaylistContainer>
-            <StyledNoFoundContent>
-              <h1>The Playlist you are looking for no longer exists.</h1>
-              <PlaylistActions onClick={() => this.props.onPlaylistUnfollow(this.state.playlistId)}>
-                Unfollow
-              </PlaylistActions>
-            </StyledNoFoundContent>
-          </PlaylistContainer>
-        )
-      } else {
-        return (
-          <PlaylistContainer>
-            <StyledNoFoundContent>
-              <h1>The Playlist you are looking for does not exists.</h1>
-            </StyledNoFoundContent>
-          </PlaylistContainer>
-        )
-      }
+      return (
+        <PlaylistContainer>
+          <StyledNoFoundContent>
+            <h1>The Playlist you are looking for no longer exists.</h1>
+            { 
+              _.some(this.props.followingPlaylists, {playlistId: this.state.playlistId}) 
+              ? <PlaylistActions onClick={() => this.props.onPlaylistUnfollow(this.state.playlistId)}>
+                  Unfollow
+                </PlaylistActions> 
+              : null
+            }
+          </StyledNoFoundContent>
+        </PlaylistContainer>
+      )
     }
 
     //Basic constants
@@ -329,7 +320,7 @@ class Playlist extends Component {
     const playlistFollowers = this.state.playlistPublicInfo.followers;
     const playlistDescription = this.state.playlist.playlistDescription;
     const playlistHtml = this.state.playlist.playlistHtml;
-    
+
     return(
       <PlaylistContainer>
         <PlaylistHeader
@@ -337,7 +328,6 @@ class Playlist extends Component {
           owner={this.props.user !== null && this.props.user.uid === playlist.AuthorId}
           reorder={this.state.orderBy === "custom" ? this.state.reorder : null}
           scrolling={this.state.scrolling}
-          follow={true}
           back={true}
           share={true}
 
@@ -351,6 +341,7 @@ class Playlist extends Component {
           togglePlaylistsOptions={this.togglePlaylistsOptions}
           toggleShare={this.toggleShare}
           onToggleReorder={this.onToggleReorder}
+          followingPlaylists={this.props.followingPlaylists}
           
           tags={this.state.tags}
           onRemoveTag={this.props.onRemoveTag}
