@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import some from 'lodash/some';
 
 const PlaylistsContainer = styled.div`
   padding: 20px 20px 0;
@@ -46,12 +47,26 @@ const PlaylistActions = styled.a`
   font-size: 10px;
   margin-right: 20px;
   border: 1px solid rgba(255,255,255,0.1);
-  padding: 10px;
   cursor: pointer;
   transition: all .3s ease;
   overflow: hidden;
+  span{
+    display: block;
+    padding: 10px;
+    transition: all .3s;
+    will-change: transform;
+  }
+  span:nth-child(2){
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+  }
   &:hover{
     border: 1px solid rgba(255,255,255,1);
+    span{
+      transform: translateY(-30px);
+    }
   }
 `;
 const PlaylistActionsNone = styled.span`
@@ -111,13 +126,20 @@ class Recent extends Component {
 
       if (UserId !== playlist.AuthorId) {
 
-        followButton = <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
-          {playlist.followers} Followers
+        followButton = 
+        <PlaylistActions onClick={() => this.props.onPlaylistFollow(playlist, playlist.followers)}>
+          <span>
+            {playlist.followers} Followers
+          </span>
+          <span>
+            {some(this.props.followingPlaylists, {playlistId: playlist.playlistId}) ? "Unfollow" : "Follow"}
+          </span>
         </PlaylistActions>
 
       } else {
-        
-        followButton = <PlaylistActionsNone>
+
+        followButton = 
+        <PlaylistActionsNone>
           {playlist.followers} Followers
         </PlaylistActionsNone>
 
