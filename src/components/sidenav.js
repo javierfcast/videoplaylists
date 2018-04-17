@@ -226,7 +226,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
   const FollowingPlaylists = followingPlaylists.map((playlist) => {
     return (
       <li key={playlist.playlistId}>
-        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}?following=true`} activeClassName="active">{playlist.playlistName}</StyledNavItemLink>
+        <StyledNavItemLink to={`/users/${playlist.AuthorId}/${playlist.playlistId}`} activeClassName="active">{playlist.playlistName}</StyledNavItemLink>
       </li>
     )
   });
