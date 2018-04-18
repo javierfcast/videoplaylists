@@ -289,8 +289,10 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
             </StyledLandingHeading>
             <StyledLandingDescription>Create, share and discover great video playlists.</StyledLandingDescription>
             <StyledNavList>
-              <StyledNavItemLink to="/">Discover</StyledNavItemLink>
-              <StyledNavItemLink to="/users">Recently Active</StyledNavItemLink>
+              <StyledNavItemLink to="/" exact activeClassName="active">Discover</StyledNavItemLink>
+              <StyledNavItemLink to="/tags" exact activeClassName="active">Search By Tag</StyledNavItemLink>
+              <StyledNavItemLink to={`/likedyoutube`} exact activeClassName="active">Liked on YouTube</StyledNavItemLink>  
+              <StyledNavItemLink to="/users" exact activeClassName="active">Recently Active</StyledNavItemLink>
             </StyledNavList>
             <StyledLogin onClick={() => onLogin('google')}>Login with Google</StyledLogin>
             <StyledLogin onClick={() => onLogin('facebook')}>Login with Facebook</StyledLogin>
