@@ -143,6 +143,13 @@ class VideoListContainer extends Component {
         toggleVideoOptions={this.toggleVideoOptions}
         index={index}
         onShare={this.toggleShare}
+
+        playingSource={
+          this.props.origin === "library" ? `/users/${nextProps.user.uid}/library`
+          : this.props.origin === 'likedYoutube' ? '/likedyoutube'
+          : this.props.origin === 'playlist' ? `/users/${nextProps.playlist.AuthorId}/${nextProps.playlist.playlistId}`
+          : null
+        }
         
         origin={nextProps.origin}
       />
