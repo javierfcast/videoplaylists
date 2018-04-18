@@ -194,9 +194,21 @@ class Video extends Component {
               duration: result.contentDetails.duration,
           }));
   
-          relatedVideos = [video, ...relatedVideos]
+          relatedVideos = [video, ...relatedVideos];
+
+          const playlist = {
+            Author: this.props.user.displayName,
+            AuthorId: this.props.user.uid,
+            createdOn: new Date(),
+            featured: false,
+            followers: 0,
+            playlistId: video.videoEtag,
+            playlistName: "radio",
+            playlistSlugName: "radio",
+            videoCount: relatedVideos.length,
+          }
   
-          this.props.toggleWatchPlayer(video, relatedVideos)
+          this.props.toggleWatchPlayer(video, playlist, relatedVideos)
 
           this.setState({loading: false});
         })
@@ -215,17 +227,17 @@ class Video extends Component {
   updateInfo = (video, playlistVideos) => {
     video.durationFormated = moment.duration(video.duration).asMilliseconds() > 3600000
     ? moment.utc(moment.duration(video.duration).asMilliseconds()).format("hh:mm:ss")
-    : moment.utc(moment.duration(video.duration).asMilliseconds()).format("mm:ss")
+    : moment.utc(moment.duration(video.duration).asMilliseconds()).format("mm:ss");
 
-    video.datePublishedFormated = moment(video.publishedAt).format('YYYY[-]MM[-]DD')
+    video.datePublishedFormated = moment(video.publishedAt).format('YYYY[-]MM[-]DD');
 
-    const playingNext = playlistVideos[findIndex(playlistVideos, {videoID: video.videoID}) + 1]
+    const playingNext = playlistVideos[findIndex(playlistVideos, {videoID: video.videoID}) + 1];
 
     playingNext.durationFormated = moment.duration(playingNext.duration).asMilliseconds() > 3600000
     ? moment.utc(moment.duration(playingNext.duration).asMilliseconds()).format("hh:mm:ss")
-    : moment.utc(moment.duration(playingNext.duration).asMilliseconds()).format("mm:ss")
+    : moment.utc(moment.duration(playingNext.duration).asMilliseconds()).format("mm:ss");
 
-    playingNext.datePublishedFormated = moment(playingNext.publishedAt).format('YYYY[-]MM[-]DD')
+    playingNext.datePublishedFormated = moment(playingNext.publishedAt).format('YYYY[-]MM[-]DD');
 
     this.setState({video, playingNext}, () => this.getRelated(this.state.video.videoID));
   };
@@ -334,6 +346,7 @@ class Video extends Component {
         <StyledRelatedVideos>
           <StyledSectionTitle>Related videos</StyledSectionTitle>
           <VideoListContainer 
+            playlist={this.state.playlist}
             playlistVideos={this.state.relatedVideos}
             user={this.props.user}
             libraryVideos={this.props.libraryVideos}

@@ -221,7 +221,8 @@ class App extends Component {
       //GoogleApi
       gapiReady: false,
       //Video single
-      watchId: null
+      watchId: null,
+      playingSource: '',
     }
 
     this.player = null;
@@ -737,6 +738,7 @@ class App extends Component {
       playerIsPlaying: true,
       playingFromSearch: false,
       playlistVideos: playlistVideos,
+      playingSource: source,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
       watchId: null,
@@ -750,7 +752,7 @@ class App extends Component {
 
   };
 
-  toggleWatchPlayer = (video, playlistVideos) => {
+  toggleWatchPlayer = (video, playlist, playlistVideos) => {
 
     const videoId = video.videoID;
     const videoTitle = video.videoTitle;
@@ -763,6 +765,8 @@ class App extends Component {
       playerIsPlaying: true,
       playingFromSearch: false,
       playlistVideos: playlistVideos,
+      playingSource: `/watch/${videoId}`,
+      currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
       watchId: videoId,
       video,
@@ -791,6 +795,8 @@ class App extends Component {
         playlist: null,
         currentVideoNumber: (index > -1 ) ? index : 0,
         playlistVideos: prevState.searchResults,
+        playingSource: null,
+        currentPlaylist: null,
         watchId: null,
         video,
         videoId,
@@ -1733,6 +1739,7 @@ class App extends Component {
             progress={this.state.progress}
             onProgressChange={this.onProgressChange}
             togglePlaylistPopup={this.togglePlaylistPopup}
+            playingSource={this.state.playingSource}
           />
           <AddToPlaylistPopup 
             user={this.state.user}

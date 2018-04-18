@@ -72,8 +72,9 @@ class Library extends Component {
         else if (doc.data().libraryOrderBy !== 'custom') {
           libraryVideos = orderBy(libraryVideos, [doc.data().libraryOrderBy], [doc.data().libraryOrderDirection])
         }
+
         this.setState({
-          library: doc.data(),
+          library: {...doc.data(), playlistName: 'Library'},
           libraryOrderBy: doc.data().libraryOrderBy,
           libraryOrderDirection: doc.data().libraryOrderDirection,
           libraryVideos: libraryVideos

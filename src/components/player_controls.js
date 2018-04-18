@@ -138,7 +138,7 @@ const StyledYtLink = styled.a`
   margin-left: 10px;
 `;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup, playingSource}) => {
 
   let button = null;
   let previousButton = null;
@@ -149,11 +149,9 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   let ytLink = null;
 
   const ytUrl = 
-    video 
-    ? video.videoID 
-      ? "https://www.youtube.com/watch?v=" + video.videoID 
-      : "https://www.youtube.com/watch?v=" + video.id.videoId  
-    : null;
+  video 
+  ? "https://www.youtube.com/watch?v=" + video.videoID || video.id.videoId 
+  : null;
 
   if (playerIsPlaying === true) {
     button = <MaterialIcon icon="pause" color='#fff' />;
@@ -162,10 +160,11 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   }
 
   if (currentPlaylist) {
-    videoSource = <LabelLink to={`/users/${currentPlaylist.AuthorId}/${currentPlaylist.playlistId}`}>{currentPlaylist.playlistName || `library`}</LabelLink>
+    videoSource = <LabelLink to={playingSource}>{currentPlaylist.playlistName}</LabelLink>
     addButton = <StyledButton onClick={() => togglePlaylistPopup(video)} ><MaterialIcon icon="playlist_add" color='#fff' /></StyledButton>
-    if (ytUrl) ytLink = <StyledYtLink href={ytUrl} target="_blank"><StyledYtLogo src={logoYoutube} alt='Logo YouTube' /></StyledYtLink>
   }
+  
+  if (ytUrl) ytLink = <StyledYtLink href={ytUrl} target="_blank"><StyledYtLogo src={logoYoutube} alt='Logo YouTube' /></StyledYtLink>
 
   if (playingFromSearch === true) {
     previousButton = 
