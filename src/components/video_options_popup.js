@@ -10,7 +10,7 @@ const StyledPopup = styled.div`
   width: 100%;
   height: 100vh;
   padding: 20px;
-  z-index: 100;
+  z-index: 999;
 `;
 const StyledContent = styled.div`
   max-width: 480px;
@@ -118,7 +118,7 @@ const VideoOptionsPopup = ({ open, video, remove, onClose, playlist, togglePlayl
         <StyledTitle>{video.videoTitle}</StyledTitle>
         <StyledTitleLabel>{video.videoChannel}</StyledTitleLabel>
         <StyledAction onClick={() => {onClose(); togglePlaylistPopup(video)}}><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledAction>
-        <StyledLink to={`/watch/${video.videoID}`} ><MaterialIcon icon="music_video" color='#fff' /> Start radio</StyledLink>
+        <StyledLink to={`/watch/${video.videoID}`} onClick={onClose} ><MaterialIcon icon="music_video" color='#fff' /> Start radio</StyledLink>
         <StyledAction onClick={() => {onClose(); onShare(video)}} ><MaterialIcon icon="share" color='#fff' /> Share</StyledAction>
         {remove ? <hr /> : null}
         {remove ? <StyledAction onClick={() => {onClose(); onRemoveFromPlaylist(video.videoID, playlist)}} ><MaterialIcon icon="delete_forever" color='#fff' /> Remove</StyledAction> : null}

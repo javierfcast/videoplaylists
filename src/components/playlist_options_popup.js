@@ -10,7 +10,7 @@ const StyledOptionsPopup = styled.div`
   background: rgba(0,0,0,0.9);
   color: #fff;
   padding: 10px 0;
-  z-index: 100;
+  z-index: 999;
   hr{
     background: none;
     border: none;
