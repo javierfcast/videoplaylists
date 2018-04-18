@@ -138,7 +138,7 @@ const StyledYtLink = styled.a`
   margin-left: 10px;
 `;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup, playingSource}) => {
+const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup, playingSource, toggleVideoOptions}) => {
 
   let button = null;
   let previousButton = null;
@@ -161,7 +161,7 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
 
   if (currentPlaylist) {
     videoSource = <LabelLink to={playingSource}>{currentPlaylist.playlistName}</LabelLink>
-    addButton = <StyledButton onClick={() => togglePlaylistPopup(video)} ><MaterialIcon icon="playlist_add" color='#fff' /></StyledButton>
+    addButton = <StyledButton onClick={() => toggleVideoOptions()} ><MaterialIcon icon="more_horiz" color='#fff' /></StyledButton>
   }
   
   if (ytUrl) ytLink = <StyledYtLink href={ytUrl} target="_blank"><StyledYtLogo src={logoYoutube} alt='Logo YouTube' /></StyledYtLink>

@@ -8,6 +8,7 @@ const StyledPopup = styled.div`
   width: 100%;
   height: 100vh;
   padding: 20px;
+  z-index: 999;
 `;
 const StyledContent = styled.div`
   position: relative;

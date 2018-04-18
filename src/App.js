@@ -39,6 +39,8 @@ import Terms from './components/terms';
 import Privacy from './components/privacy';
 import SearchTags from './components/search_tags'
 import LikedYoutube from './components/liked_youtube';
+import VideoOptionsPopup from './components/video_options_popup';
+import SharePopup from './components/share_popup';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -105,7 +107,7 @@ const StyledAside = styled.div`
   left: 0;
   background: rgba(0,0,0,0.4);
   overflow-y: auto;
-  z-index: 999;
+  z-index: 995;
   ${props => props.visible && `
     display: block;
   `}
@@ -222,7 +224,10 @@ class App extends Component {
       gapiReady: false,
       //Video single
       watchId: null,
+      //PlayerControls
       playingSource: '',
+      optionsOpen: false,
+      shareOpen: false,
     }
 
     this.player = null;
@@ -877,6 +882,14 @@ class App extends Component {
     });
     this.setState({ playlistToAddTag })
   };
+
+  toggleVideoOptions = (close) => {
+    this.setState({optionsOpen: close ? false : !this.state.optionsOpen});
+  }
+
+  toggleShare = () => {
+    this.setState({shareOpen: !this.state.shareOpen});
+  }
 
   onAddToPlaylist = (video, item, autoAdd) => {
     const self = this;
@@ -1740,6 +1753,7 @@ class App extends Component {
             onProgressChange={this.onProgressChange}
             togglePlaylistPopup={this.togglePlaylistPopup}
             playingSource={this.state.playingSource}
+            toggleVideoOptions={this.toggleVideoOptions}
           />
           <AddToPlaylistPopup 
             user={this.state.user}
@@ -1786,6 +1800,23 @@ class App extends Component {
             onLogin={this.onLogin}
             open={this.state.loginPopupIsOpen}
             onClose={this.onPlaylistFollow}
+          />
+          <VideoOptionsPopup
+            playlist={this.state.currentPlaylist}
+            open={this.state.optionsOpen}
+            video={this.state.video}
+            togglePlaylistPopup={this.togglePlaylistPopup}
+            onShare={this.toggleShare}
+            onClose={() => this.toggleVideoOptions(true)}
+            />
+          <SharePopup
+            open={this.state.shareOpen}
+            name={this.state.videoTitle}
+            url={`https://videoplaylists.tv/watch/${this.state.videoId}`}
+            onCopy={this.setSnackbar}
+            onClose={this.toggleShare}
+            id="share-video-popup"
+            large
           />
         </StyledContainer>
         <MuiThemeProvider>

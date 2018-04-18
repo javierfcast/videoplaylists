@@ -8,7 +8,7 @@ const StyledPopup = styled.div`
   right: 0px;
   max-width: 220px;
   color: #fff;
-  z-index: 100;
+  z-index: 999;
   hr{
     background: none;
     border: none;
