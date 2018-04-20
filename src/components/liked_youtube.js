@@ -185,9 +185,6 @@ class LikedYoutube extends Component {
   }
 
   render() {
-    if (!this.props.user) {
-      return null;
-    }
 
     //Basic constants
     const playlist = this.state.playlist;
