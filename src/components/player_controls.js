@@ -160,7 +160,10 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   }
 
   if (currentPlaylist) {
-    videoSource = <LabelLink to={playingSource}>{currentPlaylist.playlistName}</LabelLink>
+    videoSource = playingSource 
+    ? <LabelLink to={playingSource}>{currentPlaylist.playlistName}</LabelLink> 
+    : <Label>{currentPlaylist.playlistName}</Label>
+    
     addButton = <StyledButton onClick={() => toggleVideoOptions()} ><MaterialIcon icon="more_horiz" color='#fff' /></StyledButton>
   }
   
@@ -175,7 +178,7 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
       <StyledButton onClick={() => playNextSearchVideo(video)}>
         <MaterialIcon icon="skip_next" color='#fff' />
       </StyledButton>
-    videoSource = <Label>Search Results</Label>
+    // videoSource = <Label>Search Results</Label>
 
   // } else if(playingFromLibrary === true) {
   //   videoSource = <Label>Browse</Label>

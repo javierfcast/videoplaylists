@@ -125,7 +125,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
       </StyledVideoInfoLink>
   } else if (origin === "search") {
     videoTrigger = 
-    <StyledVideoInfo onClick={() => toggleSearchPlayer(video)}>
+    <StyledVideoInfo onClick={() => toggleSearchPlayer(video, playlist)}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>

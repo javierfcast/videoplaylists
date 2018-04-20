@@ -782,7 +782,7 @@ class App extends Component {
 
   }
 
-  toggleSearchPlayer = (video) => {
+  toggleSearchPlayer = (video, playlist) => {
    
     //Play Selected Video from the search results
     const videoId = video.videoID;
@@ -801,7 +801,7 @@ class App extends Component {
         currentVideoNumber: (index > -1 ) ? index : 0,
         playlistVideos: prevState.searchResults,
         playingSource: null,
-        currentPlaylist: null,
+        currentPlaylist: playlist,
         watchId: null,
         video,
         videoId,

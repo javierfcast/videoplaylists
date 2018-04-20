@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import map from 'lodash/map';
+import head from 'lodash/head';
 
 //custom components
 import VideoListContainer from './video_list_container';
@@ -34,11 +35,22 @@ const SearchResults = (props) => {
     duration: video.contentDetails ? video.contentDetails.duration : null,
   }))
 
+  const playlist = {
+    Author: props.user.displayName,
+    AuthorId: props.user.uid,
+    createdOn: new Date(),
+    playlistId: head(searchResults).videoEtag,
+    playlistName: "Search Results",
+    playlistSlugName: "searchr-results",
+    videoCount: searchResults.length,
+  }
+
   return(
     <SearchResultsContainer>
       <SearchResultsTitle>Search Results</SearchResultsTitle>
       <VideoListContainer 
         playlistVideos={searchResults}
+        playlist={playlist}
 
         user={props.user}
         libraryVideos={props.libraryVideos}
