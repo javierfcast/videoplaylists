@@ -23,10 +23,17 @@
     "styled-components": "^2.4.0",
     "youtube-player": "^5.4.0"
   },
+  "homepage": "./",
+  "main": "src/main.js",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
-  }
+    "eject": "react-scripts eject",
+    "electron": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^1.8.4"
+  },
+  "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron ."
 }
