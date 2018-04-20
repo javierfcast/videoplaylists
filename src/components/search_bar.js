@@ -85,6 +85,7 @@ class SearchBar extends Component {
           type="text"
           value={this.state.searchTerm}
           onChange={event => this.onInputChange(event.target.value)}
+          id="search-bar"
         />
         {searchIcon}
       </StyledSearchInputContainer>

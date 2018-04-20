@@ -392,6 +392,8 @@ class App extends Component {
     document.onkeypress = this.hideInterface
     document.onwheel = this.hideInterface
 
+    document.onkeydown = this.shortcuts
+
   };
 
   componentDidUpdate(prevProps, prevState){
@@ -451,6 +453,22 @@ class App extends Component {
       }
     });
   };
+
+  shortcuts = (e) => {
+    //control-command + S
+    if ((e.metaKey || e.ctrlKey) && e.keyCode === 83) {
+      e.preventDefault();
+      if (document.getElementById("search-bar") !== null) {
+        document.getElementById("search-bar").focus();
+      }
+    }
+
+    //control-command + P
+    if ((e.metaKey || e.ctrlKey) && e.keyCode === 80) {
+      e.preventDefault();
+      this.toggleAddPlaylistPopup()
+    }
+  }
 
   toggleInterface = () => {
     this.setState({
