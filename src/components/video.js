@@ -216,8 +216,8 @@ class Video extends Component {
           relatedVideos = [video, ...relatedVideos];
 
           const playlist = {
-            Author: this.props.user.displayName,
-            AuthorId: this.props.user.uid,
+            Author: this.props.user ? this.props.user.displayName : "Anonymous",
+            AuthorId: this.props.user ? this.props.user.uid : "Anonymous",
             createdOn: new Date(),
             featured: false,
             followers: 0,
@@ -233,12 +233,12 @@ class Video extends Component {
         })
         .catch(e => {
           console.log('error: ', e);
-          this.props.setSnackbar(e)
+          this.props.setSnackbar(String(e))
         });
       })
       .catch(e => {
         console.log('error: ', e);
-        this.props.setSnackbar(e)
+        this.props.setSnackbar(String(e))
       });
     });
   };
