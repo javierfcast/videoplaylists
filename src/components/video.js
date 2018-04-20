@@ -33,6 +33,21 @@ const StyledContainer = styled.div`
   overflow: auto;
   height: calc(100vh - 100px);
 `;
+const StyledNoFoundContent = styled.div`
+  width: 100%;
+  height: calc(100vh - 354px);
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  ${media.xmedium`
+    height: calc(100vh - 258px);
+  `}
+  h1{
+    margin-bottom: 40px;
+  }
+`;
 const StyledCurrentVideo = styled.div`
   padding: 25vh 0;
   display: flex;
@@ -137,6 +152,8 @@ class Video extends Component {
 
       shareOpen: false,
       shareVideo: {},
+
+      notFound: false,
     }
   };
 
@@ -169,7 +186,9 @@ class Video extends Component {
     this.setState({loading: true}, () => {
       YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
       .then(response => {
-        response = head(response)
+        response = head(response) 
+
+        if (!response) {this.setState({notFound: true}); throw new Error("Video not found.")}
   
         return {
           timestamp: new Date(),
@@ -213,13 +232,13 @@ class Video extends Component {
           this.setState({loading: false});
         })
         .catch(e => {
-          this.props.setSnackbar(e)
           console.log('error: ', e);
+          this.props.setSnackbar(e)
         });
       })
       .catch(e => {
-        this.props.setSnackbar(e)
         console.log('error: ', e);
+        this.props.setSnackbar(e)
       });
     });
   };
@@ -278,6 +297,16 @@ class Video extends Component {
   }
 
   render() {
+
+    if (this.state.notFound) {
+      return (
+        <StyledContainer>
+          <StyledNoFoundContent>
+            <h1>Sorry. This video is not available.</h1>
+          </StyledNoFoundContent>
+        </StyledContainer>
+      )
+    }
 
     const currentLibraryButton =
     some(this.props.libraryVideos, e => (e.videoID === this.state.video.videoID))

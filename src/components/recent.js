@@ -2,6 +2,23 @@ import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import some from 'lodash/some';
+import { css } from 'styled-components';
+
+const sizes = {
+  small: 360,
+  xmedium: 720,
+  xlarge: 1200
+}
+
+// Iterate through the sizes and create a media template
+const media = Object.keys(sizes).reduce((acc, label) => {
+  acc[label] = (...args) => css`
+		@media (min-width: ${sizes[label] / 16}em) {
+			${css(...args)}
+		}
+	`
+  return acc
+}, {})
 
 const PlaylistsContainer = styled.div`
   padding: 20px 20px 0;
@@ -109,9 +126,13 @@ const StyledTabLink = styled(Link)`
   `}
 `;
 const StyledTabPanel = styled.div`
-  overflow-y: auto;
   height: 100%;
-`
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  ${media.small`
+    overflow-y: auto;
+  `}  
+`;
 
 class Recent extends Component {
   

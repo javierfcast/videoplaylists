@@ -64,8 +64,13 @@ const StyledTabLink = styled(Link)`
   `}
 `;
 const StyledTabPanel = styled.div`
-  overflow-y: auto;
   height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  ${media.small`
+    overflow-y: auto;
+  `}  
 `;
 
 //Featured View Classes

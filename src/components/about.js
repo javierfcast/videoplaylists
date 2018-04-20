@@ -29,7 +29,11 @@ const StyledContainer = styled.div`
   text-align: center;
   flex-direction: column;
   height: calc(100vh - 193px);
-  overflow-y: auto;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  ${media.small`
+    overflow-y: auto;
+  `}  
   ${media.xmedium`
     height: calc(100vh - 100px);
   `}

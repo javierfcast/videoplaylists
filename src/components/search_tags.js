@@ -38,8 +38,12 @@ const StyledHeader = styled.div`
 const StyledContent = styled.div`
   list-style: none;
   width: 100%;
-  overflow-y: auto;
   height: 100%;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  ${media.small`
+    overflow-y: auto;
+  `}  
 `;
 const StyledTitle = styled.div`
   font-size: 10px;

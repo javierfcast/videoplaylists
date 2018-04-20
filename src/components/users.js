@@ -37,11 +37,15 @@ const StyledContent = styled.div`
   list-style: none;
   width: calc(100% + 20px);
   margin-left: -10px;
-  overflow-y: auto;
   padding: 20px 0;
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  ${media.small`
+    overflow-y: auto;
+  `}  
 `;
 const StyledUserItemContainer = styled.div`
   padding: 10px;
