@@ -468,6 +468,12 @@ class App extends Component {
       e.preventDefault();
       this.toggleAddPlaylistPopup()
     }
+
+    //spacebar
+    if (e.keyCode === 32 && this.state.video) {
+      e.preventDefault();
+      this.togglePlay()
+    }
   }
 
   toggleInterface = () => {
