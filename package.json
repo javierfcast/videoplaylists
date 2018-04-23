@@ -30,7 +30,7 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "electron": "electron .",
-    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=public/apple-dock.png.hqx --prune=true --out=release-builds",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=public/apple-dock.png.hqx --prune=true --out=release-builds"
   },
   "devDependencies": {
     "electron": "^1.8.4",
