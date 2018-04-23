@@ -1,8 +1,4 @@
-const electron = require('electron')
-// Module to control application life.
-const app = electron.app
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const {app, BrowserWindow, globalShortcut} = require('electron')
 
 const path = require('path')
 const url = require('url')
@@ -16,13 +12,8 @@ function createWindow () {
   mainWindow = new BrowserWindow({width: 800, height: 600})
 
   // and load the index.html of the app.
-  const startUrl = process.env.ELECTRON_START_URL || url.format({
-    pathname: path.join(__dirname, '/../build/index.html'),
-    protocol: 'file:',
-    slashes: true
-  });
-
-  mainWindow.loadURL('http://localhost:3000');
+  // mainWindow.loadURL('http://localhost:3000');
+  mainWindow.loadURL('https://videoplaylists.tv');
 
   // mainWindow.loadURL(startUrl);
 
@@ -41,7 +32,25 @@ function createWindow () {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', () => {
+  //Create window
+  createWindow()
+  
+  globalShortcut.register('MediaPlayPause', () => {
+    mainWindow.webContents.send('MediaPlayPause');
+  })
+
+  globalShortcut.register('MediaNextTrack', () => {
+    mainWindow.webContents.send('MediaNextTrack');
+  })
+
+  globalShortcut.register('MediaPreviousTrack', () => {
+    mainWindow.webContents.send('MediaPreviousTrack');
+  })
+
+  // Check whether a shortcut is registered.
+  console.log('Registration: ', globalShortcut.isRegistered('MediaPlayPause'))
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
