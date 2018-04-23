@@ -46,6 +46,8 @@ import SharePopup from './components/share_popup';
 import './style/reset.css';
 import './style/style.css';
 
+const ipcRenderer = typeof window.require === 'function' ? window.require("electron").ipcRenderer : null;
+
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
 let progTimeout;
@@ -169,7 +171,6 @@ class App extends Component {
       //Player States
       playerIsOpen: false,
       playerIsPlaying: false,
-      playingFromSearch: false,
       player: null,
       currentPlaylist: null,
       currentVideoNumber: null,
@@ -236,7 +237,21 @@ class App extends Component {
 
   componentWillMount() {
 
-    
+    //Handle electron events
+    if (ipcRenderer) {
+      ipcRenderer.on('MediaPlayPause' , (event , data) => {
+        if (this.state.video) this.togglePlay()
+      });
+
+      ipcRenderer.on('MediaNextTrack' , (event , data) => {
+        if (this.state.video) this.changeVideo(true)
+      });
+
+      ipcRenderer.on('MediaPreviousTrack' , (event , data) => {
+        if (this.state.video) this.changeVideo(false)
+      });
+    }
+
     //Handle login / logout
     firebase.auth().onAuthStateChanged(user => {
       
@@ -493,7 +508,6 @@ class App extends Component {
     if (searchTerm === ''){
       this.setState({
         searchResults: [],
-        playingFromSearch: false
       })
       return null;
     }
@@ -753,7 +767,7 @@ class App extends Component {
 
   //Play controls for playlists and search results Methods
 
-  togglePlayer = (video, playlist, playlistVideos, source) => {
+  togglePlayer = (video, playlist, playlistVideos, playingSource, watchId) => {
 
     //Play Selected Video from the playlist
     const videoId = video.videoID;
@@ -765,12 +779,11 @@ class App extends Component {
     this.setState({
       playerIsOpen: true,
       playerIsPlaying: true,
-      playingFromSearch: false,
       playlistVideos: playlistVideos,
-      playingSource: source,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
-      watchId: null,
+      watchId,
+      playingSource,
       video,
       videoId,
       videoTitle,
@@ -781,67 +794,40 @@ class App extends Component {
 
   };
 
-  toggleWatchPlayer = (video, playlist, playlistVideos) => {
-
-    const videoId = video.videoID;
-    const videoTitle = video.videoTitle;
-    const videoChannel = video.videoChannel;
-
-    this.player.loadVideoById(videoId);
-
-    this.setState({
-      playerIsOpen: true,
-      playerIsPlaying: true,
-      playingFromSearch: false,
-      playlistVideos: playlistVideos,
-      playingSource: `/watch/${videoId}`,
-      currentPlaylist: playlist,
-      currentVideoNumber: playlistVideos.indexOf(video),
-      watchId: videoId,
-      video,
-      videoId,
-      videoTitle,
-      videoChannel,
-    });
-
-  }
-
-  toggleSearchPlayer = (video, playlist) => {
+  // toggleSearchPlayer = (video, playlist) => {
    
-    //Play Selected Video from the search results
-    const videoId = video.videoID;
-    const videoTitle = video.videoTitle;
-    const videoChannel = video.videoChannel;
+  //   //Play Selected Video from the search results
+  //   const videoId = video.videoID;
+  //   const videoTitle = video.videoTitle;
+  //   const videoChannel = video.videoChannel;
     
 
-    this.setState((prevState) => {
-      const index = prevState.searchResults.indexOf(video)
-      this.player.loadVideoById(videoId);
-      return {
-        playerIsOpen: true,
-        playerIsPlaying: true,
-        playingFromSearch: true,
-        playlist: null,
-        currentVideoNumber: (index > -1 ) ? index : 0,
-        playlistVideos: prevState.searchResults,
-        playingSource: null,
-        currentPlaylist: playlist,
-        watchId: null,
-        video,
-        videoId,
-        videoTitle,
-        videoChannel,
-      }
-      
-    });
+  //   this.setState((prevState) => {
+  //     const index = prevState.searchResults.indexOf(video)
+  //     this.player.loadVideoById(videoId);
+  //     return {
+  //       playerIsOpen: true,
+  //       playerIsPlaying: true,
+  //       playlist: null,
+  //       currentVideoNumber: (index > -1 ) ? index : 0,
+  //       playlistVideos: prevState.searchResults,
+  //       playingSource: null,
+  //       currentPlaylist: playlist,
+  //       watchId: null,
+  //       video,
+  //       videoId,
+  //       videoTitle,
+  //       videoChannel,
+  //     }
+  //   });
 
-    this.setSnackbar(`Currently playing: ${videoTitle} from Search Results`);
+  //   this.setSnackbar(`Currently playing: ${videoTitle} from Search Results`);
     
-  };
+  // };
 
-  playNextVideo = (video) => {
+  playNextVideo = () => {
 
-    if (!video){
+    if (!this.state.video){
       return null;
     }
 
@@ -849,37 +835,28 @@ class App extends Component {
 
   };
 
-  playNextSearchVideo = (video) => {
+  playPreviousVideo = () => {
 
-    if (!video) {
-      return null;
-    }
-    this.changeVideo(true);
-
-    console.log(`The current video number is ${this.state.currentVideoNumber} out of ${this.state.searchResults.length}`);
-    
-  };
-
-  playPreviousVideo = (video) => {
-
-    if (!video) {
+    if (!this.state.video) {
       return null;
     }
 
     this.changeVideo(false);
 
-  };
-
-  playPreviousSearchVideo = (video) => {
-    this.changeVideo(false);
   };
 
   togglePlay = () => {
+
+    if (!this.state.video) {
+      return null;
+    }
+
     if (this.state.playerIsPlaying === true) {
       this.player.pauseVideo();
     } else {
       this.player.playVideo();
     }
+
     this.setState({
       playerIsPlaying: !this.state.playerIsPlaying
     })
@@ -1610,7 +1587,6 @@ class App extends Component {
                 searchResults = {this.state.searchResults} 
                 videoId={this.state.videoId}
                 togglePlayer = {this.togglePlayer}
-                toggleSearchPlayer = {this.toggleSearchPlayer}
                 togglePlaylistPopup = {this.togglePlaylistPopup}
                 libraryVideos={this.state.libraryVideos}
                 onAddToLibrary={this.onAddToLibrary}
@@ -1661,7 +1637,7 @@ class App extends Component {
                     onAddToLibrary={this.onAddToLibrary}
                     onRemoveFromLibrary={this.onRemoveFromLibrary}
                     libraryVideos={this.state.libraryVideos}
-                    toggleWatchPlayer={this.toggleWatchPlayer}
+                    togglePlayer={this.togglePlayer}
                     togglePlaylistPopup={this.togglePlaylistPopup}
                     currentVideo={this.state.video}
                     currentPlaylist={this.state.playlistVideos}
@@ -1761,13 +1737,10 @@ class App extends Component {
             </StyledMainContainer>
           </StyledMain>
           <PlayerControls
-            playPreviousVideo={this.playPreviousVideo}
-            playPreviousSearchVideo={this.playPreviousSearchVideo}
             togglePlay={this.togglePlay}
+            playPreviousVideo={this.playPreviousVideo}
             playNextVideo={this.playNextVideo}
-            playNextSearchVideo={this.playNextSearchVideo}
             playerIsPlaying={this.state.playerIsPlaying}
-            playingFromSearch={this.state.playingFromSearch}
             currentPlaylist={this.state.currentPlaylist}
             video={this.state.video}
             videoTitle={this.state.videoTitle}
