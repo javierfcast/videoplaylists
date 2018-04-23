@@ -3,6 +3,9 @@
 # dependencies
 /node_modules
 
+# electron builds
+/release-builds
+
 # testing
 /coverage
 
