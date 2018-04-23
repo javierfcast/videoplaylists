@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {debounce, isEmpty, filter, every, map, some} from 'lodash';
 import React, { Component } from 'react';
 import { Switch, Route, withRouter } from 'react-router-dom';
 import firebase from 'firebase';
@@ -525,12 +525,12 @@ class App extends Component {
 
   onTagSearch = (searchArray) => {
     let results = [];
-    if (!_.isEmpty(searchArray)) {
+    if (!isEmpty(searchArray)) {
       results = 
-      _.filter(this.state.browsePlaylists, playlist => (
-        _.every(
-          _.map(searchArray, term => (
-            _.some(playlist.tags, tag => {
+      filter(this.state.browsePlaylists, playlist => (
+        every(
+          map(searchArray, term => (
+            some(playlist.tags, tag => {
               const reg = new RegExp(term, 'i');
               return reg.test(tag);
             })
@@ -1560,7 +1560,7 @@ class App extends Component {
 
   render() {
 
-    const onVideoSearch = _.debounce((searchTerm) => { this.onVideoSearch(searchTerm) }, 300);
+    const onVideoSearch = debounce((searchTerm) => { this.onVideoSearch(searchTerm) }, 300);
 
     return (
       <div>
