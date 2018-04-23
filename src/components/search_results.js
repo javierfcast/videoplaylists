@@ -60,7 +60,6 @@ const SearchResults = (props) => {
 
         togglePlayer={props.togglePlayer}
         togglePlaylistPopup={props.togglePlaylistPopup}
-        toggleSearchPlayer={props.toggleSearchPlayer}
 
         onAddToPlaylist={props.onAddToPlaylist}
         onRemoveFromPlaylist={props.onRemoveFromPlaylist}

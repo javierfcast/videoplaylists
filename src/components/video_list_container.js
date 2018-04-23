@@ -132,7 +132,6 @@ class VideoListContainer extends Component {
         datePublished={moment(video.datePublished).format('YYYY[-]MM[-]DD')}
         togglePlayer={nextProps.togglePlayer}
         togglePlaylistPopup={nextProps.togglePlaylistPopup}
-        toggleSearchPlayer={nextProps.toggleSearchPlayer}
         onAddToPlaylist={nextProps.onAddToPlaylist}
         onRemoveFromPlaylist={nextProps.onRemoveFromPlaylist}
         onAddToLibrary={nextProps.onAddToLibrary}

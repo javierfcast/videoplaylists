@@ -105,7 +105,7 @@ const DragHandle = SortableHandle(() =>
   <StyledDragHandle><MaterialIcon icon="drag_handle" color='#fff' /></StyledDragHandle>
 );
 
-const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, toggleSearchPlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, origin, currentVideoId, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inLibraryVideos, reorder, toggleVideoOptions, index, onShare, playingSource}) => {
+const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEtag, videoId, videoChannel, datePublished, duration, togglePlayer, togglePlaylistPopup, onAddToPlaylist, onRemoveFromPlaylist, origin, currentVideoId, orderBy, itsOnLibrary, onAddToLibrary, onRemoveFromLibrary, inLibraryVideos, reorder, toggleVideoOptions, index, onShare, playingSource}) => {
   
   const durationFormated = Moment.duration(duration).asMilliseconds() > 3600000
     ? Moment.utc(Moment.duration(duration).asMilliseconds()).format("hh:mm:ss")
@@ -123,13 +123,6 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>
       </StyledVideoInfoLink>
-  } else if (origin === "search") {
-    videoTrigger = 
-    <StyledVideoInfo onClick={() => toggleSearchPlayer(video, playlist)}>
-        <VideoMeta>{videoChannel}</VideoMeta>
-        <VideoItemTitle>{videoTitle}</VideoItemTitle>
-        <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>
-      </StyledVideoInfo>
   } else {
     videoTrigger = 
       <StyledVideoInfo onClick={() => togglePlayer(video, playlist, playlistVideos, playingSource)}>

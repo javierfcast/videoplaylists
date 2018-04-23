@@ -138,7 +138,7 @@ const StyledYtLink = styled.a`
   margin-left: 10px;
 `;
 
-const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay, playNextVideo, playNextSearchVideo, playerIsPlaying, playingFromSearch, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup, playingSource, toggleVideoOptions}) => {
+const PlayerControls = ({playPreviousVideo, togglePlay, playNextVideo, playerIsPlaying, playingFromLibrary, currentPlaylist, video, videoTitle, videoChannel, progressMax, progress, onProgressChange, togglePlaylistPopup, playingSource, toggleVideoOptions}) => {
 
   let button = null;
   let previousButton = null;
@@ -169,30 +169,15 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
   
   if (ytUrl) ytLink = <StyledYtLink href={ytUrl} target="_blank"><StyledYtLogo src={logoYoutube} alt='Logo YouTube' /></StyledYtLink>
 
-  if (playingFromSearch === true) {
-    previousButton = 
-      <StyledButton onClick={() => playPreviousSearchVideo(video)}>
-        <MaterialIcon icon="skip_previous" color='#fff' />
-      </StyledButton>
-    nextButton =
-      <StyledButton onClick={() => playNextSearchVideo(video)}>
-        <MaterialIcon icon="skip_next" color='#fff' />
-      </StyledButton>
-    // videoSource = <Label>Search Results</Label>
+  previousButton =
+  <StyledButton onClick={() => playPreviousVideo()}>
+    <MaterialIcon icon="skip_previous" color='#fff' />
+  </StyledButton>
 
-  // } else if(playingFromLibrary === true) {
-  //   videoSource = <Label>Browse</Label>
-
-  } else {
-    previousButton =
-      <StyledButton onClick={() => playPreviousVideo(video)}>
-        <MaterialIcon icon="skip_previous" color='#fff' />
-      </StyledButton>
-    nextButton =
-      <StyledButton onClick={() => playNextVideo(video)}>
-        <MaterialIcon icon="skip_next" color='#fff' />
-      </StyledButton>
-  } 
+  nextButton =
+  <StyledButton onClick={() => playNextVideo()}>
+    <MaterialIcon icon="skip_next" color='#fff' />
+  </StyledButton>
 
   if (progressMax > 0) {
     seekSlider = <SeekSlider
@@ -221,7 +206,7 @@ const PlayerControls = ({playPreviousVideo, playPreviousSearchVideo, togglePlay,
         </StyledSongInfo>
         <StyledPlayerControls>
           {previousButton}
-          <StyledButton onClick={() => videoTitle !== null && togglePlay()}>
+          <StyledButton onClick={togglePlay}>
             {button}
           </StyledButton>
           {nextButton}

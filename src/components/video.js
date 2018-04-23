@@ -227,7 +227,7 @@ class Video extends Component {
             videoCount: relatedVideos.length,
           }
   
-          this.props.toggleWatchPlayer(video, playlist, relatedVideos)
+          this.props.togglePlayer(video, playlist, relatedVideos, `/watch/${video.videoID}`, videoID)
 
           this.setState({loading: false});
         })
