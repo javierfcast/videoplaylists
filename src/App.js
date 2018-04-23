@@ -362,8 +362,6 @@ class App extends Component {
     this.player.on('stateChange', (event) => { 
       //Update the current video to the next in list.
       if (event.data === 0) { 
-        console.log('MyStateChange', event.data);
-
         this.changeVideo(true);
       }
       //video playling
@@ -430,7 +428,6 @@ class App extends Component {
 
       mouseTimeout = setTimeout( () => {
         document.getElementById("interface").classList.add('hidden');
-        console.log('hidding interface after 5 seconds of mouse inactivity');
       }, 5000);
 
     }
@@ -447,8 +444,6 @@ class App extends Component {
         nextVideoNumber = prevState.currentVideoNumber !== 0 ? prevState.currentVideoNumber - 1 : prevState.playlistVideos.length - 1;
       }
       const nextVideo = prevState.playlistVideos[nextVideoNumber];
-
-      console.log('MyStateChange', nextVideo);
 
       this.player.loadVideoById(nextVideo.videoID ? nextVideo.videoID : nextVideo.id.videoId);
 
@@ -492,7 +487,6 @@ class App extends Component {
   };
 
   toggleNav = () => {
-    console.log(`nav is open: ${this.state.navIsOpen}`);
     this.setState({
       navIsOpen: !this.state.navIsOpen
     });
@@ -609,6 +603,7 @@ class App extends Component {
     })
     .catch((error) => {
       console.log(`Error ${error.code}: ${error.message}`)
+      this.setSnackbar(error.message);
     })
   };
 
@@ -622,10 +617,11 @@ class App extends Component {
         user: null,
         gapiReady: false
       });
-      console.log(`Usuario ha salido`);
+      // console.log(`Usuario ha salido`);
     })
     .catch((error) => {
       console.log(`Error ${error.code}: ${error.message}`)
+      this.setSnackbar(error.message);
     })
   };
 
@@ -635,6 +631,7 @@ class App extends Component {
     });
     
     const userRef = firebase.firestore().doc(`users/${user.uid}`);
+    const self = this;
 
     userRef.get().then(function (doc) {
       if (doc.exists) {
@@ -644,9 +641,11 @@ class App extends Component {
           photoURL: user.photoURL,
           uid: user.uid,
         }).then(() => {
-          console.log(`User updated succesfully`);
+          self.setSnackbar(`Wellcome back!`);
+          // console.log(`User updated succesfully`);
         }).catch(function (error) {
           console.log('Got an error:', error);
+          self.setSnackbar(error.message);
         })
       } else {
         userRef.set({
@@ -660,27 +659,30 @@ class App extends Component {
           libraryOrderBy: 'timestamp',
           libraryOrderDirection: 'asc',
         }).then(() => {
-          console.log(`User created succesfully`);
+          self.setSnackbar(`Wellcome to VideoPlaylists.tv!`);
+          // console.log(`User created succesfully`);
         }).catch(function (error) {
           console.log('Got an error:', error);
+          self.setSnackbar(error.message);
         })
       }
     }).catch(function (error) {
       console.log("Error getting document:", error);
+      self.setSnackbar(error.message);
     });
-
-    console.log(`${user.email} ha iniciado sesion`);
   };
 
-  onBrowse = () => {
-    this.setState({
-      selectedPlaylist: null,
-      playlistIsOpen: false,
-    })
-    console.log(`Browsing: ${this.state.playlistIsOpen}`)
-  };
+  // onBrowse = () => {
+  //   this.setState({
+  //     selectedPlaylist: null,
+  //     playlistIsOpen: false,
+  //   })
+  //   console.log(`Browsing: ${this.state.playlistIsOpen}`)
+  // };
 
   onPlaylistFollow = (playlist, playlistFollowers) => {
+
+    const self = this;
     
     if (this.state.user === null) {
 
@@ -705,13 +707,14 @@ class App extends Component {
               //Checking if the user is already following the playlist and if they do, Unfollow.
               if (doc.exists) {
                 //Unfollow
-                console.log(`Removing Playlist: ${playlist.playlistName}.`);
                 transaction.delete(followRef);
 
                 //Update count on public playlists collections
                 transaction.update(publicPlaylistsRef, {
                   followers: playlistDoc.data().followers - 1
                 });
+
+                self.setSnackbar(`Unfollowed ${playlist.playlistName}`);
               }
 
               //If the user does not follow the playlist. Follow.
@@ -730,32 +733,39 @@ class App extends Component {
                 transaction.update(publicPlaylistsRef, {
                   followers: playlistDoc.data().followers + 1
                 });
+
+                self.setSnackbar(`Followed ${playlist.playlistName}`);
               }
             });
           });
       }).then(function() {
-          console.log("Transaction successful");
+          // console.log("Transaction successful");
       }).catch(function(error) {
-          console.log("Transaction failed: ", error);
+        console.log("Transaction failed: ", error);
+        self.setSnackbar(error.message);
       });
     }
   };
 
   onPlaylistUnfollow = (playlistId) => {
     const user = this.state.user;
+    const self = this;
     const followRef = firebase.firestore().collection("users").doc(user.uid).collection('following').doc(playlistId);
     followRef.get().then((doc) => {
       if (doc.exists) {
         const docRef = firebase.firestore().doc(`users/${user.uid}/following/${playlistId}`);
         docRef.delete().then(() => {
-          console.log("Document successfully deleted!");
+          self.setSnackbar(`Unfollowed playlist.`);
+          // console.log("Document successfully deleted!");
           this.props.history.push(`/`);
         }).catch(function (error) {
           console.error("Error removing document: ", error);
+          self.setSnackbar(error.message);
         });
       } 
     }).catch(function (error) {
       console.log("Error getting document:", error);
+      self.setSnackbar(error.message);
     });
   };
 
@@ -946,7 +956,6 @@ class App extends Component {
   };
 
   onRemoveFromPlaylist = (videoId, item) => {
-    console.log(`Removing: ${videoId} from ${item.playlistName}`)
     const user = this.state.user;
     const self = this;
 
@@ -967,7 +976,7 @@ class App extends Component {
       })
 
     }).catch(function(error) {
-      self.setSnackbar(error.toString());
+      self.setSnackbar(error.message);
     });
   };
 
@@ -1113,6 +1122,7 @@ class App extends Component {
   onAddPlaylist = (playlistName, playlistDescription, playlistUrl, callback) => {
     const user = this.state.user;
     const playlistSlugName = this.slugify(playlistName);
+    const self = this;
 
     const spotifyUrl = typeof playlistUrl === "string" 
       && (/spotify/i).test(playlistUrl) 
@@ -1123,10 +1133,6 @@ class App extends Component {
       && (/youtube/i).test(playlistUrl)
       ? playlistUrl
       : null;
-
-    console.log(`User id: ${user.uid}`);
-    console.log(`playlist name: ${playlistName}`);
-    console.log(`playlist slug: ${playlistSlugName}`);
 
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists');
     docRef.add({
@@ -1145,7 +1151,7 @@ class App extends Component {
       spotifyUrl: spotifyUrl,
       youtubeUrl: youtubeUrl
     }).then((docRef) => {
-      console.log(`Playlist saved with Id: ${docRef.id}`);
+      // console.log(`Playlist saved with Id: ${docRef.id}`);
       docRef.update({
         playlistId: docRef.id
       })
@@ -1163,12 +1169,15 @@ class App extends Component {
         featured: false
       }).then(function(){
         if (typeof callback === 'function') callback(docRef.id);
-        console.log(`Playlist saved globally with Id: ${docRef.id}`);
+        // console.log(`Playlist saved globally with Id: ${docRef.id}`);
+        self.setSnackbar(`Created playlist ${playlistName}`);
       }).catch(function (error){
         console.log('Got an error:', error);
+        self.setSnackbar(error.message);
       });
     }).catch(function (error) {
       console.log('Got an error:', error);
+      self.setSnackbar(error.message);
     })
     
     if (typeof playlistUrl === "undefined") this.toggleClosePlaylistPopup();
@@ -1204,9 +1213,10 @@ class App extends Component {
       this.setState({
         currentPlaylistName: playlistName
       })
-      console.log('Playlist updated!');
+      this.setSnackbar('Playlist updated!');
     }).catch(function (error) {
       console.log('Got an error:', error);
+      this.setSnackbar(error.message);
     })
 
     //Update Public Playlists
@@ -1215,9 +1225,10 @@ class App extends Component {
       playlistSlugName: playlistSlugName,
       playlistDescription: playlistDescription,
     }).then(() => {
-      console.log('Public Playlist updated!');
+      // console.log('Public Playlist updated!');
     }).catch(function (error) {
       console.log('Got an error:', error);
+      this.setSnackbar(error.message);
     })
 
     this.toggleClosePlaylistPopup();
@@ -1412,13 +1423,15 @@ class App extends Component {
 
     docRef.delete().then(() => {
       playlistsRef.delete().then(() => {
-        console.log(`${docRef.id} Document successfully deleted!`);
+        self.setSnackbar(`Removed playlist ${playlist.playlistName}`);
         self.props.history.push(`/users/${user.uid}`);
       }).catch((error) => {
         console.error("Error removing document: ", error);
+        self.setSnackbar(error.message);
       });
     }).catch((error) => {
       console.error("Error removing document: ", error);
+      self.setSnackbar(error.message);
     });
   }
 
@@ -1428,6 +1441,7 @@ class App extends Component {
     const user = this.state.user;
     //Capitalize each word
     const newTag = e.target.tagInput.value.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+    const self = this;
     
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(this.state.playlistToAddTag.playlistId);
     const playlistRef = firebase.firestore().collection('playlists').doc(this.state.playlistToAddTag.playlistId);
@@ -1443,9 +1457,10 @@ class App extends Component {
           docRef.update({
             tags: currentTags
           }).then(() => {
-            console.log('Playlist updated!');
+            // console.log('Playlist updated!');
           }).catch(function (error) {
             console.log('Got an error:', error);
+            self.setSnackbar(error.message);
           })
         }
       }
@@ -1462,9 +1477,10 @@ class App extends Component {
           playlistRef.update({
             tags: currentTags
           }).then(() => {
-            console.log('Playlist updated!');
+            // console.log('Playlist updated!');
           }).catch(function (error) {
             console.log('Got an error:', error);
+            self.setSnackbar(error.message);
           })
         }
       }
@@ -1475,6 +1491,7 @@ class App extends Component {
 
   onRemoveTag = (newTags, playlistItem) => {
     const user = this.state.user;
+    const self = this;
     
     const docRef = firebase.firestore().collection('users').doc(user.uid).collection('playlists').doc(playlistItem.playlistId);
     const playlistRef = firebase.firestore().collection('playlists').doc(playlistItem.playlistId);
@@ -1486,9 +1503,10 @@ class App extends Component {
           docRef.update({
             tags: newTags
           }).then(() => {
-            console.log('Playlist updated!');
+            // console.log('Playlist updated!');
           }).catch(function (error) {
             console.log('Got an error:', error);
+            self.setSnackbar(error.message);
           })
         }
       }
@@ -1501,9 +1519,10 @@ class App extends Component {
           playlistRef.update({
             tags: newTags
           }).then(() => {
-            console.log('Playlist updated!');
+            // console.log('Playlist updated!');
           }).catch(function (error) {
             console.log('Got an error:', error);
+            self.setSnackbar(error.message);
           })
         }
       }

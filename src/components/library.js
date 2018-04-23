@@ -83,7 +83,6 @@ class Library extends Component {
         this.setState({
           library: 'not found',
         })
-        console.log("No such document!");
       }
     });
   }
@@ -127,9 +126,6 @@ class Library extends Component {
         libraryOrderBy: type,
         libraryOrderDirection: orderDirection,
       })
-      .then(function () {
-        console.log("Library order updated Succesfully");
-      })
       .catch(function (error) {
         // The document probably doesn't exist.
         console.error("Error updating document: ", error);
@@ -163,7 +159,6 @@ class Library extends Component {
     docRef.update({
       libraryVideos: newOrder,
     })
-    .then(() => console.log('Order updated'))
     .catch(function(error) {
       console.log(error)
     });

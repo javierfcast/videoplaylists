@@ -162,7 +162,6 @@ class Playlist extends Component {
           playlist: 'not found',
           playlistPublicInfo: 'not found'
         })
-        console.log("No such document!");
         
       }
     });
@@ -239,9 +238,6 @@ class Playlist extends Component {
         orderBy: type,
         orderDirection: orderDirection,
       })
-      .then(function () {
-        console.log("Order updated Succesfully");
-      })
       .catch(function (error) {
         // The document probably doesn't exist.
         console.error("Error updating document: ", error);
@@ -284,9 +280,9 @@ class Playlist extends Component {
     docRef.update({
       playlistVideos: newOrder,
     })
-    .then(() => console.log('Order updated'))
     .catch(function(error) {
       console.log(error)
+      this.props.setSnackbar(error.message);
     });
   };
 
