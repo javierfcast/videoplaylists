@@ -269,7 +269,7 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
           <StyledBottomContainer>
             <StyledLabelLink to="/about" exact activeClassName="active">About</StyledLabelLink>
             <StyledLabelLink to="/terms" exact activeClassName="active">Terms of Service</StyledLabelLink>
-            <StyledLabelLink last to="/privacy" exact activeClassName="active">Privacy Policy</StyledLabelLink>
+            <StyledLabelLink last={1} to="/privacy" exact activeClassName="active">Privacy Policy</StyledLabelLink>
             <StyledLabel>Follow Us</StyledLabel>
             <StyledSocialList>
               <StyledSocialLink href="https://facebook.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoFacebook} alt='Logo Facebook' /></StyledSocialLink>
