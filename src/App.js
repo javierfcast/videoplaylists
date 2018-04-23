@@ -239,17 +239,11 @@ class App extends Component {
 
     //Handle electron events
     if (ipcRenderer) {
-      ipcRenderer.on('MediaPlayPause' , (event , data) => {
-        if (this.state.video) this.togglePlay()
-      });
+      ipcRenderer.on('MediaPlayPause' , this.togglePlay);
 
-      ipcRenderer.on('MediaNextTrack' , (event , data) => {
-        if (this.state.video) this.changeVideo(true)
-      });
+      ipcRenderer.on('MediaNextTrack' , this.playNextVideo);
 
-      ipcRenderer.on('MediaPreviousTrack' , (event , data) => {
-        if (this.state.video) this.changeVideo(false)
-      });
+      ipcRenderer.on('MediaPreviousTrack' , this.playPreviousVideo);
     }
 
     //Handle login / logout
