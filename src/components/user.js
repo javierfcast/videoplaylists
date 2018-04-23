@@ -104,7 +104,6 @@ class User extends Component {
           profile: doc.data(),
         })
       } else {
-        console.log("No such document!");
         this.setState({
           profile: 'not found',
         })

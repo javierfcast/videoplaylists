@@ -147,6 +147,7 @@ class LikedYoutube extends Component {
         })
         .catch(e => {
           console.log(e)
+          this.props.setSnackbar(e.message)
         });
     });
   }

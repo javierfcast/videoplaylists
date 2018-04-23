@@ -92,7 +92,6 @@ const AddToPlaylistPopup = ({ user, onLogin, video, onAddToPlaylist, onAddToLibr
   }
 
   if(!video){
-    console.log(video);
     return(
       <StyledPopup>
         <h3>loading...</h3>
