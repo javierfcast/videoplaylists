@@ -1,4 +1,8 @@
-const {app, BrowserWindow, globalShortcut} = require('electron')
+const electron = require('electron')
+
+const app = electron.app
+const BrowserWindow = electron.BrowserWindow
+const globalShortcut = electron.globalShortcut
 
 const path = require('path')
 const url = require('url')
@@ -9,7 +13,12 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
+  const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
+  mainWindow = new BrowserWindow({
+    width,
+    height,
+    icon: path.join(__dirname, '../public/apple-icon-64x64.png')
+  })
 
   // and load the index.html of the app.
   // mainWindow.loadURL('http://localhost:3000');
@@ -47,9 +56,6 @@ app.on('ready', () => {
   globalShortcut.register('MediaPreviousTrack', () => {
     mainWindow.webContents.send('MediaPreviousTrack');
   })
-
-  // Check whether a shortcut is registered.
-  console.log('Registration: ', globalShortcut.isRegistered('MediaPlayPause'))
 })
 
 // Quit when all windows are closed.
