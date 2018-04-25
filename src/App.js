@@ -477,13 +477,14 @@ class App extends Component {
     //control-command + P
     if ((e.metaKey || e.ctrlKey) && e.keyCode === 80) {
       e.preventDefault();
-      this.toggleAddPlaylistPopup()
+      this.toggleAddPlaylistPopup();
     }
 
     //spacebar
     if (e.keyCode === 32 && this.state.video) {
+      if (document.activeElement.nodeName === "INPUT" || document.activeElement.nodeName === "TEXTAREA") return
       e.preventDefault();
-      this.togglePlay()
+      this.togglePlay();
     }
   }
 
