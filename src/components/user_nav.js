@@ -32,7 +32,7 @@ const StyledUserTrigger = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 10px;
+  margin: 10px;
   span{
     font-size: 14px;  
     margin-right: 10px;

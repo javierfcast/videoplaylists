@@ -13,16 +13,17 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
+  // const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
   mainWindow = new BrowserWindow({
-    width,
-    height,
-    icon: path.join(__dirname, '../public/apple-icon-64x64.png')
+    width: 1280,
+    height: 800,
+    icon: path.join(__dirname, '../public/apple-icon-64x64.png'),
+    titleBarStyle: 'hidden'
   })
 
   // and load the index.html of the app.
-  // mainWindow.loadURL('http://localhost:3000');
-  mainWindow.loadURL('https://videoplaylists.tv');
+  mainWindow.loadURL('http://localhost:3000');
+  // mainWindow.loadURL('https://videoplaylists.tv');
 
   // mainWindow.loadURL(startUrl);
 

@@ -40,7 +40,7 @@ const Aside = styled.div`
   `}
 `;
 const StyledContainer = styled.div`
-  padding: 20px;
+  padding: 40px 20px 20px;
   height: 100vh;
   overflow-y: auto;
   display: flex;
