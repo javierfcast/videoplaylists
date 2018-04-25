@@ -20,6 +20,7 @@ const Input = styled.input`
   color: #fff;
   background: none;
   transition: all .3s ease;
+  -webkit-user-select: none;
   &::-webkit-input-placeholder{
     color: rgba(255,255,255,.6);
   }
@@ -44,6 +45,7 @@ const SearchBarIcon = styled.a`
   top: 10px;
   cursor: pointer;
   z-index: 10;
+  -webkit-user-select: none;
 `
 
 class SearchBar extends Component {

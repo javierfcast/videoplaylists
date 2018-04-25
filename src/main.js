@@ -18,7 +18,8 @@ function createWindow () {
     width: 1280,
     height: 800,
     icon: path.join(__dirname, '../public/apple-icon-64x64.png'),
-    titleBarStyle: 'hidden'
+    titleBarStyle: 'hidden',
+    frame: false
   })
 
   // and load the index.html of the app.
