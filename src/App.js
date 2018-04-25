@@ -135,6 +135,7 @@ const StyledMain = styled.div`
 const StyledMainHeading = styled.div`
   display: flex;
   align-items: center;
+  padding-top: 8px;
 `;
 const StyledMainContainer = styled.div`
   display: block;
@@ -149,6 +150,12 @@ const StyledSidenavTrigger = styled.a`
   ${media.xmedium`
     display: none;
   `}
+`;
+const StyledDraggableRegion = styled.div`
+  height: 20px;
+  width: 100%;
+  position: absolute;
+  -webkit-app-region: drag;
 `;
 
 
@@ -1569,6 +1576,7 @@ class App extends Component {
           interfaceAlwaysOn={this.state.interfaceAlwaysOn}
           interfaceOff={this.state.interfaceOff}
         >
+          <StyledDraggableRegion />
           <StyledAside visible={this.state.navIsOpen} onClick={() => this.toggleNav()}>
             <Sidenav
               onLogin={this.onLogin}
