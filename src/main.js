@@ -22,14 +22,16 @@ function createWindow () {
     height: 800,
     icon: path.join(__dirname, '../public/apple-icon-64x64.png'),
     titleBarStyle: 'hidden',
-    frame: false
+    frame: false,
+    webPreferences: {
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'preload.js')
+    }
   })
 
   // and load the index.html of the app.
   // mainWindow.loadURL('http://localhost:3000');
   mainWindow.loadURL('https://videoplaylists.tv');
-
-  // mainWindow.loadURL(startUrl);
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
