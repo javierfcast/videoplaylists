@@ -13,7 +13,7 @@ ipcRenderer.on('MediaPreviousTrack', () => {
 })
 
 window.openExternal = function (url) {
-  shell.openExternal('https://drive.google.com/uc?export=download&id=1hBdLnzs7yCaOSpEX-FK-p-BlW3KjbfBN');
+  shell.openExternal(url);
 }
 
 window.sendSync = function (channel) {
