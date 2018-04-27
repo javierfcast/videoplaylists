@@ -434,6 +434,7 @@ class App extends Component {
       clearTimeout(mouseTimeout);
 
       mouseTimeout = setTimeout( () => {
+        if (document.activeElement.nodeName === "INPUT" || document.activeElement.nodeName === "TEXTAREA") return
         document.getElementById("interface").classList.add('hidden');
       }, 5000);
 
