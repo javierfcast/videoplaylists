@@ -36,8 +36,8 @@ const SearchResults = (props) => {
   }))
 
   const playlist = {
-    Author: props.user.displayName,
-    AuthorId: props.user.uid,
+    Author: props.user ? props.user.displayName : "Anonymous",
+    AuthorId: props.user ? props.user.uid : "",
     createdOn: new Date(),
     playlistId: head(searchResults).videoEtag,
     playlistName: "Search Results",
