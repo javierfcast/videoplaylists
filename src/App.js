@@ -41,6 +41,7 @@ import SearchTags from './components/search_tags'
 import LikedYoutube from './components/liked_youtube';
 import VideoOptionsPopup from './components/video_options_popup';
 import SharePopup from './components/share_popup';
+import UpdatePopup from './components/update_popup';
 
 //Import Reset CSS and Basic Styles for everything
 import './style/reset.css';
@@ -164,6 +165,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      updateIsOpen: false,
       searchResults: [],
       user: null,
       //Responsive
@@ -352,6 +354,24 @@ class App extends Component {
       });
       this.setState({ featuredPlaylists })
     });
+
+    //Check if electron is up to date
+    const videoplaylistsRef = firebase.firestore().doc(`videoplaylists/electron`);
+    
+    videoplaylistsRef.get()
+    .then(doc => {
+      if (ipcRenderer) {
+        const electronVersion = ipcRenderer.sendSync('electronVersion');
+        
+        if (doc.data().version !== electronVersion) {
+          this.setState({updateIsOpen: true});
+        }
+      }
+    })
+    .catch(e => {
+      console.log(e)
+      this.setSnackbar(e.message)
+    })
 
   };
 
@@ -1837,6 +1857,10 @@ class App extends Component {
             onClose={this.toggleShare}
             id="share-video-popup"
             large
+          />
+          <UpdatePopup 
+            open={this.state.updateIsOpen}
+            onClose={() => this.setState({updateIsOpen: false})}
           />
         </StyledContainer>
         <MuiThemeProvider>
