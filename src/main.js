@@ -3,6 +3,7 @@ const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const globalShortcut = electron.globalShortcut
+const Menu = electron.Menu
 
 const path = require('path')
 const url = require('url')
@@ -58,6 +59,56 @@ app.on('ready', () => {
   globalShortcut.register('MediaPreviousTrack', () => {
     mainWindow.webContents.send('MediaPreviousTrack');
   })
+
+  var template = [
+    {
+      label: 'Edit',
+      submenu: [
+        {role: 'undo'},
+        {role: 'redo'},
+        {type: 'separator'},
+        {role: 'cut'},
+        {role: 'copy'},
+        {role: 'paste'},
+        {role: 'delete'},
+        {role: 'selectall'}
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        {role: 'reload'},
+        {role: 'forcereload'},
+        {role: 'toggledevtools'},
+        {type: 'separator'},
+        {role: 'resetzoom'},
+        {role: 'zoomin'},
+        {role: 'zoomout'},
+        {type: 'separator'},
+        {role: 'togglefullscreen'}
+      ]
+    },
+  ];
+  
+  if (process.platform === 'darwin') {
+    template.unshift({
+      label: app.getName(),
+      submenu: [
+        // {role: 'about'},
+        {type: 'separator'},
+        {role: 'services', submenu: []},
+        {type: 'separator'},
+        {role: 'hide'},
+        {role: 'hideothers'},
+        {role: 'unhide'},
+        {type: 'separator'},
+        {role: 'quit'}
+      ]
+    })
+  }
+  
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
 })
 
 // Quit when all windows are closed.
