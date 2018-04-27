@@ -1,8 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const shell = typeof window.require === 'function' ? window.require("electron").shell : null;
-
 const StyledPopup = styled.div`
   position: fixed;
   top: 0;
@@ -81,9 +79,10 @@ const UpdatePopup = ({ open, onClose, setSnackbar }) => {
   }
 
   const onUpdate = () => {
-    if (!shell) {setSnackbar("Something went wrong, try again later.")}
-    else shell.openExternal('https://drive.google.com/uc?export=download&id=1hBdLnzs7yCaOSpEX-FK-p-BlW3KjbfBN');
-
+    if (typeof window.openExternal === 'function') {
+      window.openExternal('https://drive.google.com/uc?export=download&id=1hBdLnzs7yCaOSpEX-FK-p-BlW3KjbfBN');
+    }
+    else setSnackbar("Something went wrong, try again later.");
     onClose()
   }
 
