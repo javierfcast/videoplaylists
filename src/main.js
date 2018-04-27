@@ -4,6 +4,8 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const globalShortcut = electron.globalShortcut
 const Menu = electron.Menu
+const ipcMain = electron.ipcMain
+const session = electron.session
 
 const path = require('path')
 const url = require('url')
@@ -41,13 +43,17 @@ function createWindow () {
   })
 }
 
+ipcMain.on('electronVersion', (event, arg) => {
+  event.returnValue = '0.1.0'
+})
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
   //Create window
   createWindow()
-  
+
   globalShortcut.register('MediaPlayPause', () => {
     mainWindow.webContents.send('MediaPlayPause');
   })
@@ -79,7 +85,8 @@ app.on('ready', () => {
       submenu: [
         {role: 'reload'},
         {role: 'forcereload'},
-        {role: 'toggledevtools'},
+        // {role: 'toggledevtools'},
+        {label: "Clear Cache", click: function() {mainWindow.webContents.session.clearCache(()=>mainWindow.reload())}},
         {type: 'separator'},
         {role: 'resetzoom'},
         {role: 'zoomin'},
