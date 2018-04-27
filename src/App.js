@@ -47,8 +47,6 @@ import UpdatePopup from './components/update_popup';
 import './style/reset.css';
 import './style/style.css';
 
-const ipcRenderer = typeof window.require === 'function' ? window.require("electron").ipcRenderer : null;
-
 //Youtube Data 3 API Key
 const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
 let progTimeout;
@@ -247,13 +245,9 @@ class App extends Component {
   componentWillMount() {
 
     //Handle electron events
-    if (ipcRenderer) {
-      ipcRenderer.on('MediaPlayPause' , this.togglePlay);
-
-      ipcRenderer.on('MediaNextTrack' , this.playNextVideo);
-
-      ipcRenderer.on('MediaPreviousTrack' , this.playPreviousVideo);
-    }
+    window.addEventListener('MediaPlayPause', this.togglePlay);
+    window.addEventListener('MediaNextTrack', this.playNextVideo);
+    window.addEventListener('MediaPreviousTrack', this.playPreviousVideo);
 
     //Handle login / logout
     firebase.auth().onAuthStateChanged(user => {
@@ -360,8 +354,8 @@ class App extends Component {
     
     videoplaylistsRef.get()
     .then(doc => {
-      if (ipcRenderer) {
-        const electronVersion = ipcRenderer.sendSync('electronVersion');
+      if (typeof window.sendSync === 'function') {
+        const electronVersion = window.sendSync("electronVersion");
         
         if (doc.data().version !== electronVersion) {
           this.setState({updateIsOpen: true});
