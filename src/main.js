@@ -14,6 +14,8 @@ const url = require('url')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+let willQuitApp = false
+
 function createWindow () {
   // Create the browser window.
   // const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize
@@ -36,21 +38,21 @@ function createWindow () {
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    if (process.platform !== 'darwin') mainWindow = null
-  })
-
+  // Emitted when the window is closing.
   mainWindow.on('close', function (event) {
-    if (process.platform === 'darwin') {
+    if (process.platform === 'darwin' && !willQuitApp) {
       event.preventDefault();
       mainWindow.hide();
     }
+    else {
+      window = null
+    }
   })
 }
+
+// 'before-quit' is emitted when Electron receives 
+// the signal to exit and wants to start closing windows
+app.on('before-quit', () => willQuitApp = true);
 
 ipcMain.on('electronVersion', (event, arg) => {
   event.returnValue = '0.1.0'
