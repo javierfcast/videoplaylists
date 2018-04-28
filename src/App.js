@@ -1584,8 +1584,6 @@ class App extends Component {
 
   render() {
 
-    const onVideoSearch = debounce((searchTerm) => { this.onVideoSearch(searchTerm) }, 300);
-
     return (
       <div>
         <StyledContainer id="interface"
@@ -1612,7 +1610,7 @@ class App extends Component {
               <StyledSidenavTrigger onClick={() => this.toggleNav()}>
                 <MaterialIcon icon="menu" color='#fff' />
               </StyledSidenavTrigger>
-              <SearchBar onVideoSearch={onVideoSearch}/>
+              <SearchBar onVideoSearch={debounce(searchTerm => this.onVideoSearch(searchTerm), 500)}/>
               <UserNav 
                 onLogout={this.onLogout}
                 user={this.state.user}
