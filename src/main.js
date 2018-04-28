@@ -41,7 +41,14 @@ function createWindow () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+    if (process.platform !== 'darwin') mainWindow = null
+  })
+
+  mainWindow.on('close', function (event) {
+    if (process.platform === 'darwin') {
+      event.preventDefault();
+      mainWindow.hide();
+    }
   })
 }
 
@@ -88,7 +95,7 @@ app.on('ready', () => {
         {role: 'reload'},
         {role: 'forcereload'},
         // {role: 'toggledevtools'},
-        {label: "Clear Cache", click: function() {mainWindow.webContents.session.clearCache(()=>mainWindow.reload())}},
+        {label: "Clear Cache", click: function() {mainWindow.reloadIgnoringCache()}},
         {type: 'separator'},
         {role: 'resetzoom'},
         {role: 'zoomin'},
@@ -134,6 +141,9 @@ app.on('activate', function () {
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
     createWindow()
+  }
+  else {
+    mainWindow.show()
   }
 })
 
