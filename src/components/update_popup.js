@@ -79,8 +79,8 @@ const UpdatePopup = ({ open, onClose, setSnackbar }) => {
   }
 
   const onUpdate = () => {
-    if (typeof window.openExternal === 'function') {
-      window.openExternal('https://drive.google.com/uc?export=download&id=1hBdLnzs7yCaOSpEX-FK-p-BlW3KjbfBN');
+    if (typeof window.openUpdateUrl === 'function') {
+      window.openUpdateUrl();
     }
     else setSnackbar("Something went wrong, try again later.");
     onClose()

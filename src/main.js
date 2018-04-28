@@ -30,8 +30,8 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-  // mainWindow.loadURL('http://localhost:3000');
-  mainWindow.loadURL('https://videoplaylists.tv');
+  mainWindow.loadURL('http://localhost:3000');
+  // mainWindow.loadURL('https://videoplaylists.tv');
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()

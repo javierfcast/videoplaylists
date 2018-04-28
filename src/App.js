@@ -155,6 +155,7 @@ const StyledDraggableRegion = styled.div`
   width: 100%;
   position: absolute;
   -webkit-app-region: drag;
+  z-index: 9999;
 `;
 
 
@@ -1855,6 +1856,7 @@ class App extends Component {
           <UpdatePopup 
             open={this.state.updateIsOpen}
             onClose={() => this.setState({updateIsOpen: false})}
+            setSnackbar={this.setSnackbar}
           />
         </StyledContainer>
         <MuiThemeProvider>
