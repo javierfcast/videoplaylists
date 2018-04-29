@@ -5,7 +5,10 @@ import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import moment from 'moment';
 import YTApi from './yt_api';
-import {head, findIndex, remove, some} from 'lodash'
+import {head, findIndex, remove, some, isEmpty, map} from 'lodash';
+import axios from 'axios';
+
+import SpotifyWebApi from 'spotify-web-api-js';
 
 import VideoListContainer from './video_list_container';
 import SharePopup from './share_popup';
@@ -183,14 +186,18 @@ class Video extends Component {
   startRadio = (videoID) => {
     if (this.state.loading) return
 
+    let firstVideo
+
     this.setState({loading: true}, () => {
+      const spotifyApi = new SpotifyWebApi();
+
       YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
       .then(response => {
         response = head(response) 
 
         if (!response) {this.setState({notFound: true}); throw new Error("Video not found.")}
   
-        return {
+        firstVideo = {
           timestamp: new Date(),
           videoEtag: response.etag,
           videoID: response.id,
@@ -199,42 +206,70 @@ class Video extends Component {
           datePublished: response.snippet.publishedAt,
           duration: response.contentDetails.duration,
         }
+
+        return firstVideo
       })
-      .then(video => {
-        YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: video.videoID, type: 'video', maxResults: 30 })
-        .then((searchResults)=> {
-          let relatedVideos = searchResults.map((result, index) => ({
-              datePublished: result.snippet.publishedAt,
-              videoChannel: result.snippet.channelTitle,
-              videoEtag: result.etag,
-              videoID: result.id.videoId,
-              videoTitle: result.snippet.title,
-              key: result.id.videoId,
-              duration: result.contentDetails.duration,
-          }));
-  
-          relatedVideos = [video, ...relatedVideos];
+      .then(() => {
+        const APPS_SCRIPT_TOKEN = "https://script.google.com/macros/s/AKfycbwxAkZ3StrS7tfLY1byXtKRCQF2k6PHVfjUNebnvfeEHq8CUdAR/exec";
+        return axios.get(APPS_SCRIPT_TOKEN)
+      })
+      .then(token => {
+        spotifyApi.setAccessToken(token.data.access_token);
+        return spotifyApi.searchTracks(firstVideo.videoTitle)
+      })
+      .then(searchResponse => {
+        if (isEmpty(searchResponse.tracks.items)) return false
 
-          const playlist = {
-            Author: this.props.user ? this.props.user.displayName : "Anonymous",
-            AuthorId: this.props.user ? this.props.user.uid : "Anonymous",
-            createdOn: new Date(),
-            featured: false,
-            followers: 0,
-            playlistId: video.videoEtag,
-            playlistName: "radio",
-            playlistSlugName: "radio",
-            videoCount: relatedVideos.length,
-          }
-  
-          this.props.togglePlayer(video, playlist, relatedVideos, `/watch/${video.videoID}`, videoID)
+        return spotifyApi.getArtistTopTracks(head(head(searchResponse.tracks.items).artists).id, "US")
+      })
+      .then(topTracks => {
+        if (!topTracks) return false
+        if (isEmpty(topTracks.tracks)) return false
+        return map(topTracks.tracks, trackObj => (
+          YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: trackObj.name + " " + head(trackObj.artists).name, type: 'video', maxResults: 1 })
+        ))
+      })
+      .then(promises => {
+        if (!promises) return false
+        return Promise.all(promises)
+      })
+      .then(ytResults => {
+        if (!ytResults) return false
+        return map(ytResults, r => head(r))
+      })
+      .then(relatedResults => {
+        if (relatedResults) return relatedResults
+        return YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: firstVideo.videoID, type: 'video', maxResults: 30 })
+      })
+      .then(relatedVideos => {
+        //remove current video by id from related
+        relatedVideos = map(relatedVideos, relatedResult => ({
+          datePublished: relatedResult.snippet.publishedAt,
+          videoChannel: relatedResult.snippet.channelTitle,
+          videoEtag: relatedResult.etag,
+          videoID: relatedResult.id.videoId,
+          videoTitle: relatedResult.snippet.title,
+          key: relatedResult.id.videoId,
+          duration: relatedResult.contentDetails.duration,
+        }))
 
-          this.setState({loading: false});
-        })
-        .catch(e => {
-          console.log('error: ', e);
-          this.props.setSnackbar(String(e))
-        });
+        relatedVideos = [firstVideo, ...relatedVideos];
+
+        const playlist = {
+          Author: this.props.user ? this.props.user.displayName : "Anonymous",
+          AuthorId: this.props.user ? this.props.user.uid : "Anonymous",
+          createdOn: new Date(),
+          featured: false,
+          followers: 0,
+          playlistId: firstVideo.videoEtag,
+          playlistName: "radio",
+          playlistSlugName: "radio",
+          videoCount: relatedVideos.length,
+        }
+
+        this.props.togglePlayer(firstVideo, playlist, relatedVideos, `/watch/${firstVideo.videoID}`, videoID)
+
+        this.setState({loading: false});
       })
       .catch(e => {
         console.log('error: ', e);
