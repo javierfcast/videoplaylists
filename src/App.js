@@ -1,4 +1,4 @@
-import {debounce, isEmpty, filter, every, map, some} from 'lodash';
+import {debounce, isEmpty, filter, every, map, some, head, forEach, uniqBy} from 'lodash';
 import React, { Component } from 'react';
 import { Switch, Route, withRouter } from 'react-router-dom';
 import firebase from 'firebase';
@@ -1259,13 +1259,12 @@ class App extends Component {
   };
 
   batchAdd = (playlistIdRef, items, isUpdate, kind) => {
-    let seen = [];
+    let playlistVideos = [];
     const db = firebase.firestore();
-    const playlistVideos = [];
     const user = this.state.user;
     const self = this;
 
-    items.forEach((video) => {
+    forEach(items, video => {
       if (video) {
         const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
         const videoId = typeof video.id !== 'undefined' ? typeof video.id.videoId !== 'undefined' ? video.id.videoId : video.snippet.resourceId.videoId : video.videoID;
@@ -1273,23 +1272,24 @@ class App extends Component {
         const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
         const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
         const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
-
-        //dont set if video is duplicated
-        if (!seen.some((id) => id === videoId)) {
-          playlistVideos.push({
-            timestamp: new Date(),
-            videoEtag: videoEtag,
-            videoID: videoId,
-            videoTitle: videoTitle,
-            videoChannel: videoChannel,
-            datePublished: datePublished,
-            duration: duration,
-          })
-
-          seen.push(videoId);
+        
+        const videoItem = {
+          timestamp: new Date(),
+          videoEtag: videoEtag,
+          videoID: videoId,
+          videoTitle: videoTitle,
+          videoChannel: videoChannel,
+          datePublished: datePublished,
+          duration: duration,
         }
+
+        if (video.spotifyId) videoItem.spotifyId = video.spotifyId;
+
+        playlistVideos.push(videoItem);
       }
-    });
+    })
+
+    playlistVideos = uniqBy(playlistVideos, "videoID");
 
     const userPlaylistRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef);
     const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
@@ -1332,7 +1332,7 @@ class App extends Component {
     if (isUpdate !== true) this.setSnackbar("Importing playlist...");
 
     //Fetch Spotify Web Api token with Google Apps Script
-    //Using Google Apps Script to not expose client secret
+    //using Google Apps Script to not expose client secret
     const spotifyApi = new SpotifyWebApi();
     const APPS_SCRIPT_TOKEN = "https://script.google.com/macros/s/AKfycbwxAkZ3StrS7tfLY1byXtKRCQF2k6PHVfjUNebnvfeEHq8CUdAR/exec";
     
@@ -1358,12 +1358,23 @@ class App extends Component {
 
           allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
-            promises.push(YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
+            promises.push(
+              new Promise((resolve, reject) => {
+                YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 })
+                .then(res => {
+                  head(res).spotifyId = trackObj.track.id
+                  resolve(res)
+                })
+                .catch(e => {
+                  reject(e)
+                })
+              })
+            );
           });
 
           Promise.all(promises)
           .then((results)=> {
-            results = results.map((result) => result[0]);
+            results = results.map(r => head(r));
             if (isUpdate === true) {
               self.batchAdd(playlist.playlistId, results, isUpdate, 'Spotify');
             }

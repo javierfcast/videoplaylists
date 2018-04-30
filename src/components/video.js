@@ -225,7 +225,22 @@ class Video extends Component {
       .then(topTracks => {
         if (!topTracks || isEmpty(topTracks.tracks)) return false
         return map(topTracks.tracks, trackObj => (
-          YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: trackObj.name + " " + head(trackObj.artists).name, type: 'video', maxResults: 1 })
+          new Promise((resolve, reject) => {
+            YTApi.search({
+              part: "snippet",
+              key: this.props.YT_API_KEY,
+              q: trackObj.name + " " + head(trackObj.artists).name,
+              type: "video",
+              maxResults: 1
+            })
+            .then(res => {
+              head(res).spotifyId = trackObj.id;
+              resolve(res);
+            })
+            .catch(e => {
+              reject(e);
+            });
+          })
         ))
       })
       .then(promises => {
@@ -249,6 +264,7 @@ class Video extends Component {
           videoTitle: relatedResult.snippet.title,
           key: relatedResult.id.videoId,
           duration: relatedResult.contentDetails.duration,
+          spotifyId: relatedResult.spotifyId || null
         }))
 
         relatedVideos = uniqBy([firstVideo, ...relatedVideos], "videoID");
