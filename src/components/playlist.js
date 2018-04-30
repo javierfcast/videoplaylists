@@ -3,7 +3,7 @@ import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
 import { css } from 'styled-components';
-import _ from 'lodash';
+import {map, orderBy, some} from 'lodash';
 
 import SharePopup from './share_popup';
 import VideoListContainer from './video_list_container';
@@ -131,7 +131,7 @@ class Playlist extends Component {
               tags: doc.data().tags,
               playlistVideos:  doc.data().orderBy === 'custom'
               ? doc.data().orderDirection === 'asc' ? playlistVideos : playlistVideos.reverse() 
-              : _.orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection]),
+              : orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection]),
             })
 
           });
@@ -144,7 +144,7 @@ class Playlist extends Component {
           playlistVideos = playlistVideos.reverse();
         }
         else if (doc.data().orderBy !== 'custom') {
-          playlistVideos = _.orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection])
+          playlistVideos = orderBy(playlistVideos, [doc.data().orderBy], [doc.data().orderDirection])
         }
 
         this.setState({
@@ -188,7 +188,7 @@ class Playlist extends Component {
     if (this.state.orderBy !== nextState.orderBy || this.state.orderDirection !== nextState.orderDirection) {
       if (this.props.user && this.state.playlist && this.state.playlist.AuthorId !== this.props.user.uid) {
         this.setState({
-          playlistVideos: _.orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
+          playlistVideos: orderBy(nextState.playlistVideos, [nextState.orderBy], [nextState.orderDirection])
         })
       }
     }
@@ -265,15 +265,7 @@ class Playlist extends Component {
   onSort = (items) => {
     const docRef = firebase.firestore().collection("users").doc(this.state.profileId).collection("playlists").doc(this.state.playlistId);
     
-    const newOrder = _.map(items, item => ({
-      timestamp: item.props.video.timestamp,
-        videoEtag: item.props.video.videoEtag,
-        videoID: item.props.video.videoID,
-        videoTitle: item.props.video.videoTitle,
-        videoChannel: item.props.video.videoChannel,
-        datePublished: item.props.video.datePublished,
-        duration: item.props.video.duration,
-    }))
+    const newOrder = map(items, item => item.props.video);
 
     if (this.state.orderDirection === 'desc') newOrder.reverse(); 
 
@@ -297,7 +289,7 @@ class Playlist extends Component {
           <StyledNoFoundContent>
             <h1>The Playlist you are looking for no longer exists.</h1>
             { 
-              _.some(this.props.followingPlaylists, {playlistId: this.state.playlistId}) 
+              some(this.props.followingPlaylists, {playlistId: this.state.playlistId}) 
               ? <PlaylistActions onClick={() => this.props.onPlaylistUnfollow(this.state.playlistId)}>
                   Unfollow
                 </PlaylistActions> 
