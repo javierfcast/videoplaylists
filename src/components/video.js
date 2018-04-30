@@ -7,6 +7,8 @@ import moment from 'moment';
 import YTApi from './yt_api';
 import {head, findIndex, remove, some, isEmpty, map, uniqBy} from 'lodash';
 import axios from 'axios';
+import CircularProgress from 'material-ui/CircularProgress';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 
 import SpotifyWebApi from 'spotify-web-api-js';
 
@@ -36,6 +38,11 @@ const StyledContainer = styled.div`
   overflow: auto;
   height: calc(100vh - 100px);
 `;
+const StyledLodingContainer = StyledContainer.extend`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
 const StyledNoFoundContent = styled.div`
   width: 100%;
   height: calc(100vh - 354px);
@@ -186,7 +193,7 @@ class Video extends Component {
   startRadio = (videoID, firstSpotifyId) => {
     if (this.state.loading) return
 
-    let firstVideo
+    let firstVideo;
 
     this.setState({loading: true}, () => {
       const spotifyApi = new SpotifyWebApi();
@@ -370,6 +377,16 @@ class Video extends Component {
             <h1>Sorry. This video is not available.</h1>
           </StyledNoFoundContent>
         </StyledContainer>
+      )
+    }
+
+    if (this.state.loading || !this.state.video.videoTitle) {
+      return (
+        <StyledLodingContainer>
+          <MuiThemeProvider>
+            <CircularProgress color="#fff" thickness={4} size={60} />
+          </MuiThemeProvider>
+        </StyledLodingContainer>
       )
     }
 
