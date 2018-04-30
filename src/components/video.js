@@ -5,7 +5,7 @@ import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import moment from 'moment';
 import YTApi from './yt_api';
-import {head, findIndex, remove, some, isEmpty, map} from 'lodash';
+import {head, findIndex, remove, some, isEmpty, map, uniqBy} from 'lodash';
 import axios from 'axios';
 
 import SpotifyWebApi from 'spotify-web-api-js';
@@ -223,8 +223,7 @@ class Video extends Component {
         return spotifyApi.getArtistTopTracks(head(head(searchResponse.tracks.items).artists).id, "US")
       })
       .then(topTracks => {
-        if (!topTracks) return false
-        if (isEmpty(topTracks.tracks)) return false
+        if (!topTracks || isEmpty(topTracks.tracks)) return false
         return map(topTracks.tracks, trackObj => (
           YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, q: trackObj.name + " " + head(trackObj.artists).name, type: 'video', maxResults: 1 })
         ))
@@ -234,7 +233,7 @@ class Video extends Component {
         return Promise.all(promises)
       })
       .then(ytResults => {
-        if (!ytResults) return false
+        if (!ytResults || isEmpty(ytResults)) return false
         return map(ytResults, r => head(r))
       })
       .then(relatedResults => {
@@ -242,7 +241,6 @@ class Video extends Component {
         return YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: firstVideo.videoID, type: 'video', maxResults: 30 })
       })
       .then(relatedVideos => {
-        //remove current video by id from related
         relatedVideos = map(relatedVideos, relatedResult => ({
           datePublished: relatedResult.snippet.publishedAt,
           videoChannel: relatedResult.snippet.channelTitle,
@@ -253,7 +251,7 @@ class Video extends Component {
           duration: relatedResult.contentDetails.duration,
         }))
 
-        relatedVideos = [firstVideo, ...relatedVideos];
+        relatedVideos = uniqBy([firstVideo, ...relatedVideos], "videoID");
 
         const playlist = {
           Author: this.props.user ? this.props.user.displayName : "Anonymous",
