@@ -111,8 +111,6 @@ const SharePopup = ({ user, open, onClose, name, url, onCopy, id, center, large 
     return null;
   }
 
-  console.log(encodeURI(url));
-
   return(
     <StyledPopup onBlur={onClose} id={id} center={center} large={large} tabIndex={large ? null : "0"}>
       <StyledContent large={large} >
