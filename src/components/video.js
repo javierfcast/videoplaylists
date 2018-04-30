@@ -223,7 +223,12 @@ class Video extends Component {
   componentWillMount() {
     if (!this.props.watchId || this.props.watchId !== this.props.match.params.videoId) {
       if (this.props.playerLoaded) {
-        this.startRadio(this.props.match.params.videoId, this.props.match.params.spotifyId, this.props)
+        this.startRadio(
+          this.props.match.params.videoId, 
+          this.props.match.params.spotifyId, 
+          this.props,
+          this.props.videoId === this.props.match.params.videoId
+        )
       }
     }
     else if (this.props.currentVideo && this.state.video.videoID !== this.props.currentVideo.videoID) {
@@ -234,7 +239,12 @@ class Video extends Component {
   componentWillReceiveProps(nextProps) {
     if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId || this.props.topTracks !== nextProps.topTracks) {
       if (nextProps.playerLoaded) {
-        this.startRadio(nextProps.match.params.videoId, nextProps.match.params.spotifyId, nextProps, this.props.topTracks !== nextProps.topTracks);
+        this.startRadio(
+          nextProps.match.params.videoId, 
+          nextProps.match.params.spotifyId, 
+          nextProps, 
+          this.props.topTracks !== nextProps.topTracks || nextProps.videoId === nextProps.match.params.videoId
+        );
       }
     }
 
@@ -320,6 +330,7 @@ class Video extends Component {
               maxResults: 1
             })
             .then(res => {
+              if (isEmpty(res)) resolve(null)
               head(res).spotifyId = trackObj.id;
               resolve(res);
             })
@@ -338,7 +349,7 @@ class Video extends Component {
         return map(ytResults, r => head(r))
       })
       .then(relatedResults => {
-        if (relatedResults) return relatedResults
+        if (relatedResults) return relatedResults = remove(relatedResults, rr => rr)
         return YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: firstVideo.videoID, type: 'video', maxResults: 30 })
       })
       .then(relatedVideos => {
