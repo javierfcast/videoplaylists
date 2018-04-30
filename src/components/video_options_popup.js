@@ -117,11 +117,19 @@ const VideoOptionsPopup = ({ open, video, remove, onClose, playlist, togglePlayl
       <StyledContent>
         <StyledTitle>{video.videoTitle}</StyledTitle>
         <StyledTitleLabel>{video.videoChannel}</StyledTitleLabel>
-        <StyledAction onClick={() => {onClose(); togglePlaylistPopup(video)}}><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledAction>
-        <StyledLink to={`/watch/${video.videoID}`} onClick={onClose} ><MaterialIcon icon="music_video" color='#fff' /> Start radio</StyledLink>
+        <StyledAction onClick={() => {onClose(); togglePlaylistPopup(video)}}>
+          <MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist
+        </StyledAction>
+        <StyledLink to={`/watch/${video.videoID}${video.spotifyId ? `/${video.spotifyId}` : ''}`} onClick={onClose} >
+          <MaterialIcon icon="music_video" color='#fff' /> Start radio
+        </StyledLink>
         <StyledAction onClick={() => {onClose(); onShare(video)}} ><MaterialIcon icon="share" color='#fff' /> Share</StyledAction>
         {remove ? <hr /> : null}
-        {remove ? <StyledAction onClick={() => {onClose(); onRemoveFromPlaylist(video.videoID, playlist)}} ><MaterialIcon icon="delete_forever" color='#fff' /> Remove</StyledAction> : null}
+        {remove 
+        ? <StyledAction onClick={() => {onClose(); onRemoveFromPlaylist(video.videoID, playlist)}} >
+            <MaterialIcon icon="delete_forever" color='#fff' /> Remove
+          </StyledAction> 
+        : null}
         <StyledButton onClick={onClose}>
           Cancel
         </StyledButton>

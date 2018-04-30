@@ -163,7 +163,7 @@ class Video extends Component {
   componentWillMount() {
     if (!this.props.watchId || this.props.watchId !== this.props.match.params.videoId) {
       if (this.props.playerLoaded) {
-        this.startRadio(this.props.match.params.videoId)
+        this.startRadio(this.props.match.params.videoId, this.props.match.params.spotifyId)
       }
     }
     else if (this.props.currentVideo && this.state.video.videoID !== this.props.currentVideo.videoID) {
@@ -174,7 +174,7 @@ class Video extends Component {
   componentWillReceiveProps(nextProps) {
     if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
       if (nextProps.playerLoaded) {
-        this.startRadio(nextProps.match.params.videoId)
+        this.startRadio(nextProps.match.params.videoId, nextProps.match.params.spotifyId)
       }
     }
 
@@ -183,7 +183,7 @@ class Video extends Component {
     }
   };
 
-  startRadio = (videoID) => {
+  startRadio = (videoID, firstSpotifyId) => {
     if (this.state.loading) return
 
     let firstVideo
@@ -205,6 +205,7 @@ class Video extends Component {
           videoChannel: response.snippet.channelTitle,
           datePublished: response.snippet.publishedAt,
           duration: response.contentDetails.duration,
+          spotifyId: firstSpotifyId || null
         }
 
         return firstVideo
@@ -281,7 +282,7 @@ class Video extends Component {
           videoCount: relatedVideos.length,
         }
 
-        this.props.togglePlayer(firstVideo, playlist, relatedVideos, `/watch/${firstVideo.videoID}`, videoID)
+        this.props.togglePlayer(firstVideo, playlist, relatedVideos, `/watch/${firstVideo.videoID}${firstVideo.spotifyId ? `/${firstVideo.spotifyId}` : ''}`, videoID)
 
         this.setState({loading: false});
       })
@@ -390,7 +391,7 @@ class Video extends Component {
         <SharePopup
           open={this.state.shareOpen}
           name={this.state.shareVideo.videoTitle}
-          url={`https://videoplaylists.tv/watch/${this.state.shareVideo.videoID}`}
+          url={`https://videoplaylists.tv/watch/${this.state.shareVideo.videoID}${this.state.shareVideo.spotifyId ? `/${this.state.shareVideo.spotifyId}` : ''}`}
           onCopy={this.props.setSnackbar}
           onClose={this.toggleShare}
           id="share-video-popup"

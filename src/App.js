@@ -1858,7 +1858,11 @@ class App extends Component {
           <SharePopup
             open={this.state.shareOpen}
             name={this.state.videoTitle}
-            url={`https://videoplaylists.tv/watch/${this.state.videoId}`}
+            url={
+              !this.state.video || !this.state.video.spotifyId
+              ? `https://videoplaylists.tv/watch/${this.state.videoId}` 
+              : `https://videoplaylists.tv/watch/${this.state.videoId}/${this.state.video.spotifyId}`
+            }
             onCopy={this.setSnackbar}
             onClose={this.toggleShare}
             id="share-video-popup"
