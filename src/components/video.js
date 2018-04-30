@@ -216,11 +216,26 @@ class Video extends Component {
       })
       .then(token => {
         spotifyApi.setAccessToken(token.data.access_token);
-        return spotifyApi.searchTracks(firstVideo.videoTitle)
+        if (firstSpotifyId) {
+          return new Promise ((resolve, reject) => {
+            spotifyApi.getTrack(firstSpotifyId)
+            .then(r => resolve(r))
+            .catch(e => resolve(false))
+          })
+        }
+        return false
+      })
+      .then(trackResponse => {
+        if (!trackResponse) return spotifyApi.searchTracks(firstVideo.videoTitle)
+        return trackResponse
       })
       .then(searchResponse => {
+        if (!searchResponse) return false
+        if (searchResponse.type === "track") {
+          return spotifyApi.getArtistTopTracks(head(searchResponse.artists).id, "US")
+        }
+        
         if (isEmpty(searchResponse.tracks.items)) return false
-
         return spotifyApi.getArtistTopTracks(head(head(searchResponse.tracks.items).artists).id, "US")
       })
       .then(topTracks => {

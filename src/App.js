@@ -1673,7 +1673,7 @@ class App extends Component {
                     followingPlaylists={this.state.followingPlaylists}
                   /> }
                 />
-                <Route exact path='/watch/:videoId' render={({ match }) =>
+                <Route exact path='/watch/:videoId/:spotifyId?' render={({ match }) =>
                   <Video
                     match={match}
                     history={this.props.history}
