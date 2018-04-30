@@ -929,6 +929,7 @@ class App extends Component {
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
     const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+    const spotifyId = video.spotifyId || null;
 
     const user = this.state.user;
 
@@ -959,6 +960,7 @@ class App extends Component {
           videoChannel: videoChannel,
           datePublished: datePublished,
           duration: duration,
+          spotifyId: spotifyId
         }],
         videoCount: playlistVideos.length + 1
       })
@@ -1274,8 +1276,9 @@ class App extends Component {
         const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
         const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
         const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
-        
-        const videoItem = {
+        const spotifyId = video.spotifyId || null;
+
+        playlistVideos.push({
           timestamp: new Date(),
           videoEtag: videoEtag,
           videoID: videoId,
@@ -1283,11 +1286,8 @@ class App extends Component {
           videoChannel: videoChannel,
           datePublished: datePublished,
           duration: duration,
-        }
-
-        if (video.spotifyId) videoItem.spotifyId = video.spotifyId;
-
-        playlistVideos.push(videoItem);
+          spotifyId: spotifyId
+        });
       }
     })
 
