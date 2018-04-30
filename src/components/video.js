@@ -465,6 +465,15 @@ class Video extends Component {
     if (this.state.loading || !this.state.video.videoTitle) {
       return (
         <StyledLodingContainer>
+          {this.props.watchArtist && this.props.videoId === this.props.match.params.videoId
+          ? <StyledArtistOnly>
+              <StyledSwitch>
+                <span className="switch-label">{this.props.watchArtist}'s top tracks</span>
+                <input type="checkbox" onChange={this.props.toggleTopTracks} checked={this.props.topTracks} />
+                <div className="switch-slider"></div>
+              </StyledSwitch>
+            </StyledArtistOnly>
+          : null}
           <MuiThemeProvider>
             <CircularProgress color="#fff" thickness={4} size={60} />
           </MuiThemeProvider>
