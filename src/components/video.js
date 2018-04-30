@@ -45,15 +45,12 @@ const StyledLodingContainer = StyledContainer.extend`
 `
 const StyledNoFoundContent = styled.div`
   width: 100%;
-  height: calc(100vh - 354px);
+  height: 100%;
   overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
   h1{
     margin-bottom: 40px;
   }
