@@ -285,7 +285,7 @@ class Video extends Component {
 
     video.datePublishedFormated = moment(video.publishedAt).format('YYYY[-]MM[-]DD');
 
-    const playingNext = playlistVideos[findIndex(playlistVideos, {videoID: video.videoID}) + 1];
+    const playingNext = playlistVideos[findIndex(playlistVideos, {videoID: video.videoID}) + 1] || playlistVideos[0];
 
     playingNext.durationFormated = moment.duration(playingNext.duration).asMilliseconds() > 3600000
     ? moment.utc(moment.duration(playingNext.duration).asMilliseconds()).format("hh:mm:ss")
