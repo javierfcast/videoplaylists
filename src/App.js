@@ -233,6 +233,8 @@ class App extends Component {
       gapiReady: false,
       //Video single
       watchId: null,
+      watchArtist: null,
+      topTracks: false,
       //PlayerControls
       playingSource: '',
       optionsOpen: false,
@@ -507,6 +509,12 @@ class App extends Component {
   toggleInterface = () => {
     this.setState({
       interfaceAlwaysOn: !this.state.interfaceAlwaysOn
+    })
+  };
+
+  toggleTopTracks = () => {
+    this.setState({
+      topTracks: !this.state.topTracks
     })
   };
 
@@ -795,22 +803,23 @@ class App extends Component {
 
   //Play controls for playlists and search results Methods
 
-  togglePlayer = (video, playlist, playlistVideos, playingSource, watchId) => {
+  togglePlayer = (video, playlist, playlistVideos, playingSource, watchId, watchArtist, withoutPlaying) => {
 
     //Play Selected Video from the playlist
     const videoId = video.videoID;
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
     
-    this.player.loadVideoById(videoId);
+    if (!withoutPlaying) this.player.loadVideoById(videoId);
 
     this.setState({
       playerIsOpen: true,
-      playerIsPlaying: true,
+      playerIsPlaying: withoutPlaying ? this.state.playerIsPlaying : true,
       playlistVideos: playlistVideos,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
       watchId,
+      watchArtist,
       playingSource,
       video,
       videoId,
@@ -818,7 +827,7 @@ class App extends Component {
       videoChannel,
     });
 
-    this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `Library`}`);
+    // this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `Library`}`);
 
   };
 
@@ -1693,6 +1702,9 @@ class App extends Component {
                     videoId={this.state.videoId}
                     watchId={this.state.watchId}
                     setSnackbar={this.setSnackbar}
+                    topTracks={this.state.topTracks}
+                    toggleTopTracks={this.toggleTopTracks}
+                    watchArtist={this.state.watchArtist}
                   />} 
                   
                 />

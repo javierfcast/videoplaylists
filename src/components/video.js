@@ -33,10 +33,16 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 }, {})
 
 const StyledContainer = styled.div`
+  position: relative;
   padding: 20px 20px 0;
   width: 100%;
   overflow: auto;
   height: calc(100vh - 100px);
+`;
+const StyledArtistOnly = styled.div`
+  position: absolute;
+  right: 14px;
+  top: 14px;
 `;
 const StyledLodingContainer = StyledContainer.extend`
   display: flex;
@@ -146,6 +152,56 @@ const StyledActionButton = styled.a`
     margin-right: 10px;
   }
 `;
+const StyledSwitch = styled.label`
+  padding: 10px 0;
+  display: flex;
+  position: relative;
+  justify-content: space-between;
+  align-items: center;
+  input{
+    display: none;
+  }
+  .switch-slider{
+    cursor: pointer;
+    width: 34px;
+    height: 20px;
+    background-color: rgba(255,255,255,0.2);
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 24px;
+    position: relative;
+    &:before{
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+      border-radius: 50%;
+    }
+  }
+  .switch-label{
+    transition: all .3s ease;
+  	text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-right: 8px;
+  }
+  input:checked + .switch-slider {
+    background-color: #71198E;
+  }
+  input:focus + .switch-slider {
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12), 0 2px 4px -1px rgba(0,0,0,.2);
+  }
+  input:checked + .switch-slider:before {
+    -webkit-transform: translateX(16px);
+    -ms-transform: translateX(16px);
+    transform: translateX(16px);
+  }
+`;
 
 class Video extends Component {
 
@@ -167,7 +223,7 @@ class Video extends Component {
   componentWillMount() {
     if (!this.props.watchId || this.props.watchId !== this.props.match.params.videoId) {
       if (this.props.playerLoaded) {
-        this.startRadio(this.props.match.params.videoId, this.props.match.params.spotifyId)
+        this.startRadio(this.props.match.params.videoId, this.props.match.params.spotifyId, this.props)
       }
     }
     else if (this.props.currentVideo && this.state.video.videoID !== this.props.currentVideo.videoID) {
@@ -176,21 +232,25 @@ class Video extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
+    if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId || this.props.topTracks !== nextProps.topTracks) {
       if (nextProps.playerLoaded) {
-        this.startRadio(nextProps.match.params.videoId, nextProps.match.params.spotifyId)
+        this.startRadio(nextProps.match.params.videoId, nextProps.match.params.spotifyId, nextProps, this.props.topTracks !== nextProps.topTracks);
       }
     }
 
-    else if (nextProps.currentVideo && this.state.video.videoID !== nextProps.currentVideo.videoID) {
+    else if (
+      (nextProps.currentVideo && this.state.video.videoID !== nextProps.currentVideo.videoID) || 
+      (nextProps.currentPlaylist && this.state.relatedVideos !== nextProps.currentPlaylist)
+    ) {
       this.updateInfo(nextProps.currentVideo, nextProps.currentPlaylist)
     }
   };
 
-  startRadio = (videoID, firstSpotifyId) => {
+  startRadio = (videoID, firstSpotifyId, props, isUpdate) => {
     if (this.state.loading) return
 
     let firstVideo;
+    let watchArtist;
 
     this.setState({loading: true}, () => {
       const spotifyApi = new SpotifyWebApi();
@@ -236,15 +296,21 @@ class Video extends Component {
       .then(searchResponse => {
         if (!searchResponse) return false
         if (searchResponse.type === "track") {
-          return spotifyApi.getArtistTopTracks(head(searchResponse.artists).id, "US")
+          watchArtist = head(searchResponse.artists).name;
+          if (props.topTracks) return spotifyApi.getArtistTopTracks(head(searchResponse.artists).id, "US")
+          return spotifyApi.getRecommendations({seed_tracks: searchResponse.id, limit: 30})
         }
         
         if (isEmpty(searchResponse.tracks.items)) return false
-        return spotifyApi.getArtistTopTracks(head(head(searchResponse.tracks.items).artists).id, "US")
+        watchArtist = head(head(searchResponse.tracks.items).artists).name;
+
+        if (props.topTracks) return spotifyApi.getArtistTopTracks(head(head(searchResponse.tracks.items).artists).id, "US")
+        return spotifyApi.getRecommendations({seed_tracks: head(searchResponse.tracks.items).id, limit: 30})
       })
-      .then(topTracks => {
-        if (!topTracks || isEmpty(topTracks.tracks)) return false
-        return map(topTracks.tracks, trackObj => (
+      .then(relatdTracks => {
+        if (!relatdTracks) watchArtist = null;
+        if (!relatdTracks || isEmpty(relatdTracks.tracks)) return false
+        return map(relatdTracks.tracks, trackObj => (
           new Promise((resolve, reject) => {
             YTApi.search({
               part: "snippet",
@@ -301,7 +367,15 @@ class Video extends Component {
           videoCount: relatedVideos.length,
         }
 
-        this.props.togglePlayer(firstVideo, playlist, relatedVideos, `/watch/${firstVideo.videoID}${firstVideo.spotifyId ? `/${firstVideo.spotifyId}` : ''}`, videoID)
+        this.props.togglePlayer(
+          firstVideo, 
+          playlist, 
+          relatedVideos, 
+          `/watch/${firstVideo.videoID}${firstVideo.spotifyId ? `/${firstVideo.spotifyId}` : ''}`, 
+          videoID, 
+          watchArtist, 
+          isUpdate
+        )
 
         this.setState({loading: false});
       })
@@ -426,6 +500,15 @@ class Video extends Component {
           id="share-video-popup"
           large
         />
+        {this.props.watchArtist && this.props.videoId === this.props.match.params.videoId
+        ? <StyledArtistOnly>
+            <StyledSwitch>
+              <span className="switch-label">{this.props.watchArtist}'s top tracks</span>
+              <input type="checkbox" onChange={this.props.toggleTopTracks} checked={this.props.topTracks} />
+              <div className="switch-slider"></div>
+            </StyledSwitch>
+          </StyledArtistOnly>
+        : null}
         <StyledCurrentVideo>
           {currentLibraryButton}
           <StyledVideoInfo>
