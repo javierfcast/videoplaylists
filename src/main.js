@@ -55,7 +55,7 @@ function createWindow () {
 app.on('before-quit', () => willQuitApp = true);
 
 ipcMain.on('electronVersion', (event, arg) => {
-  event.returnValue = '0.1.0'
+  event.returnValue = app.getVersion()
 })
 
 // This method will be called when Electron has finished
@@ -97,7 +97,7 @@ app.on('ready', () => {
         {role: 'reload'},
         {role: 'forcereload'},
         // {role: 'toggledevtools'},
-        {label: "Clear Cache", click: function() {mainWindow.reloadIgnoringCache()}},
+        {label: "Clear Cache", click: function() {mainWindow.webContents.reloadIgnoringCache()}},
         {type: 'separator'},
         {role: 'resetzoom'},
         {role: 'zoomin'},
