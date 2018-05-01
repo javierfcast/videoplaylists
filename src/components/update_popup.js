@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import firebase from 'firebase';
+import '@firebase/firestore';
 
 const StyledPopup = styled.div`
   position: fixed;
@@ -72,15 +74,22 @@ const StyledClickOutside = styled.div`
   bottom: 0;
 `;
 
-const UpdatePopup = ({ open, onClose, setSnackbar }) => {
+const UpdatePopup = ({ open, onClose, setSnackbar, newVersion }) => {
 
   if (!open) {
     return null;
   }
 
   const onUpdate = () => {
-    if (typeof window.openUpdateUrl === 'function') {
-      window.openUpdateUrl();
+    if (typeof window.openExternal === 'function') {
+      firebase.storage().ref(`electron/videoplaylists.tv-${newVersion}.dmg`).getDownloadURL()
+      .then(url => {
+        window.openExternal(url);
+      })
+      .catch(e => {
+        console.log(e);
+        setSnackbar("Something went wrong, try again later.");
+      })
     }
     else setSnackbar("Something went wrong, try again later.");
     onClose()
