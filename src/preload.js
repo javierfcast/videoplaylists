@@ -1,4 +1,4 @@
-const { ipcRenderer, shell } = require('electron')
+const { ipcRenderer, shell } = require('electron');
 
 ipcRenderer.on('MediaPlayPause', () => {
   window.dispatchEvent(new Event('MediaPlayPause'));
@@ -12,8 +12,8 @@ ipcRenderer.on('MediaPreviousTrack', () => {
   window.dispatchEvent(new Event('MediaPreviousTrack'));
 })
 
-window.openUpdateUrl = function () {
-  shell.openExternal("https://drive.google.com/uc?export=download&id=1hBdLnzs7yCaOSpEX-FK-p-BlW3KjbfBN");
+window.openExternal = function (url) {
+  shell.openExternal(url);
 }
 
 window.sendSync = function (channel, arg) {
