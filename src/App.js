@@ -165,6 +165,7 @@ class App extends Component {
     super(props);
     this.state = {
       updateIsOpen: false,
+      newVersion: '',
       searchResults: [],
       user: null,
       //Responsive
@@ -359,7 +360,10 @@ class App extends Component {
         const electronVersion = window.sendSync("electronVersion");
         
         if (doc.data().version !== electronVersion) {
-          this.setState({updateIsOpen: true});
+          this.setState({
+            updateIsOpen: true, 
+            newVersion: doc.data().version
+          });
         }
       }
     })
@@ -1855,6 +1859,7 @@ class App extends Component {
             open={this.state.updateIsOpen}
             onClose={() => this.setState({updateIsOpen: false})}
             setSnackbar={this.setSnackbar}
+            newVersion={this.state.newVersion}
           />
         </StyledContainer>
         <MuiThemeProvider>
