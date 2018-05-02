@@ -312,6 +312,8 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
               <StyledSocialLink href="https://twitter.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoTwitter} alt='Logo Twitter' /></StyledSocialLink>
               <StyledSocialLink href="https://instagram.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoInstagram} alt='Logo Instagram' /></StyledSocialLink>
             </StyledSocialList>
+            <StyledLabel>Download apps</StyledLabel>
+            <StyledButton href="https://www.dropbox.com/s/zlgq963yn5k7o4u/videoplaylists.tv.dmg?dl=1" target="_blank"><i class=""></i> Mac desktop app</StyledButton>
           </StyledBottomContainer>
         </StyledContainer>
         )
