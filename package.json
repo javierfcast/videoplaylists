@@ -28,26 +28,11 @@
     "styled-components": "^2.4.0",
     "youtube-player": "^5.4.0"
   },
-  "build": {
-    "appId": "com.electron.videoplaylists",
-    "mac": {
-      "category": "public.app-category.video",
-      "icon": "public/icon.icns"
-    },
-    "extends": null
-  },
   "main": "src/main.js",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "electron": "electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder"
-  },
-  "devDependencies": {
-    "electron": "^1.8.4",
-    "electron-builder": "^20.10.0"
+    "eject": "react-scripts eject"
   }
 }
