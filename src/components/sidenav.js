@@ -150,6 +150,8 @@ const StyledButton = styled.a`
   letter-spacing: 2px;
   text-transform: uppercase;
   font-size: 10px;
+  text-decoration: none;
+  color: white;
   &:hover{
     border: 1px solid rgba(255,255,255,1);
   }
@@ -198,6 +200,7 @@ const StyledLabel = styled.p`
   margin-bottom: 10px;
 `;
 const StyledSocialList = styled.div`
+  margin-bottom: 40px;
 `;
 const StyledSocialLogo = styled.img`
   width: 24px;
@@ -276,6 +279,8 @@ const Sidenav = ({ toggleAddPlaylistPopup, importFromSpotify, onImportPlaylistDr
               <StyledSocialLink href="https://twitter.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoTwitter} alt='Logo Twitter' /></StyledSocialLink>
               <StyledSocialLink href="https://instagram.com/videoplaylists" target="_blank" rel="noopener noreferrer"><StyledSocialLogo src={logoInstagram} alt='Logo Instagram' /></StyledSocialLink>
             </StyledSocialList>
+            <StyledLabel>Download apps</StyledLabel>
+            <StyledButton href="https://www.dropbox.com/s/zlgq963yn5k7o4u/videoplaylists.tv.dmg?dl=1" target="_blank"><i class=""></i> Mac desktop app</StyledButton>
           </StyledBottomContainer>
         </StyledContainer>
         ) : (
