@@ -1,7 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import firebase from 'firebase';
-import '@firebase/firestore';
 
 const StyledPopup = styled.div`
   position: fixed;
@@ -82,14 +80,7 @@ const UpdatePopup = ({ open, onClose, setSnackbar, newVersion }) => {
 
   const onUpdate = () => {
     if (typeof window.openExternal === 'function') {
-      firebase.storage().ref(`electron/videoplaylists.tv-${newVersion}.dmg`).getDownloadURL()
-      .then(url => {
-        window.openExternal(url);
-      })
-      .catch(e => {
-        console.log(e);
-        setSnackbar("Something went wrong, try again later.");
-      })
+      window.openExternal("https://www.dropbox.com/s/zlgq963yn5k7o4u/videoplaylists.tv.dmg?dl=1")
     }
     else setSnackbar("Something went wrong, try again later.");
     onClose()
