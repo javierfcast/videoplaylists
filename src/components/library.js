@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import firebase from 'firebase';
 import '@firebase/firestore';
 import styled from 'styled-components';
-import orderBy from 'lodash/orderBy';
+import {map, orderBy} from 'lodash';
 
 import VideoListContainer from './video_list_container';
 import PlaylistOptionsPopup from './playlist_options_popup';
@@ -142,17 +142,7 @@ class Library extends Component {
   onSort = (items) => {
     let docRef = firebase.firestore().collection('users').doc(this.state.profileId);
     
-    let newOrder = items.map(item => {
-      return {
-        timestamp: item.props.video.timestamp,
-        videoEtag: item.props.video.videoEtag,
-        videoID: item.props.video.videoID,
-        videoTitle: item.props.video.videoTitle,
-        videoChannel: item.props.video.videoChannel,
-        datePublished: item.props.video.datePublished,
-        duration: item.props.video.duration,
-      }
-    })
+    const newOrder = map(items, item => item.props.video);
 
     if (this.state.libraryOrderDirection === 'desc') newOrder.reverse(); 
 

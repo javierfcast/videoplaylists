@@ -296,7 +296,9 @@ class VideoListContainer extends Component {
         <SharePopup
           open={this.state.shareOpen}
           name={this.state.optionsVideo.videoTitle}
-          url={`https://videoplaylists.tv/watch/${this.state.optionsVideo.videoID}`}
+          url={
+            `https://videoplaylists.tv/watch/${this.state.optionsVideo.videoID}${this.state.optionsVideo.spotifyId ? `/${this.state.optionsVideo.spotifyId}` : ''}`
+          }
           onCopy={this.props.setSnackbar}
           onClose={this.toggleShare}
           id="share-video-popup"

@@ -118,7 +118,7 @@ const VideoItem = ({ user, playlist, playlistVideos, video, videoTitle, videoEta
   
   if (origin === "radio") {
     videoTrigger = 
-      <StyledVideoInfoLink to={`/watch/${videoId}`}>
+      <StyledVideoInfoLink to={`/watch/${videoId}${video.spotifyId ? `/${video.spotifyId}` : ''}`}>
         <VideoMeta>{videoChannel}</VideoMeta>
         <VideoItemTitle>{videoTitle}</VideoItemTitle>
         <VideoMeta>Published: {datePublished}{extraMeta}</VideoMeta>

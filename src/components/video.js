@@ -5,7 +5,12 @@ import { css } from 'styled-components';
 import MaterialIcon from 'material-icons-react';
 import moment from 'moment';
 import YTApi from './yt_api';
-import {head, findIndex, remove, some} from 'lodash'
+import {head, findIndex, remove, some, isEmpty, map, uniqBy} from 'lodash';
+import axios from 'axios';
+import CircularProgress from 'material-ui/CircularProgress';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+
+import SpotifyWebApi from 'spotify-web-api-js';
 
 import VideoListContainer from './video_list_container';
 import SharePopup from './share_popup';
@@ -28,22 +33,30 @@ const media = Object.keys(sizes).reduce((acc, label) => {
 }, {})
 
 const StyledContainer = styled.div`
+  position: relative;
   padding: 20px 20px 0;
   width: 100%;
   overflow: auto;
   height: calc(100vh - 100px);
 `;
+const StyledArtistOnly = styled.div`
+  position: absolute;
+  right: 14px;
+  top: 14px;
+`;
+const StyledLodingContainer = StyledContainer.extend`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`
 const StyledNoFoundContent = styled.div`
   width: 100%;
-  height: calc(100vh - 354px);
+  height: 100%;
   overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  ${media.xmedium`
-    height: calc(100vh - 258px);
-  `}
   h1{
     margin-bottom: 40px;
   }
@@ -139,6 +152,56 @@ const StyledActionButton = styled.a`
     margin-right: 10px;
   }
 `;
+const StyledSwitch = styled.label`
+  padding: 10px 0;
+  display: flex;
+  position: relative;
+  justify-content: space-between;
+  align-items: center;
+  input{
+    display: none;
+  }
+  .switch-slider{
+    cursor: pointer;
+    width: 34px;
+    height: 20px;
+    background-color: rgba(255,255,255,0.2);
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 24px;
+    position: relative;
+    &:before{
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+      border-radius: 50%;
+    }
+  }
+  .switch-label{
+    transition: all .3s ease;
+  	text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-right: 8px;
+  }
+  input:checked + .switch-slider {
+    background-color: #71198E;
+  }
+  input:focus + .switch-slider {
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,.14), 0 1px 10px 0 rgba(0,0,0,.12), 0 2px 4px -1px rgba(0,0,0,.2);
+  }
+  input:checked + .switch-slider:before {
+    -webkit-transform: translateX(16px);
+    -ms-transform: translateX(16px);
+    transform: translateX(16px);
+  }
+`;
 
 class Video extends Component {
 
@@ -160,7 +223,12 @@ class Video extends Component {
   componentWillMount() {
     if (!this.props.watchId || this.props.watchId !== this.props.match.params.videoId) {
       if (this.props.playerLoaded) {
-        this.startRadio(this.props.match.params.videoId)
+        this.startRadio(
+          this.props.match.params.videoId, 
+          this.props.match.params.spotifyId, 
+          this.props,
+          this.props.videoId === this.props.match.params.videoId
+        )
       }
     }
     else if (this.props.currentVideo && this.state.video.videoID !== this.props.currentVideo.videoID) {
@@ -169,28 +237,41 @@ class Video extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId) {
+    if (!nextProps.watchId || nextProps.watchId !== nextProps.match.params.videoId || this.props.topTracks !== nextProps.topTracks) {
       if (nextProps.playerLoaded) {
-        this.startRadio(nextProps.match.params.videoId)
+        this.startRadio(
+          nextProps.match.params.videoId, 
+          nextProps.match.params.spotifyId, 
+          nextProps, 
+          this.props.topTracks !== nextProps.topTracks || nextProps.videoId === nextProps.match.params.videoId
+        );
       }
     }
 
-    else if (nextProps.currentVideo && this.state.video.videoID !== nextProps.currentVideo.videoID) {
+    else if (
+      (nextProps.currentVideo && this.state.video.videoID !== nextProps.currentVideo.videoID) || 
+      (nextProps.currentPlaylist && this.state.relatedVideos !== nextProps.currentPlaylist)
+    ) {
       this.updateInfo(nextProps.currentVideo, nextProps.currentPlaylist)
     }
   };
 
-  startRadio = (videoID) => {
+  startRadio = (videoID, firstSpotifyId, props, isUpdate) => {
     if (this.state.loading) return
 
+    let firstVideo;
+    let watchArtist;
+
     this.setState({loading: true}, () => {
+      const spotifyApi = new SpotifyWebApi();
+
       YTApi.videos({ part: 'snippet,contentDetails', key: this.props.YT_API_KEY, id: videoID })
       .then(response => {
         response = head(response) 
 
         if (!response) {this.setState({notFound: true}); throw new Error("Video not found.")}
   
-        return {
+        firstVideo = {
           timestamp: new Date(),
           videoEtag: response.etag,
           videoID: response.id,
@@ -198,43 +279,116 @@ class Video extends Component {
           videoChannel: response.snippet.channelTitle,
           datePublished: response.snippet.publishedAt,
           duration: response.contentDetails.duration,
+          spotifyId: firstSpotifyId || null
         }
+
+        return firstVideo
       })
-      .then(video => {
-        YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: video.videoID, type: 'video', maxResults: 30 })
-        .then((searchResults)=> {
-          let relatedVideos = searchResults.map((result, index) => ({
-              datePublished: result.snippet.publishedAt,
-              videoChannel: result.snippet.channelTitle,
-              videoEtag: result.etag,
-              videoID: result.id.videoId,
-              videoTitle: result.snippet.title,
-              key: result.id.videoId,
-              duration: result.contentDetails.duration,
-          }));
-  
-          relatedVideos = [video, ...relatedVideos];
+      .then(() => {
+        const APPS_SCRIPT_TOKEN = "https://script.google.com/macros/s/AKfycbwxAkZ3StrS7tfLY1byXtKRCQF2k6PHVfjUNebnvfeEHq8CUdAR/exec";
+        return axios.get(APPS_SCRIPT_TOKEN)
+      })
+      .then(token => {
+        spotifyApi.setAccessToken(token.data.access_token);
+        if (firstSpotifyId) {
+          return new Promise ((resolve, reject) => {
+            spotifyApi.getTrack(firstSpotifyId)
+            .then(r => resolve(r))
+            .catch(e => resolve(false))
+          })
+        }
+        return false
+      })
+      .then(trackResponse => {
+        if (!trackResponse) return spotifyApi.searchTracks(firstVideo.videoTitle)
+        return trackResponse
+      })
+      .then(searchResponse => {
+        if (!searchResponse) return false
+        if (searchResponse.type === "track") {
+          watchArtist = head(searchResponse.artists).name;
+          if (props.topTracks) return spotifyApi.getArtistTopTracks(head(searchResponse.artists).id, "US")
+          return spotifyApi.getRecommendations({seed_tracks: searchResponse.id, limit: 30})
+        }
+        
+        if (isEmpty(searchResponse.tracks.items)) return false
+        watchArtist = head(head(searchResponse.tracks.items).artists).name;
 
-          const playlist = {
-            Author: this.props.user ? this.props.user.displayName : "Anonymous",
-            AuthorId: this.props.user ? this.props.user.uid : "Anonymous",
-            createdOn: new Date(),
-            featured: false,
-            followers: 0,
-            playlistId: video.videoEtag,
-            playlistName: "radio",
-            playlistSlugName: "radio",
-            videoCount: relatedVideos.length,
-          }
-  
-          this.props.togglePlayer(video, playlist, relatedVideos, `/watch/${video.videoID}`, videoID)
+        if (props.topTracks) return spotifyApi.getArtistTopTracks(head(head(searchResponse.tracks.items).artists).id, "US")
+        return spotifyApi.getRecommendations({seed_tracks: head(searchResponse.tracks.items).id, limit: 30})
+      })
+      .then(relatdTracks => {
+        if (!relatdTracks) watchArtist = null;
+        if (!relatdTracks || isEmpty(relatdTracks.tracks)) return false
+        return map(relatdTracks.tracks, trackObj => (
+          new Promise((resolve, reject) => {
+            YTApi.search({
+              part: "snippet",
+              key: this.props.YT_API_KEY,
+              q: trackObj.name + " " + head(trackObj.artists).name,
+              type: "video",
+              maxResults: 1
+            })
+            .then(res => {
+              if (isEmpty(res)) resolve(null)
+              head(res).spotifyId = trackObj.id;
+              resolve(res);
+            })
+            .catch(e => {
+              reject(e);
+            });
+          })
+        ))
+      })
+      .then(promises => {
+        if (!promises) return false
+        return Promise.all(promises)
+      })
+      .then(ytResults => {
+        if (!ytResults || isEmpty(ytResults)) return false
+        return map(ytResults, r => head(r))
+      })
+      .then(relatedResults => {
+        if (relatedResults) return relatedResults = remove(relatedResults, rr => rr)
+        return YTApi.search({ part: 'snippet', key: this.props.YT_API_KEY, relatedToVideoId: firstVideo.videoID, type: 'video', maxResults: 30 })
+      })
+      .then(relatedVideos => {
+        relatedVideos = map(relatedVideos, relatedResult => ({
+          datePublished: relatedResult.snippet.publishedAt,
+          videoChannel: relatedResult.snippet.channelTitle,
+          videoEtag: relatedResult.etag,
+          videoID: relatedResult.id.videoId,
+          videoTitle: relatedResult.snippet.title,
+          key: relatedResult.id.videoId,
+          duration: relatedResult.contentDetails.duration,
+          spotifyId: relatedResult.spotifyId || null
+        }))
 
-          this.setState({loading: false});
-        })
-        .catch(e => {
-          console.log('error: ', e);
-          this.props.setSnackbar(String(e))
-        });
+        relatedVideos = uniqBy([firstVideo, ...relatedVideos], "videoID");
+
+        const playlist = {
+          Author: this.props.user ? this.props.user.displayName : "Anonymous",
+          AuthorId: this.props.user ? this.props.user.uid : "Anonymous",
+          createdOn: new Date(),
+          featured: false,
+          followers: 0,
+          playlistId: firstVideo.videoEtag,
+          playlistName: "radio",
+          playlistSlugName: "radio",
+          videoCount: relatedVideos.length,
+        }
+
+        this.props.togglePlayer(
+          firstVideo, 
+          playlist, 
+          relatedVideos, 
+          `/watch/${firstVideo.videoID}${firstVideo.spotifyId ? `/${firstVideo.spotifyId}` : ''}`, 
+          videoID, 
+          watchArtist, 
+          isUpdate
+        )
+
+        this.setState({loading: false});
       })
       .catch(e => {
         console.log('error: ', e);
@@ -308,6 +462,25 @@ class Video extends Component {
       )
     }
 
+    if (this.state.loading || !this.state.video.videoTitle) {
+      return (
+        <StyledLodingContainer>
+          {this.props.watchArtist && this.props.videoId === this.props.match.params.videoId
+          ? <StyledArtistOnly>
+              <StyledSwitch>
+                <span className="switch-label">{this.props.watchArtist}'s top tracks</span>
+                <input type="checkbox" onChange={this.props.toggleTopTracks} checked={this.props.topTracks} />
+                <div className="switch-slider"></div>
+              </StyledSwitch>
+            </StyledArtistOnly>
+          : null}
+          <MuiThemeProvider>
+            <CircularProgress color="#fff" thickness={4} size={60} />
+          </MuiThemeProvider>
+        </StyledLodingContainer>
+      )
+    }
+
     const currentLibraryButton =
     some(this.props.libraryVideos, e => (e.videoID === this.state.video.videoID))
     ? 
@@ -341,12 +514,21 @@ class Video extends Component {
         <SharePopup
           open={this.state.shareOpen}
           name={this.state.shareVideo.videoTitle}
-          url={`https://videoplaylists.tv/watch/${this.state.shareVideo.videoID}`}
+          url={`https://videoplaylists.tv/watch/${this.state.shareVideo.videoID}${this.state.shareVideo.spotifyId ? `/${this.state.shareVideo.spotifyId}` : ''}`}
           onCopy={this.props.setSnackbar}
           onClose={this.toggleShare}
           id="share-video-popup"
           large
         />
+        {this.props.watchArtist && this.props.videoId === this.props.match.params.videoId
+        ? <StyledArtistOnly>
+            <StyledSwitch>
+              <span className="switch-label">{this.props.watchArtist}'s top tracks</span>
+              <input type="checkbox" onChange={this.props.toggleTopTracks} checked={this.props.topTracks} />
+              <div className="switch-slider"></div>
+            </StyledSwitch>
+          </StyledArtistOnly>
+        : null}
         <StyledCurrentVideo>
           {currentLibraryButton}
           <StyledVideoInfo>

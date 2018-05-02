@@ -1,4 +1,4 @@
-import {debounce, isEmpty, filter, every, map, some} from 'lodash';
+import {debounce, isEmpty, filter, every, map, some, head, forEach, uniqBy} from 'lodash';
 import React, { Component } from 'react';
 import { Switch, Route, withRouter } from 'react-router-dom';
 import firebase from 'firebase';
@@ -234,6 +234,8 @@ class App extends Component {
       gapiReady: false,
       //Video single
       watchId: null,
+      watchArtist: null,
+      topTracks: false,
       //PlayerControls
       playingSource: '',
       optionsOpen: false,
@@ -511,6 +513,12 @@ class App extends Component {
   toggleInterface = () => {
     this.setState({
       interfaceAlwaysOn: !this.state.interfaceAlwaysOn
+    })
+  };
+
+  toggleTopTracks = () => {
+    this.setState({
+      topTracks: !this.state.topTracks
     })
   };
 
@@ -799,22 +807,23 @@ class App extends Component {
 
   //Play controls for playlists and search results Methods
 
-  togglePlayer = (video, playlist, playlistVideos, playingSource, watchId) => {
+  togglePlayer = (video, playlist, playlistVideos, playingSource, watchId, watchArtist, withoutPlaying) => {
 
     //Play Selected Video from the playlist
     const videoId = video.videoID;
     const videoTitle = video.videoTitle;
     const videoChannel = video.videoChannel;
     
-    this.player.loadVideoById(videoId);
+    if (!withoutPlaying) this.player.loadVideoById(videoId);
 
     this.setState({
       playerIsOpen: true,
-      playerIsPlaying: true,
+      playerIsPlaying: withoutPlaying ? this.state.playerIsPlaying : true,
       playlistVideos: playlistVideos,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
       watchId,
+      watchArtist,
       playingSource,
       video,
       videoId,
@@ -822,7 +831,7 @@ class App extends Component {
       videoChannel,
     });
 
-    this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `Library`}`);
+    // this.setSnackbar(`Currently playing: ${videoTitle} - from ${playlist.playlistName || `Library`}`);
 
   };
 
@@ -933,6 +942,7 @@ class App extends Component {
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
     const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+    const spotifyId = video.spotifyId || null;
 
     const user = this.state.user;
 
@@ -963,6 +973,7 @@ class App extends Component {
           videoChannel: videoChannel,
           datePublished: datePublished,
           duration: duration,
+          spotifyId: spotifyId
         }],
         videoCount: playlistVideos.length + 1
       })
@@ -1017,6 +1028,7 @@ class App extends Component {
     const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
     const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
     const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+    const spotifyId = video.spotifyId || null;
 
     const user = this.state.user;
 
@@ -1046,6 +1058,7 @@ class App extends Component {
           videoChannel: videoChannel,
           datePublished: datePublished,
           duration: duration,
+          spotifyId: spotifyId
         }],
         libraryVideoCount: libraryVideos.length + 1
       })
@@ -1263,13 +1276,12 @@ class App extends Component {
   };
 
   batchAdd = (playlistIdRef, items, isUpdate, kind) => {
-    let seen = [];
+    let playlistVideos = [];
     const db = firebase.firestore();
-    const playlistVideos = [];
     const user = this.state.user;
     const self = this;
 
-    items.forEach((video) => {
+    forEach(items, video => {
       if (video) {
         const videoEtag = typeof video.etag !== 'undefined' ? video.etag : video.videoEtag;
         const videoId = typeof video.id !== 'undefined' ? typeof video.id.videoId !== 'undefined' ? video.id.videoId : video.snippet.resourceId.videoId : video.videoID;
@@ -1277,23 +1289,22 @@ class App extends Component {
         const videoChannel = typeof video.snippet !== 'undefined' ? video.snippet.channelTitle : video.videoChannel;
         const datePublished = typeof video.snippet !== 'undefined' ? video.snippet.publishedAt : video.datePublished;
         const duration = typeof video.contentDetails !== 'undefined' ? video.contentDetails.duration : video.duration ? video.duration : null;
+        const spotifyId = video.spotifyId || null;
 
-        //dont set if video is duplicated
-        if (!seen.some((id) => id === videoId)) {
-          playlistVideos.push({
-            timestamp: new Date(),
-            videoEtag: videoEtag,
-            videoID: videoId,
-            videoTitle: videoTitle,
-            videoChannel: videoChannel,
-            datePublished: datePublished,
-            duration: duration,
-          })
-
-          seen.push(videoId);
-        }
+        playlistVideos.push({
+          timestamp: new Date(),
+          videoEtag: videoEtag,
+          videoID: videoId,
+          videoTitle: videoTitle,
+          videoChannel: videoChannel,
+          datePublished: datePublished,
+          duration: duration,
+          spotifyId: spotifyId
+        });
       }
-    });
+    })
+
+    playlistVideos = uniqBy(playlistVideos, "videoID");
 
     const userPlaylistRef = db.collection('users').doc(user.uid).collection('playlists').doc(playlistIdRef);
     const publicPlaylistRef = db.collection('playlists').doc(playlistIdRef);
@@ -1336,7 +1347,7 @@ class App extends Component {
     if (isUpdate !== true) this.setSnackbar("Importing playlist...");
 
     //Fetch Spotify Web Api token with Google Apps Script
-    //Using Google Apps Script to not expose client secret
+    //using Google Apps Script to not expose client secret
     const spotifyApi = new SpotifyWebApi();
     const APPS_SCRIPT_TOKEN = "https://script.google.com/macros/s/AKfycbwxAkZ3StrS7tfLY1byXtKRCQF2k6PHVfjUNebnvfeEHq8CUdAR/exec";
     
@@ -1362,12 +1373,23 @@ class App extends Component {
 
           allTracks.forEach((trackObj) => {
             const searchTerm = trackObj.track.name + " " + trackObj.track.artists[0].name;
-            promises.push(YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 }));
+            promises.push(
+              new Promise((resolve, reject) => {
+                YTApi.search({ part: 'snippet', key: YT_API_KEY, q: searchTerm, type: 'video', maxResults: 1 })
+                .then(res => {
+                  head(res).spotifyId = trackObj.track.id
+                  resolve(res)
+                })
+                .catch(e => {
+                  reject(e)
+                })
+              })
+            );
           });
 
           Promise.all(promises)
           .then((results)=> {
-            results = results.map((result) => result[0]);
+            results = results.map(r => head(r));
             if (isUpdate === true) {
               self.batchAdd(playlist.playlistId, results, isUpdate, 'Spotify');
             }
@@ -1664,7 +1686,7 @@ class App extends Component {
                     followingPlaylists={this.state.followingPlaylists}
                   /> }
                 />
-                <Route exact path='/watch/:videoId' render={({ match }) =>
+                <Route exact path='/watch/:videoId/:spotifyId?' render={({ match }) =>
                   <Video
                     match={match}
                     history={this.props.history}
@@ -1684,6 +1706,9 @@ class App extends Component {
                     videoId={this.state.videoId}
                     watchId={this.state.watchId}
                     setSnackbar={this.setSnackbar}
+                    topTracks={this.state.topTracks}
+                    toggleTopTracks={this.toggleTopTracks}
+                    watchArtist={this.state.watchArtist}
                   />} 
                   
                 />
@@ -1849,7 +1874,11 @@ class App extends Component {
           <SharePopup
             open={this.state.shareOpen}
             name={this.state.videoTitle}
-            url={`https://videoplaylists.tv/watch/${this.state.videoId}`}
+            url={
+              !this.state.video || !this.state.video.spotifyId
+              ? `https://videoplaylists.tv/watch/${this.state.videoId}` 
+              : `https://videoplaylists.tv/watch/${this.state.videoId}/${this.state.video.spotifyId}`
+            }
             onCopy={this.setSnackbar}
             onClose={this.toggleShare}
             id="share-video-popup"
