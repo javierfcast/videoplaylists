@@ -200,7 +200,7 @@ const StyledLabel = styled.p`
   margin-bottom: 10px;
 `;
 const StyledSocialList = styled.div`
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 `;
 const StyledSocialLogo = styled.img`
   width: 24px;
