@@ -152,6 +152,29 @@ const StyledActionButton = styled.a`
     margin-right: 10px;
   }
 `;
+const StyledPlayButton = styled.a`
+  position: absolute;
+  height: 40px;
+  width: 200px;
+  display: flex;
+  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all .3s ease;
+  cursor: pointer;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 10px;
+  text-decoration: none;
+  color: white;
+  &:hover{
+    border: 1px solid rgba(255,255,255,1);
+  }
+  .material-icons{
+    margin-right: 10px;
+  }
+`
 const StyledSwitch = styled.label`
   padding: 10px 0;
   display: flex;
@@ -509,6 +532,13 @@ class Video extends Component {
         <MaterialIcon icon="add" color='#fff' />
       </StyledLibraryButton>
 
+    const playButton =
+    !this.props.playerIsPlaying
+    ? <StyledPlayButton onClick={this.props.togglePlay} >
+        <MaterialIcon icon="play_arrow" color='#fff' /> Play video
+      </StyledPlayButton>
+    : null
+
     return (
       <StyledContainer>
         <SharePopup
@@ -539,6 +569,7 @@ class Video extends Component {
               <StyledActionButton onClick={() => this.props.togglePlaylistPopup(this.state.video)} ><MaterialIcon icon="playlist_add" color='#fff' /> Add to playlist</StyledActionButton>
               <StyledActionButton onClick={() => this.toggleShare(this.state.video)} ><MaterialIcon icon="share" color='#fff' /> Share</StyledActionButton>
             </StyledActions>
+            {playButton}
           </StyledVideoInfo>
         </StyledCurrentVideo>
         <StyledSectionTitle>Playing next</StyledSectionTitle>

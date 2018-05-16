@@ -416,7 +416,7 @@ class App extends Component {
         });
       }
       //video paused
-      else if (event.data === 2) {
+      else {
         this.setState({playerIsPlaying: false});
         clearInterval(updateProgressTimerId)               
         clearInterval(progressTimerId);
@@ -1691,6 +1691,7 @@ class App extends Component {
                     match={match}
                     history={this.props.history}
                     playerLoaded={this.player}
+                    playerIsPlaying={this.state.playerIsPlaying}
                     user={this.state.user}
                     YT_API_KEY={YT_API_KEY}
                     playNextVideo={this.playNextVideo}
@@ -1699,6 +1700,7 @@ class App extends Component {
                     onAddToLibrary={this.onAddToLibrary}
                     onRemoveFromLibrary={this.onRemoveFromLibrary}
                     libraryVideos={this.state.libraryVideos}
+                    togglePlay={this.togglePlay}
                     togglePlayer={this.togglePlayer}
                     togglePlaylistPopup={this.togglePlaylistPopup}
                     currentVideo={this.state.video}
