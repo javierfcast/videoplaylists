@@ -818,7 +818,6 @@ class App extends Component {
 
     this.setState({
       playerIsOpen: true,
-      playerIsPlaying: withoutPlaying ? this.state.playerIsPlaying : true,
       playlistVideos: playlistVideos,
       currentPlaylist: playlist,
       currentVideoNumber: playlistVideos.indexOf(video),
