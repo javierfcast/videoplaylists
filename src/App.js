@@ -44,7 +44,7 @@ import './style/reset.css';
 import './style/style.css';
 
 //Youtube Data 3 API Key
-const YT_API_KEY = 'AIzaSyBCXlTwhpkFImoUbYBJproK1zSIMQ_9gLA';
+const YT_API_KEY = 'AIzaSyDubqMXLi2-DsUTVToL28UHktz_P3vXG94';
 let progTimeout;
 let progressTimerId;
 let updateProgressTimerId;

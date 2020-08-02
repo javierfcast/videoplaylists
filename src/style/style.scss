@@ -81,13 +81,14 @@ body {
   font-size: 14px;
   margin: 0 auto;
   font-family: $font-primary;
+  font-weight: bold;
   overflow-x: hidden;
   width: 100%;
 }
 
 h1, h2, h3, h4, h5, h6{
   line-height: 1.25;
-  font-weight: 100;
+  font-weight: bold;
 }
 
 h1 { font-size: 36px; }
